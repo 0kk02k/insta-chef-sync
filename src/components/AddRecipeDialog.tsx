@@ -245,17 +245,11 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Rezept</h3>
-              <p className="text-sm text-muted-foreground">
-                Fügen Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch. DeepSeek KI wird Ihr Rezept automatisch strukturieren.
-              </p>
-            </div>
 
             <div className="space-y-4">
               {/* PDF Upload Section */}
               <div className="space-y-2">
-                <Label htmlFor="pdf-upload">PDF-Rezept hochladen (optional)</Label>
+                <Label htmlFor="pdf-upload">PDF-Rezept hochladen</Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   {selectedPdf ? (
                     <div className="space-y-3">
@@ -325,7 +319,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image-upload">Rezeptbild hochladen (optional)</Label>
+                <Label htmlFor="image-upload">Rezeptbild hochladen</Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
                     id="image-upload"
@@ -354,7 +348,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                           Bild hochladen
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          JPG, PNG oder WEBP (optional - ansonsten wird AI-Bild generiert)
+                          JPG, PNG oder WEBP
                         </span>
                       </>
                     )}
