@@ -117,14 +117,14 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-uploads')
-          .upload(`userpdfs/${Date.now()}-${fileName}`, pdfFile);
+          .upload(`${user.id}/${Date.now()}-${fileName}`, pdfFile);
 
         if (uploadError) {
           throw new Error('Fehler beim Hochladen der PDF: ' + uploadError.message);
         }
 
         response = await supabase.functions.invoke('pdf-processor', {
-          body: { path: fileName }
+          body: { path: uploadData.path }
         });
       } else if (content) {
         // Send text content to existing function
