@@ -14,8 +14,8 @@ interface RecipeData {
   instructions: string[];
   cooking_time?: number;
   servings?: number;
-}
   image_url?: string;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
