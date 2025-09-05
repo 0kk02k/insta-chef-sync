@@ -8,89 +8,119 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Farbschema basierend auf warmem, einladendem Koch-Theme */
+    --background: 32 30% 98%; /* Porzellan #FAFAF7 */
+    --foreground: 198 12% 26%; /* Schiefergrau #37424A */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* Weiß für Cards */
+    --card-foreground: 198 12% 26%; /* Schiefergrau */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 198 12% 26%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Aprikosen-Peach als Primärfarbe */
+    --primary: 29 100% 85%; /* #FFD6B3 */
+    --primary-foreground: 198 12% 26%; /* Schiefergrau auf Peach */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Mintgrün als Sekundärfarbe */
+    --secondary: 152 47% 83%; /* #BFE9D6 */
+    --secondary-foreground: 198 12% 26%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 152 25% 91%; /* Sehr helles Mintgrün */
+    --muted-foreground: 200 10% 48%; /* Aschgrau #6B767E */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Lavendel als Akzentfarbe */
+    --accent: 245 79% 88%; /* #CFC8F8 */
+    --accent-foreground: 198 12% 26%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 245 40% 92%; /* Helles Lavendel für Borders */
+    --input: 245 40% 92%;
+    --ring: 29 100% 85%; /* Peach für Focus-Ring */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Coral für spezielle Highlights */
+    --coral: 8 100% 80%; /* #FFA7A0 */
+    --coral-foreground: 198 12% 26%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Zitronensorbet für Info-Highlights */
+    --lemon: 55 100% 82%; /* #FFF2A8 */
+    --lemon-foreground: 198 12% 26%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Mint-Varianten für alternierende Bereiche */
+    --mint-light: 152 40% 94%; /* #EAF7F1 */
+    --lavender-wash: 245 70% 96%; /* #F3F1FE */
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Hover-States */
+    --primary-hover: 29 100% 80%; /* Dunklerer Peach #FFC699 */
+    --secondary-hover: 152 50% 77%; /* Dunkleres Mint #A9DFC9 */
 
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 32 30% 98%;
+    --sidebar-foreground: 198 12% 26%;
+    --sidebar-primary: 29 100% 85%;
+    --sidebar-primary-foreground: 198 12% 26%;
+    --sidebar-accent: 152 25% 91%;
+    --sidebar-accent-foreground: 198 12% 26%;
+    --sidebar-border: 245 40% 92%;
+    --sidebar-ring: 29 100% 85%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Mode mit wärmeren Tönen */
+    --background: 198 20% 8%; /* Dunkleres Schiefergrau */
+    --foreground: 32 30% 95%; /* Helles Porzellan */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 198 15% 12%;
+    --card-foreground: 32 30% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 198 15% 12%;
+    --popover-foreground: 32 30% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Gedämpfte Versionen der Hauptfarben für Dark Mode */
+    --primary: 29 60% 65%; /* Gedämpfter Peach */
+    --primary-foreground: 198 20% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 152 30% 25%; /* Dunkles Mintgrün */
+    --secondary-foreground: 32 30% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 198 10% 20%;
+    --muted-foreground: 200 10% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 245 40% 35%; /* Dunkler Lavendel */
+    --accent-foreground: 32 30% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 32 30% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 198 10% 25%;
+    --input: 198 10% 25%;
+    --ring: 29 60% 65%;
+
+    /* Dark Mode spezifische Farben */
+    --coral: 8 70% 60%;
+    --coral-foreground: 32 30% 95%;
+
+    --lemon: 55 80% 70%;
+    --lemon-foreground: 198 20% 8%;
+
+    --mint-light: 152 20% 15%;
+    --lavender-wash: 245 30% 18%;
+
+    --primary-hover: 29 65% 60%;
+    --secondary-hover: 152 35% 30%;
+
+    --sidebar-background: 198 20% 8%;
+    --sidebar-foreground: 32 30% 95%;
+    --sidebar-primary: 29 60% 65%;
+    --sidebar-primary-foreground: 198 20% 8%;
+    --sidebar-accent: 198 10% 20%;
+    --sidebar-accent-foreground: 32 30% 95%;
+    --sidebar-border: 198 10% 25%;
+    --sidebar-ring: 29 60% 65%;
   }
 }
 
