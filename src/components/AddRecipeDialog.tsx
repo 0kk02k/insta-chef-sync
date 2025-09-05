@@ -17,6 +17,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rawInput, setRawInput] = useState('');
+  const [recipeUrl, setRecipeUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -27,6 +28,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
   const resetForm = () => {
     setRawInput('');
+    setRecipeUrl('');
     setImageFile(null);
     setImagePreview(null);
     setSelectedPdf(null);
@@ -77,8 +79,9 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       setSelectedPdf(file);
       
-      // Clear text input since we'll process the PDF directly
+      // Clear other inputs since we'll process the PDF directly
       setRawInput('');
+      setRecipeUrl('');
       
       toast({
         title: "PDF-Datei erfolgreich ausgewählt",
@@ -105,7 +108,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     return publicUrl;
   };
 
-  const processContent = async (content?: string, pdfFile?: File) => {
+  const processContent = async (content?: string, pdfFile?: File, url?: string) => {
     try {
       setProcessing(true);
       
@@ -131,8 +134,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         response = await supabase.functions.invoke('process-instagram-recipe', {
           body: { content }
         });
+      } else if (url) {
+        // Send URL to the function for scraping
+        response = await supabase.functions.invoke('process-instagram-recipe', {
+          body: { url }
+        });
       } else {
-        throw new Error('Weder PDF noch Text-Inhalt bereitgestellt');
+        throw new Error('Weder PDF, Text-Inhalt noch URL bereitgestellt');
       }
 
       const { data, error } = response;
@@ -166,20 +174,38 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!rawInput.trim() && !selectedPdf) {
+    if (!rawInput.trim() && !selectedPdf && !recipeUrl.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch.",
+        description: "Bitte geben Sie Rezepttext ein, laden Sie eine PDF-Datei hoch oder geben Sie eine URL ein.",
         variant: "destructive",
       });
       return;
     }
 
+    // Validate URL if provided
+    if (recipeUrl.trim()) {
+      try {
+        new URL(recipeUrl);
+      } catch {
+        toast({
+          title: "Fehler",
+          description: "Bitte geben Sie eine gültige URL ein.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      // Process content with DeepSeek - either PDF or text
-      const processedData = await processContent(rawInput.trim() || undefined, selectedPdf || undefined);
+      // Process content with DeepSeek - either PDF, text, or URL
+      const processedData = await processContent(
+        rawInput.trim() || undefined, 
+        selectedPdf || undefined,
+        recipeUrl.trim() || undefined
+      );
       
       if (!processedData || !processedData.title) {
         throw new Error('Konnte das Rezept nicht verarbeiten');
@@ -256,15 +282,16 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                       <div className="flex items-center justify-center space-x-2">
                         <FileText className="w-8 h-8 text-red-500" />
                         <span className="text-sm font-medium">{selectedPdf.name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPdf(null);
-                            setRawInput('');
-                          }}
-                        >
+                         <Button
+                           type="button"
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => {
+                             setSelectedPdf(null);
+                             setRawInput('');
+                             setRecipeUrl('');
+                           }}
+                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -306,14 +333,49 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                 </div>
               </div>
 
+              {/* URL Input Section */}
+              <div className="space-y-2">
+                <Label htmlFor="recipe-url">Website-URL eingeben</Label>
+                <Input
+                  id="recipe-url"
+                  type="url"
+                  value={recipeUrl}
+                  onChange={(e) => {
+                    setRecipeUrl(e.target.value);
+                    // Clear other inputs when URL is entered
+                    if (e.target.value.trim()) {
+                      setRawInput('');
+                      setSelectedPdf(null);
+                    }
+                  }}
+                  placeholder="https://example.com/rezept"
+                  className="w-full"
+                />
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">oder</span>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="raw-input">Rezepttext manuell eingeben</Label>
                 <Textarea
                   id="raw-input"
                   value={rawInput}
-                  onChange={(e) => setRawInput(e.target.value)}
+                  onChange={(e) => {
+                    setRawInput(e.target.value);
+                    // Clear URL when text is entered
+                    if (e.target.value.trim()) {
+                      setRecipeUrl('');
+                    }
+                  }}
                   placeholder="Fügen Sie hier Ihren Rezepttext ein... (Website-Text, handschriftliches Rezept, etc.)"
-                  rows={8}
+                  rows={6}
                   className="resize-none"
                 />
               </div>
@@ -367,7 +429,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !selectedPdf)}>
+            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !selectedPdf && !recipeUrl.trim())}>
               {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>

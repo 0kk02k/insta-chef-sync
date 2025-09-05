@@ -54,19 +54,72 @@ serve(async (req) => {
       
       console.log('Processing PDF file:', file.name, 'Size:', file.size);
     } else {
-      // Handle JSON content
+      // Handle JSON content (text or URL)
       const body = await req.json();
-      content = body.content;
       
-      // Validate text input
-      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      if (body.url) {
+        // Handle URL scraping
+        const url = body.url;
+        console.log('Processing URL:', url);
+        
+        try {
+          // Validate URL
+          new URL(url);
+          
+          // Fetch content from URL
+          const response = await fetch(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const html = await response.text();
+          
+          // Extract text content from HTML (simple approach)
+          // Remove script and style tags
+          const cleanHtml = html
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          content = cleanHtml;
+          console.log('Extracted content from URL, length:', content.length);
+          
+        } catch (error) {
+          console.error('Error fetching URL:', error);
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: `Fehler beim Laden der URL: ${error.message}` 
+            }), 
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+      } else if (body.content) {
+        // Handle direct text content
+        content = body.content;
+        console.log('Processing text content, length:', content.length);
+      } else {
         return new Response(
-          JSON.stringify({ error: 'Rezepttext ist erforderlich' }), 
+          JSON.stringify({ error: 'Rezepttext oder URL ist erforderlich' }), 
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      console.log('Processing text content, length:', content.length);
+      // Validate final content
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Kein Inhalt extrahiert oder bereitgestellt' }), 
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Initialize Supabase client
@@ -232,8 +285,10 @@ ${processContent}
     return new Response(
       JSON.stringify({
         success: true,
-        ...recipeData,
-        image_url: finalImageUrl
+        data: {
+          ...recipeData,
+          image_url: finalImageUrl
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
