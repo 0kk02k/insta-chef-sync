@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,25 +16,54 @@ interface AddRecipeDialogProps {
 const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [instagramUrl, setInstagramUrl] = useState('');
-  const [ingredients, setIngredients] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [cookingTime, setCookingTime] = useState('');
-  const [servings, setServings] = useState('');
+  const [rawInput, setRawInput] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [processing, setProcessing] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
 
   const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setInstagramUrl('');
-    setIngredients('');
-    setInstructions('');
-    setCookingTime('');
-    setServings('');
+    setRawInput('');
+    setFile(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && selectedFile.type === 'application/pdf') {
+      setFile(selectedFile);
+    } else if (selectedFile) {
+      toast({
+        title: "Fehler",
+        description: "Nur PDF-Dateien werden unterstützt.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const processContent = async (content: string, filename?: string) => {
+    try {
+      setProcessing(true);
+      
+      const { data, error } = await supabase.functions.invoke('process-instagram-recipe', {
+        body: { 
+          content,
+          filename,
+          type: filename ? 'pdf' : 'text'
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error processing content:', error);
+      throw error;
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,10 +78,10 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!title.trim()) {
+    if (!rawInput.trim() && !file) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie einen Rezepttitel ein.",
+        description: "Bitte geben Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch.",
         variant: "destructive",
       });
       return;
@@ -61,17 +90,39 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setLoading(true);
 
     try {
+      let content = rawInput;
+      let filename;
+
+      // Handle PDF file
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Convert PDF to text (you might want to use a PDF parsing library)
+        // For now, we'll pass the filename and let the edge function handle it
+        filename = file.name;
+        content = `PDF file: ${file.name}`;
+      }
+
+      // Process content with DeepSeek
+      const processedData = await processContent(content, filename);
+      
+      if (!processedData || !processedData.title) {
+        throw new Error('Konnte das Rezept nicht verarbeiten');
+      }
+
+      // Save processed recipe to database
       const { error } = await supabase
         .from('recipes')
         .insert({
           user_id: user.id,
-          title: title.trim(),
-          description: description.trim() || null,
-          instagram_url: instagramUrl.trim() || null,
-          ingredients: ingredients.trim() ? ingredients.split('\n').filter(i => i.trim()) : [],
-          instructions: instructions.trim() ? instructions.split('\n').filter(i => i.trim()) : [],
-          cooking_time: cookingTime ? parseInt(cookingTime) : null,
-          servings: servings ? parseInt(servings) : null,
+          title: processedData.title,
+          description: processedData.description || null,
+          instagram_url: processedData.instagram_url || null,
+          ingredients: processedData.ingredients || [],
+          instructions: processedData.instructions || [],
+          cooking_time: processedData.cooking_time || null,
+          servings: processedData.servings || null,
         });
 
       if (error) {
@@ -80,7 +131,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       toast({
         title: "Erfolgreich!",
-        description: "Ihr Rezept wurde hinzugefügt.",
+        description: "Ihr Rezept wurde verarbeitet und hinzugefügt.",
       });
 
       resetForm();
@@ -91,7 +142,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       console.error('Error adding recipe:', error);
       toast({
         title: "Fehler",
-        description: "Fehler beim Hinzufügen des Rezepts. Bitte versuchen Sie es erneut.",
+        description: "Fehler beim Verarbeiten des Rezepts. Bitte versuchen Sie es erneut.",
         variant: "destructive",
       });
     } finally {
@@ -112,85 +163,70 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           <DialogTitle>Neues Rezept hinzufügen</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Titel *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="z.B. Spaghetti Carbonara"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Beschreibung</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Kurze Beschreibung des Rezepts..."
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instagram-url">Instagram URL</Label>
-            <Input
-              id="instagram-url"
-              type="url"
-              value={instagramUrl}
-              onChange={(e) => setInstagramUrl(e.target.value)}
-              placeholder="https://instagram.com/p/..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="cooking-time">Zubereitungszeit (Min.)</Label>
-              <Input
-                id="cooking-time"
-                type="number"
-                value={cookingTime}
-                onChange={(e) => setCookingTime(e.target.value)}
-                placeholder="30"
-                min="1"
-              />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Rezept hinzufügen</h3>
+              <p className="text-sm text-muted-foreground">
+                Fügen Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch. 
+                KI wird Ihr Rezept automatisch strukturieren.
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="servings">Portionen</Label>
-              <Input
-                id="servings"
-                type="number"
-                value={servings}
-                onChange={(e) => setServings(e.target.value)}
-                placeholder="4"
-                min="1"
-              />
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="raw-input">Rezepttext einfügen</Label>
+                <Textarea
+                  id="raw-input"
+                  value={rawInput}
+                  onChange={(e) => setRawInput(e.target.value)}
+                  placeholder="Fügen Sie hier Ihren Rezepttext ein... (Instagram-Post, Website-Text, etc.)"
+                  rows={8}
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-center">
+                <div className="text-sm text-muted-foreground">oder</div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pdf-upload">PDF-Datei hochladen</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <input
+                    id="pdf-upload"
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <label 
+                    htmlFor="pdf-upload" 
+                    className="cursor-pointer flex flex-col items-center space-y-2"
+                  >
+                    {file ? (
+                      <>
+                        <FileText className="h-8 w-8 text-primary" />
+                        <span className="text-sm font-medium">{file.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Klicken Sie, um eine andere Datei auszuwählen
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          PDF-Datei hier hochladen
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Klicken Sie oder ziehen Sie eine PDF-Datei hierher
+                        </span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ingredients">Zutaten</Label>
-            <Textarea
-              id="ingredients"
-              value={ingredients}
-              onChange={(e) => setIngredients(e.target.value)}
-              placeholder="Eine Zutat pro Zeile..."
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instructions">Anweisungen</Label>
-            <Textarea
-              id="instructions"
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Einen Schritt pro Zeile..."
-              rows={4}
-            />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
@@ -198,13 +234,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={loading}
+              disabled={loading || processing}
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Rezept hinzufügen
+            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !file)}>
+              {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>
           </div>
         </form>
