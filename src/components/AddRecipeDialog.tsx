@@ -79,62 +79,50 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       setSelectedPdf(file);
       
-      // Extract text from PDF and process directly with AI
       try {
         setPdfProcessing(true);
         const formData = new FormData();
         formData.append('file', file);
 
-        // Extract text from PDF
+        // Try to extract text from PDF
         const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-pdf-text', {
           body: formData,
         });
 
-        if (extractError) throw extractError;
-
-        if (!extractData.success || !extractData.text) {
-          throw new Error(extractData.error || 'Fehler beim Extrahieren des Textes');
+        if (extractError) {
+          console.error('PDF extraction error:', extractError);
+          throw new Error('Fehler beim Verarbeiten der PDF-Datei');
         }
 
-        // Process the extracted text directly with DeepSeek AI
-        const processedData = await processContent(extractData.text);
-        
-        if (!processedData || !processedData.title) {
-          throw new Error('Konnte das Rezept nicht aus der PDF verarbeiten');
-        }
-
-        // Upload user image if provided, otherwise use AI-generated image
-        let imageUrl = processedData.image_url; // AI-generated image from edge function
-        if (imageFile) {
-          imageUrl = await uploadImage(imageFile);
-        }
-
-        // Save processed recipe to database
-        const { error } = await supabase
-          .from('recipes')
-          .insert({
-            user_id: user.id,
-            title: processedData.title,
-            description: processedData.description || null,
-            image_url: imageUrl,
-            ingredients: processedData.ingredients || [],
-            instructions: processedData.instructions || [],
-            cooking_time: processedData.cooking_time || null,
-            servings: processedData.servings || null,
+        if (!extractData.success) {
+          // PDF extraction failed - show alternative options
+          toast({
+            title: "PDF-Textextraktion fehlgeschlagen",
+            description: "Die PDF enthält möglicherweise nur Bilder oder ist verschlüsselt. Bitte kopieren Sie den Text manuell oder verwenden Sie ein anderes Format.",
+            variant: "destructive",
           });
-
-        if (error) {
-          throw error;
+          setSelectedPdf(null);
+          return;
         }
 
-        toast({
-          title: "Erfolg!",
-          description: "PDF-Rezept wurde erfolgreich verarbeitet und hinzugefügt.",
-        });
+        if (!extractData.text || extractData.text.length < 50) {
+          // Very little text extracted
+          toast({
+            title: "Zu wenig Text extrahiert",
+            description: "Aus der PDF konnte nur sehr wenig Text extrahiert werden. Bitte versuchen Sie es mit einer anderen PDF oder kopieren Sie den Text manuell.",
+            variant: "destructive",
+          });
+          setSelectedPdf(null);
+          return;
+        }
 
-        resetForm();
-        setOpen(false);
-        onRecipeAdded?.();
+        // Show extracted text in the textarea first for user review
+        setRawInput(extractData.text);
+        
+        toast({
+          title: "PDF-Text extrahiert!",
+          description: `${extractData.text.length} Zeichen wurden extrahiert. Überprüfen Sie den Text und klicken Sie dann auf "Rezept hinzufügen".`,
+        });
 
       } catch (error) {
         console.error('Error processing PDF:', error);
