@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Loader2, Upload } from 'lucide-react';
+import { Plus, Loader2, Upload, FileText, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
+  const [pdfProcessing, setPdfProcessing] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -28,6 +30,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setRawInput('');
     setImageFile(null);
     setImagePreview(null);
+    setSelectedPdf(null);
+    setPdfProcessing(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +51,66 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         description: "Nur Bilddateien werden unterstützt.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handlePdfChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        toast({
+          title: "Fehler",
+          description: "Bitte wählen Sie eine gültige PDF-Datei aus.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Fehler",
+          description: "Die PDF-Datei ist zu groß. Maximale Größe: 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedPdf(file);
+      
+      // Extract text from PDF
+      try {
+        setPdfProcessing(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const { data, error } = await supabase.functions.invoke('extract-pdf-text', {
+          body: formData,
+        });
+
+        if (error) throw error;
+
+        if (data.success && data.text) {
+          setRawInput(data.text);
+          toast({
+            title: "Erfolg",
+            description: "Text wurde erfolgreich aus der PDF extrahiert.",
+          });
+        } else {
+          throw new Error(data.error || 'Fehler beim Extrahieren des Textes');
+        }
+      } catch (error) {
+        console.error('Error extracting PDF text:', error);
+        toast({
+          title: "Fehler",
+          description: "Fehler beim Extrahieren des Textes aus der PDF.",
+          variant: "destructive",
+        });
+        setSelectedPdf(null);
+      } finally {
+        setPdfProcessing(false);
+      }
     }
   };
 
@@ -104,7 +168,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     if (!rawInput.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie Rezepttext ein.",
+        description: "Bitte geben Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch.",
         variant: "destructive",
       });
       return;
@@ -184,13 +248,77 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             <div className="text-center">
               <h3 className="text-lg font-medium mb-2">Rezept</h3>
               <p className="text-sm text-muted-foreground">
-                Fügen Sie Rezepttext ein. DeepSeek KI wird Ihr Rezept automatisch strukturieren.
+                Fügen Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch. DeepSeek KI wird Ihr Rezept automatisch strukturieren.
               </p>
             </div>
 
             <div className="space-y-4">
+              {/* PDF Upload Section */}
               <div className="space-y-2">
-                <Label htmlFor="raw-input">Rezepttext einfügen</Label>
+                <Label htmlFor="pdf-upload">PDF-Rezept hochladen (optional)</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                  {pdfProcessing ? (
+                    <div className="flex items-center justify-center space-x-2 py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <span className="text-sm text-muted-foreground">PDF wird verarbeitet...</span>
+                    </div>
+                  ) : selectedPdf ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <FileText className="w-8 h-8 text-red-500" />
+                        <span className="text-sm font-medium">{selectedPdf.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPdf(null);
+                            setRawInput('');
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Text wurde erfolgreich extrahiert
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        id="pdf-upload"
+                        type="file"
+                        accept=".pdf"
+                        onChange={handlePdfChange}
+                        className="hidden"
+                      />
+                      <Label htmlFor="pdf-upload" className="cursor-pointer">
+                        <div className="space-y-2">
+                          <FileText className="w-8 h-8 mx-auto text-muted-foreground" />
+                          <div className="text-sm text-muted-foreground">
+                            <span className="font-medium text-primary">Klicken Sie hier</span> um eine PDF-Datei auszuwählen
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            PDF bis 10MB
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">oder</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="raw-input">Rezepttext manuell eingeben</Label>
                 <Textarea
                   id="raw-input"
                   value={rawInput}
@@ -246,13 +374,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={loading || processing}
+              disabled={loading || processing || pdfProcessing}
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || !rawInput.trim()}>
-              {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
+            <Button type="submit" disabled={loading || processing || pdfProcessing || !rawInput.trim()}>
+              {(loading || processing || pdfProcessing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {pdfProcessing ? 'PDF wird verarbeitet...' : processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>
           </div>
         </form>
