@@ -21,7 +21,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
-  const [pdfProcessing, setPdfProcessing] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -31,7 +30,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setImageFile(null);
     setImagePreview(null);
     setSelectedPdf(null);
-    setPdfProcessing(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +52,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     }
   };
 
-  const handlePdfChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
@@ -249,12 +247,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
               <div className="space-y-2">
                 <Label htmlFor="pdf-upload">PDF-Rezept hochladen (optional)</Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                  {pdfProcessing ? (
-                    <div className="flex items-center justify-center space-x-2 py-4">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <span className="text-sm text-muted-foreground">PDF wird verarbeitet...</span>
-                    </div>
-                  ) : selectedPdf ? (
+                  {selectedPdf ? (
                     <div className="space-y-3">
                       <div className="flex items-center justify-center space-x-2">
                         <FileText className="w-8 h-8 text-red-500" />
@@ -366,13 +359,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={loading || processing || pdfProcessing}
+              disabled={loading || processing}
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || pdfProcessing || (!rawInput.trim() && !selectedPdf)}>
-              {(loading || processing || pdfProcessing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {pdfProcessing ? 'PDF wird verarbeitet...' : processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
+            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !selectedPdf)}>
+              {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>
           </div>
         </form>
