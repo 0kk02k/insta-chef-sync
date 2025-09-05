@@ -84,13 +84,12 @@ serve(async (req) => {
 
     let messages;
     
+    // This function now only handles text content
     if (content.startsWith('PDF_FILE:')) {
-      // For now, return an error suggesting manual text input
-      // TODO: Implement proper PDF-to-text conversion
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'PDF-Verarbeitung noch nicht verfügbar. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn manuell ein.' 
+          error: 'PDF files should be processed with pdf-processor function' 
         }),
         {
           status: 400,

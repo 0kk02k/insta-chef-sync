@@ -112,15 +112,22 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       let response;
       
       if (pdfFile) {
-        // Send PDF directly to DeepSeek
-        const formData = new FormData();
-        formData.append('file', pdfFile);
+        // Upload PDF to storage first, then process with pdf-processor
+        const fileName = `${Date.now()}-${pdfFile.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
         
-        response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: formData,
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('recipe-images')
+          .upload(fileName, pdfFile);
+
+        if (uploadError) {
+          throw new Error('Fehler beim Hochladen der PDF: ' + uploadError.message);
+        }
+
+        response = await supabase.functions.invoke('pdf-processor', {
+          body: { path: fileName }
         });
       } else if (content) {
-        // Send text content
+        // Send text content to existing function
         response = await supabase.functions.invoke('process-instagram-recipe', {
           body: { content }
         });
@@ -134,7 +141,11 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         throw error;
       }
 
-      return data;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Processing failed');
+      }
+
+      return data.data;
     } catch (error) {
       console.error('Error processing content:', error);
       throw error;
