@@ -58,12 +58,18 @@ export default {
 					DEFAULT: 'hsl(var(--coral))',
 					foreground: 'hsl(var(--coral-foreground))'
 				},
-				lemon: {
-					DEFAULT: 'hsl(var(--lemon))',
-					foreground: 'hsl(var(--lemon-foreground))'
+				'pink-vibrant': {
+					DEFAULT: 'hsl(var(--pink-vibrant))',
+					foreground: 'hsl(var(--pink-vibrant-foreground))'
 				},
-				'mint-light': 'hsl(var(--mint-light))',
-				'lavender-wash': 'hsl(var(--lavender-wash))',
+				'orange-warm': {
+					DEFAULT: 'hsl(var(--orange-warm))',
+					foreground: 'hsl(var(--orange-warm-foreground))'
+				},
+				'purple-soft': {
+					DEFAULT: 'hsl(var(--purple-soft))',
+					foreground: 'hsl(var(--purple-soft-foreground))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

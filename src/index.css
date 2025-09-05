@@ -8,119 +8,130 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Farbschema basierend auf warmem, einladendem Koch-Theme */
-    --background: 32 30% 98%; /* Porzellan #FAFAF7 */
-    --foreground: 198 12% 26%; /* Schiefergrau #37424A */
+    /* Farbschema basierend auf der neuen lebendigen Palette */
+    --background: 0 0% 99%; /* Sehr helles Weiß */
+    --foreground: 0 0% 15%; /* Dunkles Grau */
 
     --card: 0 0% 100%; /* Weiß für Cards */
-    --card-foreground: 198 12% 26%; /* Schiefergrau */
+    --card-foreground: 0 0% 15%; /* Dunkles Grau */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 198 12% 26%;
+    --popover-foreground: 0 0% 15%;
 
-    /* Aprikosen-Peach als Primärfarbe */
-    --primary: 29 100% 85%; /* #FFD6B3 */
-    --primary-foreground: 198 12% 26%; /* Schiefergrau auf Peach */
+    /* Orange-Pfirsich als Primärfarbe (#ffb56b) */
+    --primary: 30 100% 71%; /* #ffb56b */
+    --primary-foreground: 0 0% 100%; /* Weiß auf Orange */
+    --primary-hover: 30 100% 65%; /* Dunklere Version */
 
-    /* Mintgrün als Sekundärfarbe */
-    --secondary: 152 47% 83%; /* #BFE9D6 */
-    --secondary-foreground: 198 12% 26%;
+    /* Lila als Sekundärfarbe (#b56bff) */
+    --secondary: 271 100% 71%; /* #b56bff */
+    --secondary-foreground: 0 0% 100%; /* Weiß auf Lila */
+    --secondary-hover: 271 100% 65%; /* Dunklere Version */
 
-    --muted: 152 25% 91%; /* Sehr helles Mintgrün */
-    --muted-foreground: 200 10% 48%; /* Aschgrau #6B767E */
+    --muted: 0 0% 96%; /* Sehr helles Grau */
+    --muted-foreground: 0 0% 45%; /* Mittelgrau */
 
-    /* Lavendel als Akzentfarbe */
-    --accent: 245 79% 88%; /* #CFC8F8 */
-    --accent-foreground: 198 12% 26%;
+    --accent: 329 100% 71%; /* Pink (#ff6bb5) */
+    --accent-foreground: 0 0% 100%; /* Weiß auf Pink */
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 100% 71%; /* Coral-Rot (#ff6b6b) */
+    --destructive-foreground: 0 0% 100%; /* Weiß auf Rot */
 
-    --border: 245 40% 92%; /* Helles Lavendel für Borders */
-    --input: 245 40% 92%;
-    --ring: 29 100% 85%; /* Peach für Focus-Ring */
+    --border: 0 0% 89%; /* Helles Grau für Rahmen */
+    --input: 0 0% 89%; /* Helles Grau für Inputs */
+    --ring: 30 100% 71%; /* Orange für Focus-Ring */
 
     --radius: 0.5rem;
 
-    /* Coral für spezielle Highlights */
-    --coral: 8 100% 80%; /* #FFA7A0 */
-    --coral-foreground: 198 12% 26%;
+    /* Zusätzliche Farben aus der Palette */
+    --coral: 0 100% 71%; /* #ff6b6b */
+    --coral-foreground: 0 0% 100%;
+    
+    --pink-vibrant: 300 100% 71%; /* #ff6bff */
+    --pink-vibrant-foreground: 0 0% 100%;
+    
+    --orange-warm: 30 100% 71%; /* #ffb56b */
+    --orange-warm-foreground: 0 0% 100%;
+    
+    --purple-soft: 271 100% 71%; /* #b56bff */
+    --purple-soft-foreground: 0 0% 100%;
 
-    /* Zitronensorbet für Info-Highlights */
-    --lemon: 55 100% 82%; /* #FFF2A8 */
-    --lemon-foreground: 198 12% 26%;
-
-    /* Mint-Varianten für alternierende Bereiche */
-    --mint-light: 152 40% 94%; /* #EAF7F1 */
-    --lavender-wash: 245 70% 96%; /* #F3F1FE */
-
-    /* Hover-States */
-    --primary-hover: 29 100% 80%; /* Dunklerer Peach #FFC699 */
-    --secondary-hover: 152 50% 77%; /* Dunkleres Mint #A9DFC9 */
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(30 100% 71%), hsl(0 100% 71%));
+    --gradient-secondary: linear-gradient(135deg, hsl(271 100% 71%), hsl(300 100% 71%));
+    --gradient-accent: linear-gradient(135deg, hsl(329 100% 71%), hsl(300 100% 71%));
 
     /* Sidebar */
-    --sidebar-background: 32 30% 98%;
-    --sidebar-foreground: 198 12% 26%;
-    --sidebar-primary: 29 100% 85%;
-    --sidebar-primary-foreground: 198 12% 26%;
-    --sidebar-accent: 152 25% 91%;
-    --sidebar-accent-foreground: 198 12% 26%;
-    --sidebar-border: 245 40% 92%;
-    --sidebar-ring: 29 100% 85%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 30 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 30 100% 71%;
   }
 
   .dark {
-    /* Dark Mode mit wärmeren Tönen */
-    --background: 198 20% 8%; /* Dunkleres Schiefergrau */
-    --foreground: 32 30% 95%; /* Helles Porzellan */
+    /* Dark Mode Varianten der neuen Farbpalette */
+    --background: 0 0% 8%; /* Sehr dunkles Grau */
+    --foreground: 0 0% 95%; /* Helles Grau */
 
-    --card: 198 15% 12%;
-    --card-foreground: 32 30% 95%;
+    --card: 0 0% 11%; /* Dunkle Cards */
+    --card-foreground: 0 0% 95%;
 
-    --popover: 198 15% 12%;
-    --popover-foreground: 32 30% 95%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    /* Gedämpfte Versionen der Hauptfarben für Dark Mode */
-    --primary: 29 60% 65%; /* Gedämpfter Peach */
-    --primary-foreground: 198 20% 8%;
+    /* Sanftere Versionen für Dark Mode */
+    --primary: 30 85% 65%; /* Gedämpftes Orange */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 30 85% 60%;
 
-    --secondary: 152 30% 25%; /* Dunkles Mintgrün */
-    --secondary-foreground: 32 30% 95%;
+    --secondary: 271 75% 65%; /* Gedämpftes Lila */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 271 75% 60%;
 
-    --muted: 198 10% 20%;
-    --muted-foreground: 200 10% 65%;
+    --muted: 0 0% 15%; /* Dunkles Grau */
+    --muted-foreground: 0 0% 65%; /* Helles Grau */
 
-    --accent: 245 40% 35%; /* Dunkler Lavendel */
-    --accent-foreground: 32 30% 95%;
+    --accent: 329 75% 65%; /* Gedämpftes Pink */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 32 30% 95%;
+    --destructive: 0 85% 65%; /* Gedämpftes Rot */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 198 10% 25%;
-    --input: 198 10% 25%;
-    --ring: 29 60% 65%;
+    --border: 0 0% 20%; /* Dunkle Rahmen */
+    --input: 0 0% 20%;
+    --ring: 30 85% 65%;
 
-    /* Dark Mode spezifische Farben */
-    --coral: 8 70% 60%;
-    --coral-foreground: 32 30% 95%;
+    /* Dark Mode Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(30 85% 65%), hsl(0 85% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(271 75% 65%), hsl(300 75% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(329 75% 65%), hsl(300 75% 65%));
 
-    --lemon: 55 80% 70%;
-    --lemon-foreground: 198 20% 8%;
+    /* Dark Mode Zusatzfarben */
+    --coral: 0 85% 65%;
+    --coral-foreground: 0 0% 100%;
+    
+    --pink-vibrant: 300 75% 65%;
+    --pink-vibrant-foreground: 0 0% 100%;
+    
+    --orange-warm: 30 85% 65%;
+    --orange-warm-foreground: 0 0% 100%;
+    
+    --purple-soft: 271 75% 65%;
+    --purple-soft-foreground: 0 0% 100%;
 
-    --mint-light: 152 20% 15%;
-    --lavender-wash: 245 30% 18%;
-
-    --primary-hover: 29 65% 60%;
-    --secondary-hover: 152 35% 30%;
-
-    --sidebar-background: 198 20% 8%;
-    --sidebar-foreground: 32 30% 95%;
-    --sidebar-primary: 29 60% 65%;
-    --sidebar-primary-foreground: 198 20% 8%;
-    --sidebar-accent: 198 10% 20%;
-    --sidebar-accent-foreground: 32 30% 95%;
-    --sidebar-border: 198 10% 25%;
-    --sidebar-ring: 29 60% 65%;
+    /* Sidebar Dark Mode */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 30 85% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 30 85% 65%;
   }
 }
 
