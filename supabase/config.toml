@@ -47,3 +47,6 @@ ip_version = "IPv4"
 
 [functions.process-instagram-recipe]
 verify_jwt = true
+
+[functions.process-screenshot-recipe]
+verify_jwt = true

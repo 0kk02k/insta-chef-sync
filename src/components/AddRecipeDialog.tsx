@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Loader2, Upload, FileText, X } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import UnifiedUploadZone from './UnifiedUploadZone';
+
+interface UploadedContent {
+  type: 'text' | 'url' | 'pdf' | 'image' | 'screenshot';
+  content?: string;
+  file?: File;
+  preview?: string;
+  name: string;
+}
 
 interface AddRecipeDialogProps {
   onRecipeAdded?: () => void;
@@ -16,78 +22,28 @@ interface AddRecipeDialogProps {
 const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rawInput, setRawInput] = useState('');
-  const [recipeUrl, setRecipeUrl] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadedContent, setUploadedContent] = useState<UploadedContent | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
 
   const resetForm = () => {
-    setRawInput('');
-    setRecipeUrl('');
-    setImageFile(null);
-    setImagePreview(null);
-    setSelectedPdf(null);
+    setUploadedContent(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile && selectedFile.type.startsWith('image/')) {
-      setImageFile(selectedFile);
-      
-      // Create preview
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data:image/...;base64, prefix
+        const base64 = result.split(',')[1];
+        resolve(base64);
       };
-      reader.readAsDataURL(selectedFile);
-    } else if (selectedFile) {
-      toast({
-        title: "Fehler",
-        description: "Nur Bilddateien werden unterstützt.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (file.type !== 'application/pdf') {
-        toast({
-          title: "Fehler",
-          description: "Bitte wählen Sie eine gültige PDF-Datei aus.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "Fehler",
-          description: "Die PDF-Datei ist zu groß. Maximale Größe: 10MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setSelectedPdf(file);
-      
-      // Clear other inputs since we'll process the PDF directly
-      setRawInput('');
-      setRecipeUrl('');
-      
-      toast({
-        title: "PDF-Datei erfolgreich ausgewählt",
-        description: "Die PDF wird direkt von DeepSeek KI verarbeitet. Klicken Sie auf 'Rezept hinzufügen' um fortzufahren.",
-      });
-    }
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -108,19 +64,19 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     return publicUrl;
   };
 
-  const processContent = async (content?: string, pdfFile?: File, url?: string) => {
+  const processContent = async (uploadedContent: UploadedContent) => {
     try {
       setProcessing(true);
       
       let response;
       
-      if (pdfFile) {
+      if (uploadedContent.type === 'pdf' && uploadedContent.file) {
         // Upload PDF to storage first, then process with pdf-processor
-        const fileName = `${Date.now()}-${pdfFile.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const fileName = `${Date.now()}-${uploadedContent.file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-uploads')
-          .upload(`${user.id}/${Date.now()}-${fileName}`, pdfFile);
+          .upload(`${user.id}/${Date.now()}-${fileName}`, uploadedContent.file);
 
         if (uploadError) {
           throw new Error('Fehler beim Hochladen der PDF: ' + uploadError.message);
@@ -129,18 +85,28 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         response = await supabase.functions.invoke('pdf-processor', {
           body: { path: uploadData.path }
         });
-      } else if (content) {
+      } else if (uploadedContent.type === 'screenshot' && uploadedContent.file) {
+        // Process screenshot with GPT-5 Nano
+        const imageBase64 = await convertImageToBase64(uploadedContent.file);
+        
+        response = await supabase.functions.invoke('process-screenshot-recipe', {
+          body: { 
+            imageBase64,
+            fileName: uploadedContent.file.name
+          }
+        });
+      } else if (uploadedContent.type === 'text' && uploadedContent.content) {
         // Send text content to existing function
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { content }
+          body: { content: uploadedContent.content }
         });
-      } else if (url) {
+      } else if (uploadedContent.type === 'url' && uploadedContent.content) {
         // Send URL to the function for scraping
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { url }
+          body: { url: uploadedContent.content }
         });
       } else {
-        throw new Error('Weder PDF, Text-Inhalt noch URL bereitgestellt');
+        throw new Error('Unbekannter Content-Typ oder fehlende Daten');
       }
 
       const { data, error } = response;
@@ -174,48 +140,27 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!rawInput.trim() && !selectedPdf && !recipeUrl.trim()) {
+    if (!uploadedContent) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie Rezepttext ein, laden Sie eine PDF-Datei hoch oder geben Sie eine URL ein.",
+        description: "Bitte fügen Sie Inhalt hinzu, um ein Rezept zu erstellen.",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate URL if provided
-    if (recipeUrl.trim()) {
-      try {
-        new URL(recipeUrl);
-      } catch {
-        toast({
-          title: "Fehler",
-          description: "Bitte geben Sie eine gültige URL ein.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
     setLoading(true);
 
     try {
-      // Process content with DeepSeek - either PDF, text, or URL
-      const processedData = await processContent(
-        rawInput.trim() || undefined, 
-        selectedPdf || undefined,
-        recipeUrl.trim() || undefined
-      );
+      // Process content with appropriate AI service
+      const processedData = await processContent(uploadedContent);
       
       if (!processedData || !processedData.title) {
         throw new Error('Konnte das Rezept nicht verarbeiten');
       }
 
-      // Upload user image if provided, otherwise use AI-generated image
-      let imageUrl = processedData.image_url; // AI-generated image from edge function
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-      }
+      // Use AI-generated image from edge function
+      let imageUrl = processedData.image_url;
 
       // Save processed recipe to database
       const { error } = await supabase
@@ -270,155 +215,11 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-
-            <div className="space-y-4">
-              {/* PDF Upload Section */}
-              <div className="space-y-2">
-                <Label htmlFor="pdf-upload">PDF-Rezept hochladen</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                  {selectedPdf ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2">
-                        <FileText className="w-8 h-8 text-red-500" />
-                        <span className="text-sm font-medium">{selectedPdf.name}</span>
-                         <Button
-                           type="button"
-                           variant="ghost"
-                           size="sm"
-                           onClick={() => {
-                             setSelectedPdf(null);
-                             setRawInput('');
-                             setRecipeUrl('');
-                           }}
-                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        PDF bereit für KI-Verarbeitung
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <input
-                        id="pdf-upload"
-                        type="file"
-                        accept=".pdf"
-                        onChange={handlePdfChange}
-                        className="hidden"
-                      />
-                      <Label htmlFor="pdf-upload" className="cursor-pointer">
-                        <div className="space-y-2">
-                          <FileText className="w-8 h-8 mx-auto text-muted-foreground" />
-                          <div className="text-sm text-muted-foreground">
-                            <span className="font-medium text-primary">Klicken Sie hier</span> um eine PDF-Datei auszuwählen
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            PDF bis 10MB
-                          </p>
-                        </div>
-                      </Label>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">oder</span>
-                </div>
-              </div>
-
-              {/* URL Input Section */}
-              <div className="space-y-2">
-                <Label htmlFor="recipe-url">Website-URL eingeben</Label>
-                <Input
-                  id="recipe-url"
-                  type="url"
-                  value={recipeUrl}
-                  onChange={(e) => {
-                    setRecipeUrl(e.target.value);
-                    // Clear other inputs when URL is entered
-                    if (e.target.value.trim()) {
-                      setRawInput('');
-                      setSelectedPdf(null);
-                    }
-                  }}
-                  placeholder="https://example.com/rezept"
-                  className="w-full"
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">oder</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="raw-input">Rezepttext manuell eingeben</Label>
-                <Textarea
-                  id="raw-input"
-                  value={rawInput}
-                  onChange={(e) => {
-                    setRawInput(e.target.value);
-                    // Clear URL when text is entered
-                    if (e.target.value.trim()) {
-                      setRecipeUrl('');
-                    }
-                  }}
-                  placeholder="Fügen Sie hier Ihren Rezepttext ein... (Website-Text, handschriftliches Rezept, etc.)"
-                  rows={6}
-                  className="resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="image-upload">Rezeptbild hochladen</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <label 
-                    htmlFor="image-upload" 
-                    className="cursor-pointer flex flex-col items-center space-y-2"
-                  >
-                    {imagePreview ? (
-                      <>
-                        <img 
-                          src={imagePreview} 
-                          alt="Vorschau" 
-                          className="h-32 w-32 object-cover rounded-lg"
-                        />
-                        <span className="text-sm font-medium">Bild ändern</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          Bild hochladen
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          JPG, PNG oder WEBP
-                        </span>
-                      </>
-                    )}
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
+          <UnifiedUploadZone
+            onContentChange={setUploadedContent}
+            disabled={loading || processing}
+            isProcessing={processing}
+          />
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button
@@ -429,9 +230,9 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !selectedPdf && !recipeUrl.trim())}>
+            <Button type="submit" disabled={loading || processing || !uploadedContent}>
               {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
+              {processing ? 'KI verarbeitet...' : 'Rezept hinzufügen'}
             </Button>
           </div>
         </form>
