@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, ExternalLink } from 'lucide-react';
@@ -21,8 +22,17 @@ interface RecipeCardProps {
 }
 
 const RecipeCard = ({ recipe }: RecipeCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/recipe/${recipe.id}`);
+  };
+
   return (
-    <Card className="h-full overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+    <Card 
+      className="h-full overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+      onClick={handleClick}
+    >
       {recipe.image_url && (
         <div className="aspect-video w-full overflow-hidden">
           <img
@@ -35,13 +45,16 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg">{recipe.title}</CardTitle>
+          <CardTitle className="text-lg group-hover:text-primary transition-colors">
+            {recipe.title}
+          </CardTitle>
           {recipe.instagram_url && (
             <a
               href={recipe.instagram_url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-4 w-4" />
             </a>
@@ -107,8 +120,9 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           </div>
         )}
         
-        <div className="text-xs text-muted-foreground pt-2 border-t">
-          Hinzugefügt am {new Date(recipe.created_at).toLocaleDateString('de-DE')}
+        <div className="text-xs text-muted-foreground pt-2 border-t flex items-center justify-between">
+          <span>Hinzugefügt am {new Date(recipe.created_at).toLocaleDateString('de-DE')}</span>
+          <span className="text-primary/60 group-hover:text-primary transition-colors">→ Details ansehen</span>
         </div>
       </CardContent>
     </Card>
