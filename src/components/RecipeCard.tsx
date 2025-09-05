@@ -30,101 +30,69 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
 
   return (
     <Card 
-      className="h-full overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+      className="aspect-square overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col"
       onClick={handleClick}
     >
-      {recipe.image_url && (
-        <div className="aspect-video w-full overflow-hidden">
+      {/* Obere Hälfte: Bild */}
+      <div className="flex-1 w-full overflow-hidden relative">
+        {recipe.image_url ? (
           <img
             src={recipe.image_url}
             alt={recipe.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
+            <span className="text-muted-foreground text-sm">Kein Bild</span>
+          </div>
+        )}
+        
+        {recipe.instagram_url && (
+          <a
+            href={recipe.instagram_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-2 right-2 text-white hover:text-primary transition-colors bg-black/50 p-1 rounded"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        )}
+      </div>
       
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <CardTitle className="text-lg group-hover:text-primary transition-colors">
+      {/* Untere Hälfte: Titel, Tags und Beschreibung */}
+      <div className="flex-1 p-3 flex flex-col justify-between">
+        <div className="space-y-2">
+          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
             {recipe.title}
-          </CardTitle>
-          {recipe.instagram_url && (
-            <a
-              href={recipe.instagram_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          )}
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          {recipe.cooking_time && (
-            <Badge variant="secondary" className="text-xs">
-              <Clock className="h-3 w-3 mr-1" />
-              {recipe.cooking_time} Min.
-            </Badge>
-          )}
-          {recipe.servings && (
-            <Badge variant="secondary" className="text-xs">
-              <Users className="h-3 w-3 mr-1" />
-              {recipe.servings} Portionen
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {recipe.description && (
-          <p className="text-sm text-muted-foreground">{recipe.description}</p>
-        )}
-        
-        {recipe.ingredients.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium mb-2">Zutaten:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {recipe.ingredients.slice(0, 3).map((ingredient, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{ingredient}</span>
-                </li>
-              ))}
-              {recipe.ingredients.length > 3 && (
-                <li className="text-xs italic">
-                  +{recipe.ingredients.length - 3} weitere...
-                </li>
-              )}
-            </ul>
+          </h3>
+          
+          <div className="flex flex-wrap gap-1">
+            {recipe.cooking_time && (
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                <Clock className="h-3 w-3 mr-1" />
+                {recipe.cooking_time}m
+              </Badge>
+            )}
+            {recipe.servings && (
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                <Users className="h-3 w-3 mr-1" />
+                {recipe.servings}
+              </Badge>
+            )}
           </div>
-        )}
-        
-        {recipe.instructions.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium mb-2">Anweisungen:</h4>
-            <ol className="text-sm text-muted-foreground space-y-1">
-              {recipe.instructions.slice(0, 2).map((instruction, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2 font-medium">{index + 1}.</span>
-                  <span>{instruction}</span>
-                </li>
-              ))}
-              {recipe.instructions.length > 2 && (
-                <li className="text-xs italic">
-                  +{recipe.instructions.length - 2} weitere Schritte...
-                </li>
-              )}
-            </ol>
-          </div>
-        )}
-        
-        <div className="text-xs text-muted-foreground pt-2 border-t flex items-center justify-between">
-          <span>Hinzugefügt am {new Date(recipe.created_at).toLocaleDateString('de-DE')}</span>
-          <span className="text-primary/60 group-hover:text-primary transition-colors">→ Details ansehen</span>
+          
+          {recipe.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {recipe.description}
+            </p>
+          )}
         </div>
-      </CardContent>
+        
+        <div className="text-xs text-muted-foreground/60 group-hover:text-primary/60 transition-colors pt-2 text-center">
+          → Details ansehen
+        </div>
+      </div>
     </Card>
   );
 };
