@@ -41,25 +41,12 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     }
   };
 
-  const processContent = async (content: string, filename?: string, pdfData?: string) => {
+  const processContent = async (content: string) => {
     try {
       setProcessing(true);
       
-      const body: any = { 
-        content,
-        type: filename ? 'pdf' : 'text'
-      };
-      
-      if (filename) {
-        body.filename = filename;
-      }
-      
-      if (pdfData) {
-        body.pdfData = pdfData;
-      }
-      
       const { data, error } = await supabase.functions.invoke('process-instagram-recipe', {
-        body
+        body: { content }
       });
 
       if (error) {
@@ -99,68 +86,29 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setLoading(true);
 
     try {
-      let content = rawInput;
-      let filename;
-
-      // Handle PDF file
+      // For now, we'll focus only on text input - PDF processing will be added later
       if (file) {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          
-          // Convert ArrayBuffer to base64 in chunks to avoid stack overflow
-          const bytes = new Uint8Array(arrayBuffer);
-          let base64String = '';
-          const chunkSize = 8192; // Process in smaller chunks
-          
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.slice(i, i + chunkSize);
-            base64String += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
-          }
-          
-          filename = file.name;
-          
-          // Process PDF with base64 data
-          const processedData = await processContent('', filename, base64String);
-          
-          if (!processedData || !processedData.title) {
-            throw new Error('Konnte das Rezept nicht verarbeiten');
-          }
-
-          // Save processed recipe to database
-          const { error } = await supabase
-            .from('recipes')
-            .insert({
-              user_id: user.id,
-              title: processedData.title,
-              description: processedData.description || null,
-              image_url: processedData.image_url || null,
-              ingredients: processedData.ingredients || [],
-              instructions: processedData.instructions || [],
-              cooking_time: processedData.cooking_time || null,
-              servings: processedData.servings || null,
-            });
-
-          if (error) {
-            throw error;
-          }
-
-          toast({
-            title: "Erfolgreich!",
-            description: "Ihr PDF-Rezept wurde verarbeitet und hinzugefügt.",
-          });
-
-          resetForm();
-          setOpen(false);
-          onRecipeAdded?.();
-          return;
-        } catch (error) {
-          console.error('PDF processing error:', error);
-          throw new Error('Fehler beim Verarbeiten der PDF-Datei');
-        }
+        toast({
+          title: "Info",
+          description: "PDF-Upload wird bald verfügbar sein. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein.",
+          variant: "default",
+        });
+        setLoading(false);
+        return;
       }
 
-      // Process content with DeepSeek
-      const processedData = await processContent(content, filename);
+      if (!rawInput.trim()) {
+        toast({
+          title: "Fehler",
+          description: "Bitte geben Sie Rezepttext ein.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Process text content with DeepSeek
+      const processedData = await processContent(rawInput);
       
       if (!processedData || !processedData.title) {
         throw new Error('Konnte das Rezept nicht verarbeiten');
@@ -173,7 +121,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           user_id: user.id,
           title: processedData.title,
           description: processedData.description || null,
-          
           image_url: processedData.image_url || null,
           ingredients: processedData.ingredients || [],
           instructions: processedData.instructions || [],
@@ -225,8 +172,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             <div className="text-center">
               <h3 className="text-lg font-medium mb-2">Rezept</h3>
               <p className="text-sm text-muted-foreground">
-                Fügen Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch. 
-                KI wird Ihr Rezept automatisch strukturieren.
+                Fügen Sie Rezepttext ein. DeepSeek KI wird Ihr Rezept automatisch strukturieren.
               </p>
             </div>
 
@@ -237,46 +183,47 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                   id="raw-input"
                   value={rawInput}
                   onChange={(e) => setRawInput(e.target.value)}
-                  placeholder="Fügen Sie hier Ihren Rezepttext ein... (Instagram-Post, Website-Text, etc.)"
+                  placeholder="Fügen Sie hier Ihren Rezepttext ein... (Website-Text, handschriftliches Rezept, etc.)"
                   rows={8}
                   className="resize-none"
                 />
               </div>
 
               <div className="flex items-center justify-center">
-                <div className="text-sm text-muted-foreground">oder</div>
+                <div className="text-sm text-muted-foreground">oder (bald verfügbar)</div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="pdf-upload">PDF-Datei hochladen</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center opacity-50">
                   <input
                     id="pdf-upload"
                     type="file"
                     accept=".pdf"
                     onChange={handleFileChange}
                     className="hidden"
+                    disabled
                   />
                   <label 
                     htmlFor="pdf-upload" 
-                    className="cursor-pointer flex flex-col items-center space-y-2"
+                    className="cursor-not-allowed flex flex-col items-center space-y-2"
                   >
                     {file ? (
                       <>
-                        <FileText className="h-8 w-8 text-primary" />
+                        <FileText className="h-8 w-8 text-muted-foreground" />
                         <span className="text-sm font-medium">{file.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          Klicken Sie, um eine andere Datei auszuwählen
+                          Kommt bald - bitte kopieren Sie den Text manuell
                         </span>
                       </>
                     ) : (
                       <>
                         <Upload className="h-8 w-8 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          PDF-Datei hier hochladen
+                          PDF-Upload (bald verfügbar)
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          Klicken Sie oder ziehen Sie eine PDF-Datei hierher
+                          Kopieren Sie vorerst den Text aus der PDF manuell
                         </span>
                       </>
                     )}
@@ -295,9 +242,9 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !file)}>
+            <Button type="submit" disabled={loading || processing || !rawInput.trim()}>
               {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {processing ? 'Verarbeitung...' : 'Rezept'}
+              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>
           </div>
         </form>

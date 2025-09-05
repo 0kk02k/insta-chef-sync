@@ -1,8 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-// @deno-types="https://esm.sh/@types/pdf-parse@1.1.1"
-import pdfParse from 'https://esm.sh/pdf-parse@1.1.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,50 +24,24 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { content, type, filename, pdfData } = body;
+    const { content } = body;
     
-    // Validate input - content or pdfData is required
-    if (!content && !pdfData) {
+    // Validate input - content is required
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Content oder PDF-Daten sind erforderlich' }), 
+        JSON.stringify({ error: 'Rezepttext ist erforderlich' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Processing request:', { type, filename, hasContent: !!content, hasPdfData: !!pdfData });
+    console.log('Processing request with content length:', content.length);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let processContent = content;
-
-    // Handle PDF content
-    if (type === 'pdf' && pdfData) {
-      console.log('Processing PDF content...');
-      try {
-        // Convert base64 to buffer
-        const pdfBuffer = new Uint8Array(atob(pdfData).split('').map(char => char.charCodeAt(0)));
-        
-        // Extract text from PDF
-        const data = await pdfParse(pdfBuffer);
-        processContent = data.text;
-        
-        if (!processContent || processContent.trim().length < 50) {
-          throw new Error('PDF-Text konnte nicht extrahiert werden oder ist zu kurz');
-        }
-        
-        console.log('Successfully extracted text from PDF:', processContent.substring(0, 200) + '...');
-      } catch (error) {
-        console.error('PDF parsing error:', error);
-        throw new Error('Fehler beim Verarbeiten der PDF-Datei. Bitte versuchen Sie es mit einem anderen Format.');
-      }
-    }
-    
-    if (!processContent) {
-      throw new Error('Kein Content zum Verarbeiten gefunden');
-    }
+    const processContent = content.trim();
 
     console.log('Content extracted, analyzing with DeepSeek...');
 
