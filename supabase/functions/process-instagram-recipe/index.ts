@@ -180,10 +180,16 @@ ${processContent}
 
   } catch (error) {
     console.error('Error in process-instagram-recipe function:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Unbekannter Fehler beim Verarbeiten des Rezepts'
+        error: error.message || 'Unbekannter Fehler beim Verarbeiten des Rezepts',
+        details: error.name || 'Unknown error type'
       }),
       {
         status: 500,
