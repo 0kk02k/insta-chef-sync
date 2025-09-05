@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Loader2, Plus, X } from 'lucide-react';
+import { Edit, Loader2, Plus, X, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,6 +30,8 @@ interface EditRecipeDialogProps {
 const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: recipe.title,
     description: recipe.description || '',
@@ -48,6 +50,44 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
+      setImageFile(selectedFile);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else if (selectedFile) {
+      toast({
+        title: "Fehler",
+        description: "Nur Bilddateien werden unterstützt.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    
+    const { data, error } = await supabase.storage
+      .from('recipe-images')
+      .upload(fileName, file);
+
+    if (error) {
+      throw new Error('Fehler beim Hochladen des Bildes: ' + error.message);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('recipe-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
   };
 
   const handleArrayChange = (field: 'ingredients' | 'instructions', index: number, value: string) => {
@@ -89,6 +129,12 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     setLoading(true);
 
     try {
+      // Upload new image if provided
+      let imageUrl = recipe.image_url;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
       // Filter empty ingredients and instructions
       const cleanedIngredients = formData.ingredients.filter(item => item.trim() !== '');
       const cleanedInstructions = formData.instructions.filter(item => item.trim() !== '');
@@ -99,6 +145,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
           title: formData.title.trim(),
           description: formData.description.trim() || null,
           instagram_url: formData.instagram_url.trim() || null,
+          image_url: imageUrl,
           ingredients: cleanedIngredients,
           instructions: cleanedInstructions,
           cooking_time: formData.cooking_time ? parseInt(formData.cooking_time.toString()) : null,
@@ -208,6 +255,53 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   onChange={(e) => handleInputChange('instagram_url', e.target.value)}
                   placeholder="https://instagram.com/..."
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image-upload-edit">Rezeptbild ändern (optional)</Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                <input
+                  id="image-upload-edit"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <label 
+                  htmlFor="image-upload-edit" 
+                  className="cursor-pointer flex flex-col items-center space-y-2"
+                >
+                  {imagePreview ? (
+                    <>
+                      <img 
+                        src={imagePreview} 
+                        alt="Neue Vorschau" 
+                        className="h-32 w-32 object-cover rounded-lg"
+                      />
+                      <span className="text-sm font-medium">Neues Bild gewählt</span>
+                    </>
+                  ) : recipe.image_url ? (
+                    <>
+                      <img 
+                        src={recipe.image_url} 
+                        alt="Aktuelles Bild" 
+                        className="h-32 w-32 object-cover rounded-lg"
+                      />
+                      <span className="text-sm font-medium">Klicken zum Ändern</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        Bild hochladen
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        JPG, PNG oder WEBP
+                      </span>
+                    </>
+                  )}
+                </label>
               </div>
             </div>
           </div>

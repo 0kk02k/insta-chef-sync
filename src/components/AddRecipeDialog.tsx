@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Loader2, Upload, FileText } from 'lucide-react';
+import { Plus, Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,7 +17,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rawInput, setRawInput] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   
   const { toast } = useToast();
@@ -25,20 +26,46 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
   const resetForm = () => {
     setRawInput('');
-    setFile(null);
+    setImageFile(null);
+    setImagePreview(null);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile && selectedFile.type === 'application/pdf') {
-      setFile(selectedFile);
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
+      setImageFile(selectedFile);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
     } else if (selectedFile) {
       toast({
         title: "Fehler",
-        description: "Nur PDF-Dateien werden unterstützt.",
+        description: "Nur Bilddateien werden unterstützt.",
         variant: "destructive",
       });
     }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    
+    const { data, error } = await supabase.storage
+      .from('recipe-images')
+      .upload(fileName, file);
+
+    if (error) {
+      throw new Error('Fehler beim Hochladen des Bildes: ' + error.message);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('recipe-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
   };
 
   const processContent = async (content: string) => {
@@ -74,10 +101,10 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!rawInput.trim() && !file) {
+    if (!rawInput.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch.",
+        description: "Bitte geben Sie Rezepttext ein.",
         variant: "destructive",
       });
       return;
@@ -86,32 +113,17 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setLoading(true);
 
     try {
-      // For now, we'll focus only on text input - PDF processing will be added later
-      if (file) {
-        toast({
-          title: "Info",
-          description: "PDF-Upload wird bald verfügbar sein. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein.",
-          variant: "default",
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (!rawInput.trim()) {
-        toast({
-          title: "Fehler",
-          description: "Bitte geben Sie Rezepttext ein.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
       // Process text content with DeepSeek
       const processedData = await processContent(rawInput);
       
       if (!processedData || !processedData.title) {
         throw new Error('Konnte das Rezept nicht verarbeiten');
+      }
+
+      // Upload user image if provided, otherwise use AI-generated image
+      let imageUrl = processedData.image_url; // AI-generated image from edge function
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
       }
 
       // Save processed recipe to database
@@ -121,7 +133,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           user_id: user.id,
           title: processedData.title,
           description: processedData.description || null,
-          image_url: processedData.image_url || null,
+          image_url: imageUrl,
           ingredients: processedData.ingredients || [],
           instructions: processedData.instructions || [],
           cooking_time: processedData.cooking_time || null,
@@ -189,41 +201,37 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                 />
               </div>
 
-              <div className="flex items-center justify-center">
-                <div className="text-sm text-muted-foreground">oder (bald verfügbar)</div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="pdf-upload">PDF-Datei hochladen</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center opacity-50">
+                <Label htmlFor="image-upload">Rezeptbild hochladen (optional)</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
-                    id="pdf-upload"
+                    id="image-upload"
                     type="file"
-                    accept=".pdf"
-                    onChange={handleFileChange}
+                    accept="image/*"
+                    onChange={handleImageChange}
                     className="hidden"
-                    disabled
                   />
                   <label 
-                    htmlFor="pdf-upload" 
-                    className="cursor-not-allowed flex flex-col items-center space-y-2"
+                    htmlFor="image-upload" 
+                    className="cursor-pointer flex flex-col items-center space-y-2"
                   >
-                    {file ? (
+                    {imagePreview ? (
                       <>
-                        <FileText className="h-8 w-8 text-muted-foreground" />
-                        <span className="text-sm font-medium">{file.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          Kommt bald - bitte kopieren Sie den Text manuell
-                        </span>
+                        <img 
+                          src={imagePreview} 
+                          alt="Vorschau" 
+                          className="h-32 w-32 object-cover rounded-lg"
+                        />
+                        <span className="text-sm font-medium">Bild ändern</span>
                       </>
                     ) : (
                       <>
                         <Upload className="h-8 w-8 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          PDF-Upload (bald verfügbar)
+                          Bild hochladen
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          Kopieren Sie vorerst den Text aus der PDF manuell
+                          JPG, PNG oder WEBP (optional - ansonsten wird AI-Bild generiert)
                         </span>
                       </>
                     )}
