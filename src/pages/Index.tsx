@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, LogOut, Loader2 } from 'lucide-react';
+import { ChefHat, LogOut, Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -105,14 +105,17 @@ const Index = () => {
                 <p className="text-muted-foreground">Willkommen, {user?.email}</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={handleSignOut}
-              className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Abmelden
-            </Button>
+            <div className="flex items-center space-x-3">
+              <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleSignOut}
+                className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -143,7 +146,6 @@ const Index = () => {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-soft to-pink-vibrant bg-clip-text text-transparent">
                 Meine Rezepte ({recipes.length})
               </h2>
-              <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {recipes.map((recipe) => (
