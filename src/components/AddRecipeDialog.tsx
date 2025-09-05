@@ -81,8 +81,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       setRawInput('');
       
       toast({
-        title: "PDF-Datei ausgewählt",
-        description: "Die PDF wird direkt von der KI verarbeitet. Klicken Sie auf 'Rezept hinzufügen' um fortzufahren.",
+        title: "PDF-Datei erfolgreich ausgewählt",
+        description: "Die PDF wird direkt von DeepSeek KI verarbeitet. Klicken Sie auf 'Rezept hinzufügen' um fortzufahren.",
       });
     }
   };
