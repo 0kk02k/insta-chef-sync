@@ -7,27 +7,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple PDF text extraction using basic heuristics
+// Enhanced PDF text extraction using multiple approaches
 function extractTextFromPdf(uint8Array: Uint8Array): string {
   const text: string[] = [];
-  const decoder = new TextDecoder('latin1'); // Use latin1 for better binary handling
+  const decoder = new TextDecoder('latin1');
   const pdfString = decoder.decode(uint8Array);
   
-  // Look for text objects in PDF
+  console.log('PDF size in bytes:', uint8Array.length);
+  console.log('PDF string preview (first 500 chars):', pdfString.substring(0, 500));
+  
+  // Method 1: Look for text objects between BT and ET
   const textObjectRegex = /BT\s+(.*?)\s+ET/gs;
   const textMatches = pdfString.matchAll(textObjectRegex);
   
   for (const match of textMatches) {
     const textContent = match[1];
+    console.log('Found BT/ET block:', textContent.substring(0, 100));
     
-    // Extract strings within parentheses or brackets
-    const stringRegex = /\((.*?)\)|\[(.*?)\]/g;
+    // Extract strings within parentheses
+    const stringRegex = /\((.*?)\)/g;
     const strings = textContent.matchAll(stringRegex);
     
     for (const stringMatch of strings) {
-      const extractedText = stringMatch[1] || stringMatch[2];
+      const extractedText = stringMatch[1];
       if (extractedText && extractedText.length > 1) {
-        // Clean up the text
         const cleanText = extractedText
           .replace(/\\[rn]/g, ' ')
           .replace(/\\\(/g, '(')
@@ -35,37 +38,70 @@ function extractTextFromPdf(uint8Array: Uint8Array): string {
           .replace(/\\\\/g, '\\')
           .trim();
         
-        if (cleanText.length > 0) {
+        if (cleanText.length > 0 && !cleanText.match(/^[0-9\s.]+$/)) {
           text.push(cleanText);
+          console.log('Extracted text from BT/ET:', cleanText);
         }
       }
     }
   }
   
-  // If no text found through BT/ET blocks, try alternative approach
+  // Method 2: Look for stream content
   if (text.length === 0) {
-    // Look for readable ASCII text sequences
-    const readableTextRegex = /[A-Za-zÄÖÜäöüß0-9][A-Za-zÄÖÜäöüß0-9\s,.:;!?\-]{5,}/g;
-    const matches = pdfString.match(readableTextRegex);
+    console.log('No BT/ET content found, trying stream method...');
+    const streamRegex = /stream\s*(.*?)\s*endstream/gs;
+    const streamMatches = pdfString.matchAll(streamRegex);
     
-    if (matches) {
-      // Filter out PDF commands and keep only likely content
-      const filteredMatches = matches.filter(match => {
-        const lower = match.toLowerCase();
-        return !lower.includes('obj') && 
-               !lower.includes('endobj') && 
-               !lower.includes('stream') && 
-               !lower.includes('endstream') &&
-               !lower.includes('xref') &&
-               !lower.match(/^[0-9\s.]+$/) && // Skip number-only strings
-               match.length > 10; // Minimum length for content
-      });
+    for (const match of streamMatches) {
+      const streamContent = match[1];
+      console.log('Found stream content preview:', streamContent.substring(0, 100));
       
-      text.push(...filteredMatches);
+      // Try to find text patterns in stream
+      const textPatterns = streamContent.match(/[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s,.:;!?\d\-]{5,}/g);
+      if (textPatterns) {
+        const filteredText = textPatterns.filter(t => 
+          t.length > 10 && 
+          !t.includes('obj') && 
+          !t.includes('endobj') &&
+          !t.match(/^[0-9\s.]+$/)
+        );
+        text.push(...filteredText);
+        console.log('Extracted from stream:', filteredText.slice(0, 3));
+      }
     }
   }
   
-  return text.join(' ').replace(/\s+/g, ' ').trim();
+  // Method 3: Look for any readable text sequences (fallback)
+  if (text.length === 0) {
+    console.log('No stream content found, trying direct text extraction...');
+    
+    // Look for common German words to identify text sections
+    const germanWords = ['und', 'mit', 'der', 'die', 'das', 'für', 'von', 'zu', 'in', 'auf', 'bei', 'aus', 'nach', 'über'];
+    const sections = pdfString.split(/[\x00-\x1F\x7F-\x9F]/); // Split on control characters
+    
+    for (const section of sections) {
+      const words = section.match(/[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s,.:;!?\d\-]{10,}/g);
+      if (words) {
+        const validWords = words.filter(word => {
+          const lowerWord = word.toLowerCase();
+          return germanWords.some(gw => lowerWord.includes(gw)) || 
+                 word.length > 20 || // Long words are likely content
+                 word.match(/\d+\s*(g|ml|tl|el|kg|liter)/i); // Measurements
+        });
+        
+        if (validWords.length > 0) {
+          text.push(...validWords);
+          console.log('Extracted via word detection:', validWords.slice(0, 2));
+        }
+      }
+    }
+  }
+  
+  const result = text.join(' ').replace(/\s+/g, ' ').trim();
+  console.log('Final extracted text length:', result.length);
+  console.log('Final text preview:', result.substring(0, 200));
+  
+  return result;
 }
 
 serve(async (req) => {
