@@ -161,13 +161,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Neues Rezept hinzufügen</DialogTitle>
+          <DialogTitle>Neues Rezept</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Rezept hinzufügen</h3>
+              <h3 className="text-lg font-medium mb-2">Rezept</h3>
               <p className="text-sm text-muted-foreground">
                 Fügen Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch. 
                 KI wird Ihr Rezept automatisch strukturieren.
@@ -241,7 +241,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             </Button>
             <Button type="submit" disabled={loading || processing || (!rawInput.trim() && !file)}>
               {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
+              {processing ? 'Verarbeitung...' : 'Rezept'}
             </Button>
           </div>
         </form>
