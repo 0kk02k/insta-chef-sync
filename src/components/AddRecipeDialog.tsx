@@ -156,7 +156,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       <DialogTrigger asChild>
         <Button size="lg">
           <Plus className="h-5 w-5 mr-2" />
-          Erstes Rezept hinzufügen
+          + Rezept
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
