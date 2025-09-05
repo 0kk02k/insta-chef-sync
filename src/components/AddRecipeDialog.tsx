@@ -79,32 +79,68 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       setSelectedPdf(file);
       
-      // Extract text from PDF
+      // Extract text from PDF and process directly with AI
       try {
         setPdfProcessing(true);
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data, error } = await supabase.functions.invoke('extract-pdf-text', {
+        // Extract text from PDF
+        const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-pdf-text', {
           body: formData,
         });
 
-        if (error) throw error;
+        if (extractError) throw extractError;
 
-        if (data.success && data.text) {
-          setRawInput(data.text);
-          toast({
-            title: "Erfolg",
-            description: "Text wurde erfolgreich aus der PDF extrahiert.",
-          });
-        } else {
-          throw new Error(data.error || 'Fehler beim Extrahieren des Textes');
+        if (!extractData.success || !extractData.text) {
+          throw new Error(extractData.error || 'Fehler beim Extrahieren des Textes');
         }
+
+        // Process the extracted text directly with DeepSeek AI
+        const processedData = await processContent(extractData.text);
+        
+        if (!processedData || !processedData.title) {
+          throw new Error('Konnte das Rezept nicht aus der PDF verarbeiten');
+        }
+
+        // Upload user image if provided, otherwise use AI-generated image
+        let imageUrl = processedData.image_url; // AI-generated image from edge function
+        if (imageFile) {
+          imageUrl = await uploadImage(imageFile);
+        }
+
+        // Save processed recipe to database
+        const { error } = await supabase
+          .from('recipes')
+          .insert({
+            user_id: user.id,
+            title: processedData.title,
+            description: processedData.description || null,
+            image_url: imageUrl,
+            ingredients: processedData.ingredients || [],
+            instructions: processedData.instructions || [],
+            cooking_time: processedData.cooking_time || null,
+            servings: processedData.servings || null,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "Erfolg!",
+          description: "PDF-Rezept wurde erfolgreich verarbeitet und hinzugefügt.",
+        });
+
+        resetForm();
+        setOpen(false);
+        onRecipeAdded?.();
+
       } catch (error) {
-        console.error('Error extracting PDF text:', error);
+        console.error('Error processing PDF:', error);
         toast({
           title: "Fehler",
-          description: "Fehler beim Extrahieren des Textes aus der PDF.",
+          description: error instanceof Error ? error.message : "Fehler beim Verarbeiten der PDF.",
           variant: "destructive",
         });
         setSelectedPdf(null);
