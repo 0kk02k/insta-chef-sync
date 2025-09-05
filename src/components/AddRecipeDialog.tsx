@@ -140,9 +140,10 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
     } catch (error) {
       console.error('Error adding recipe:', error);
+      const errorMessage = error instanceof Error ? error.message : "Fehler beim Verarbeiten des Rezepts. Bitte versuchen Sie es erneut.";
       toast({
         title: "Fehler",
-        description: "Fehler beim Verarbeiten des Rezepts. Bitte versuchen Sie es erneut.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

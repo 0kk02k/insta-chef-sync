@@ -22,49 +22,67 @@ serve(async (req) => {
   }
 
   try {
-    const { instagram_url } = await req.json();
+    const body = await req.json();
+    const { instagram_url, content, type, filename } = body;
     
-    if (!instagram_url) {
+    // Validate input - either instagram_url or content is required
+    if (!instagram_url && !content) {
       return new Response(
-        JSON.stringify({ error: 'Instagram URL ist erforderlich' }), 
+        JSON.stringify({ error: 'Instagram URL oder Content ist erforderlich' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Processing Instagram URL:', instagram_url);
+    console.log('Processing request:', { type, filename, hasInstagramUrl: !!instagram_url, hasContent: !!content });
 
-    // 1. Scrape Instagram content with Firecrawl
-    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    if (!firecrawlApiKey) {
-      throw new Error('FIRECRAWL_API_KEY nicht konfiguriert');
+    let processContent = content;
+
+    // If we have an Instagram URL, scrape it with Firecrawl
+    if (instagram_url) {
+      const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+      if (!firecrawlApiKey) {
+        throw new Error('FIRECRAWL_API_KEY nicht konfiguriert');
+      }
+
+      console.log('Scraping content with Firecrawl...');
+      const scrapeResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${firecrawlApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: instagram_url,
+          pageOptions: {
+            onlyMainContent: true
+          }
+        }),
+      });
+
+      if (!scrapeResponse.ok) {
+        const errorText = await scrapeResponse.text();
+        console.error('Firecrawl error:', errorText);
+        throw new Error(`Fehler beim Scrapen: ${scrapeResponse.status}`);
+      }
+
+      const scrapeData = await scrapeResponse.json();
+      processContent = scrapeData?.data?.content || scrapeData?.data?.markdown || '';
+      
+      if (!processContent) {
+        throw new Error('Kein Content vom Instagram-Post extrahiert');
+      }
     }
 
-    console.log('Scraping content with Firecrawl...');
-    const scrapeResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: instagram_url,
-        pageOptions: {
-          onlyMainContent: true
-        }
-      }),
-    });
-
-    if (!scrapeResponse.ok) {
-      const errorText = await scrapeResponse.text();
-      console.error('Firecrawl error:', errorText);
-      throw new Error(`Fehler beim Scrapen: ${scrapeResponse.status}`);
+    // Handle PDF content
+    if (type === 'pdf' && filename) {
+      console.log('Processing PDF content...');
+      if (!processContent || processContent.includes('PDF file:')) {
+        throw new Error('PDF-Verarbeitung wird derzeit nicht unterstützt. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein.');
+      }
     }
-
-    const scrapeData = await scrapeResponse.json();
-    const content = scrapeData?.data?.content || scrapeData?.data?.markdown || '';
     
-    if (!content) {
-      throw new Error('Kein Content vom Instagram-Post extrahiert');
+    if (!processContent) {
+      throw new Error('Kein Content zum Verarbeiten gefunden');
     }
 
     console.log('Content extracted, analyzing with DeepSeek...');
@@ -76,7 +94,7 @@ serve(async (req) => {
     }
 
     const prompt = `
-Analysiere den folgenden Instagram-Post-Inhalt und extrahiere Rezeptdaten. 
+Analysiere den folgenden Rezept-Inhalt und extrahiere Rezeptdaten. 
 Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
 
 {
@@ -88,8 +106,8 @@ Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
   "servings": Portionen_als_Zahl_oder_null
 }
 
-Instagram-Post-Inhalt:
-${content}
+Rezept-Inhalt:
+${processContent}
 `;
 
     const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -103,7 +121,7 @@ ${content}
         messages: [
           {
             role: 'system',
-            content: 'Du bist ein Rezept-Extraktions-Experte. Extrahiere Rezeptdaten aus Instagram-Posts und antworte nur mit gültigem JSON.'
+            content: 'Du bist ein Rezept-Extraktions-Experte. Extrahiere Rezeptdaten aus Text-Inhalten und antworte nur mit gültigem JSON.'
           },
           {
             role: 'user',
@@ -152,10 +170,8 @@ ${content}
     return new Response(
       JSON.stringify({
         success: true,
-        recipe: {
-          ...recipeData,
-          instagram_url: instagram_url
-        }
+        ...recipeData,
+        instagram_url: instagram_url
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
