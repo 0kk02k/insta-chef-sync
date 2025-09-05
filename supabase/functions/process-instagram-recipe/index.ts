@@ -23,8 +23,14 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client first
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     let content: string = '';
     let contentType = req.headers.get('content-type') || '';
+    let userPrefs = { language: 'de', measurement_unit: 'metric' };
     
     // Handle both JSON and FormData (for PDF files)
     if (contentType.includes('multipart/form-data')) {
@@ -58,7 +64,6 @@ serve(async (req) => {
       const body = await req.json();
       
       // Get user preferences for language and measurement units
-      let userPrefs = { language: 'de', measurement_unit: 'metric' };
       if (body.userId) {
         const { data: profile } = await supabase.from('profiles')
           .select('language, measurement_unit')
@@ -134,11 +139,6 @@ serve(async (req) => {
         );
       }
     }
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Content received, analyzing with DeepSeek...');
 
