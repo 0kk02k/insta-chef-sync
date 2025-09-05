@@ -7,6 +7,67 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple PDF text extraction using basic heuristics
+function extractTextFromPdf(uint8Array: Uint8Array): string {
+  const text: string[] = [];
+  const decoder = new TextDecoder('latin1'); // Use latin1 for better binary handling
+  const pdfString = decoder.decode(uint8Array);
+  
+  // Look for text objects in PDF
+  const textObjectRegex = /BT\s+(.*?)\s+ET/gs;
+  const textMatches = pdfString.matchAll(textObjectRegex);
+  
+  for (const match of textMatches) {
+    const textContent = match[1];
+    
+    // Extract strings within parentheses or brackets
+    const stringRegex = /\((.*?)\)|\[(.*?)\]/g;
+    const strings = textContent.matchAll(stringRegex);
+    
+    for (const stringMatch of strings) {
+      const extractedText = stringMatch[1] || stringMatch[2];
+      if (extractedText && extractedText.length > 1) {
+        // Clean up the text
+        const cleanText = extractedText
+          .replace(/\\[rn]/g, ' ')
+          .replace(/\\\(/g, '(')
+          .replace(/\\\)/g, ')')
+          .replace(/\\\\/g, '\\')
+          .trim();
+        
+        if (cleanText.length > 0) {
+          text.push(cleanText);
+        }
+      }
+    }
+  }
+  
+  // If no text found through BT/ET blocks, try alternative approach
+  if (text.length === 0) {
+    // Look for readable ASCII text sequences
+    const readableTextRegex = /[A-Za-zÄÖÜäöüß0-9][A-Za-zÄÖÜäöüß0-9\s,.:;!?\-]{5,}/g;
+    const matches = pdfString.match(readableTextRegex);
+    
+    if (matches) {
+      // Filter out PDF commands and keep only likely content
+      const filteredMatches = matches.filter(match => {
+        const lower = match.toLowerCase();
+        return !lower.includes('obj') && 
+               !lower.includes('endobj') && 
+               !lower.includes('stream') && 
+               !lower.includes('endstream') &&
+               !lower.includes('xref') &&
+               !lower.match(/^[0-9\s.]+$/) && // Skip number-only strings
+               match.length > 10; // Minimum length for content
+      });
+      
+      text.push(...filteredMatches);
+    }
+  }
+  
+  return text.join(' ').replace(/\s+/g, ' ').trim();
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,10 +75,6 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
@@ -30,68 +87,39 @@ serve(async (req) => {
       throw new Error('File must be a PDF');
     }
 
+    console.log(`Processing PDF: ${file.name}, Size: ${file.size} bytes`);
+
     // Convert PDF to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Simple PDF text extraction using basic string search
-    // This is a basic approach - for production, consider using a more robust solution
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    let text = '';
+    // Extract text from PDF
+    let extractedText = '';
     
     try {
-      // Try to decode the PDF content
-      const pdfString = decoder.decode(uint8Array);
-      
-      // Extract text between stream objects (basic PDF text extraction)
-      const streamRegex = /stream\s*(.*?)\s*endstream/gs;
-      const matches = pdfString.matchAll(streamRegex);
-      
-      for (const match of matches) {
-        const streamContent = match[1];
-        // Remove PDF operators and extract readable text
-        const cleanText = streamContent
-          .replace(/[<>()[\]{}]/g, ' ')
-          .replace(/\d+(\.\d+)?\s+[A-Za-z]+/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        
-        if (cleanText.length > 10) {
-          text += cleanText + '\n';
-        }
-      }
-
-      // If no text found through streams, try direct text extraction
-      if (!text.trim()) {
-        // Look for readable text patterns
-        const textMatches = pdfString.match(/[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s,.:;!?\d\-]{10,}/g);
-        if (textMatches) {
-          text = textMatches.join(' ');
-        }
-      }
-
+      extractedText = extractTextFromPdf(uint8Array);
+      console.log('Extracted text length:', extractedText.length);
+      console.log('Extracted text preview:', extractedText.substring(0, 200));
     } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw new Error('Could not extract text from PDF. The PDF might be encrypted or contain only images.');
+      console.error('Error in text extraction:', error);
+      throw new Error('Could not extract text from PDF. The PDF might be encrypted, password-protected, or contain only images.');
     }
 
-    if (!text.trim()) {
-      throw new Error('No readable text found in PDF. The PDF might contain only images or be encrypted.');
+    if (!extractedText.trim() || extractedText.length < 20) {
+      throw new Error('No readable text found in PDF. The PDF might contain only images, be encrypted, or use an unsupported format.');
     }
 
     // Clean up the extracted text
-    const cleanedText = text
+    const cleanedText = extractedText
       .replace(/\s+/g, ' ')
       .replace(/\n+/g, '\n')
       .trim();
 
-    console.log('Extracted text length:', cleanedText.length);
-    console.log('Extracted text preview:', cleanedText.substring(0, 200));
-
     return new Response(
       JSON.stringify({ 
         text: cleanedText,
-        success: true 
+        success: true,
+        extractedLength: cleanedText.length
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
