@@ -63,7 +63,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       {/* Untere Hälfte: Titel, Tags und Beschreibung */}
       <div className="flex-1 p-3 flex flex-col justify-between">
         <div className="space-y-2">
-          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
             {recipe.title}
           </h3>
           
@@ -83,7 +83,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           </div>
           
           {recipe.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
+            <p className="text-sm text-muted-foreground line-clamp-3">
               {recipe.description}
             </p>
           )}
