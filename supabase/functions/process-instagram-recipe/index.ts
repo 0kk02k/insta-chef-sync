@@ -76,8 +76,9 @@ serve(async (req) => {
     // Handle PDF content
     if (type === 'pdf' && filename) {
       console.log('Processing PDF content...');
-      if (!processContent || processContent.includes('PDF file:')) {
-        throw new Error('PDF-Verarbeitung wird derzeit nicht unterstützt. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein.');
+      // If content starts with "PDF file:", it means we got filename instead of content
+      if (!processContent || processContent.trim().startsWith('PDF file:')) {
+        throw new Error('Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein, anstatt die PDF-Datei hochzuladen.');
       }
     }
     
