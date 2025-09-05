@@ -33,8 +33,8 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       className="aspect-square overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col"
       onClick={handleClick}
     >
-      {/* Obere Hälfte: Bild */}
-      <div className="flex-1 w-full overflow-hidden relative">
+      {/* Obere Hälfte: Bild - feste Höhe */}
+      <div className="h-1/2 w-full overflow-hidden relative">
         {recipe.image_url ? (
           <img
             src={recipe.image_url}
@@ -60,9 +60,9 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         )}
       </div>
       
-      {/* Untere Hälfte: Titel, Tags und Beschreibung */}
-      <div className="flex-1 p-3 flex flex-col justify-between">
-        <div className="space-y-2">
+      {/* Untere Hälfte: Titel, Tags und Beschreibung - feste Höhe */}
+      <div className="h-1/2 p-3 flex flex-col">
+        <div className="flex-1 space-y-2">
           <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
             {recipe.title}
           </h3>
@@ -83,13 +83,13 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           </div>
           
           {recipe.description && (
-            <p className="text-sm text-muted-foreground line-clamp-3">
+            <p className="text-sm text-muted-foreground line-clamp-2">
               {recipe.description}
             </p>
           )}
         </div>
         
-        <div className="text-xs text-muted-foreground/60 group-hover:text-primary/60 transition-colors pt-2 text-center">
+        <div className="text-xs text-muted-foreground/60 group-hover:text-primary/60 transition-colors text-center mt-2">
           → Details ansehen
         </div>
       </div>
