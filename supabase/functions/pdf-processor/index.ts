@@ -85,14 +85,27 @@ ${text}`
     }
 
     const answer = result.choices[0].message.content.trim();
+    console.log("DeepSeek answer raw:", answer);
     
     // JSON parsen und validieren
     let recipeData;
     try {
-      recipeData = JSON.parse(answer);
+      // Entferne eventuelle Markdown-Formatierung
+      const cleanAnswer = answer.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      recipeData = JSON.parse(cleanAnswer);
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
-      throw new Error("DeepSeek hat kein gültiges JSON zurückgegeben");
+      console.error("Raw answer was:", answer);
+      
+      // Fallback: Erstelle ein einfaches Rezept aus dem Text
+      recipeData = {
+        title: "PDF Rezept",
+        description: "Aus PDF extrahiert",
+        ingredients: text.split('\n').filter(line => line.includes('-') || line.includes('•')).slice(0, 10),
+        instructions: ["Bitte bearbeiten Sie das Rezept manuell"],
+        cooking_time: null,
+        servings: null
+      };
     }
 
     return new Response(JSON.stringify({ 
