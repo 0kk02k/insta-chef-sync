@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ChefHat, LogOut, Loader2 } from 'lucide-react';
+import AddRecipeDialog from '@/components/AddRecipeDialog';
 
 const Index = () => {
   const { user, signOut, loading } = useAuth();
@@ -65,9 +66,7 @@ const Index = () => {
               Hier werden Ihre gespeicherten Rezepte angezeigt. 
               Fügen Sie Instagram-Rezepte hinzu, um loszulegen.
             </p>
-            <Button size="lg">
-              Erstes Rezept hinzufügen
-            </Button>
+            <AddRecipeDialog />
           </div>
         </div>
       </main>
