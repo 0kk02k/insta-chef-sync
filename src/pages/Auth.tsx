@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChefHat } from 'lucide-react';
@@ -13,6 +14,9 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [language, setLanguage] = useState('de');
+  const [measurementUnit, setMeasurementUnit] = useState('metric');
   const { signUp, signIn, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -25,17 +29,21 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email || !password || !displayName) {
       toast({
         title: "Fehler",
-        description: "Bitte E-Mail und Passwort eingeben.",
+        description: "Bitte alle Felder ausfüllen.",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, {
+      display_name: displayName,
+      language,
+      measurement_unit: measurementUnit
+    });
     
     if (error) {
       if (error.message.includes('User already registered')) {
@@ -145,6 +153,17 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="signup-name">Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Ihr vollständiger Name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="signup-email">E-Mail</Label>
                   <Input
                     id="signup-email"
@@ -164,6 +183,33 @@ const Auth = () => {
                     required
                     minLength={6}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-language">Sprache</Label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sprache wählen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="de">Deutsch</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="it">Italiano</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-measurement">Maßeinheiten</Label>
+                  <Select value={measurementUnit} onValueChange={setMeasurementUnit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Maßeinheiten wählen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="metric">Metrisch (g, kg, ml, l)</SelectItem>
+                      <SelectItem value="imperial">Imperial (oz, lb, fl oz, cups)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

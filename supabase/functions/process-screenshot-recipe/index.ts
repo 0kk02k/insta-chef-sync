@@ -42,13 +42,27 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { imageBase64, fileName } = await req.json();
+    const { imageBase64, fileName, userId } = await req.json();
 
     if (!imageBase64) {
       throw new Error('No image data provided');
     }
 
     console.log('📸 Processing screenshot with GPT-5 Nano Vision API');
+
+    // Get user preferences for language and measurement units
+    let userPrefs = { language: 'de', measurement_unit: 'metric' };
+    if (userId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('language, measurement_unit')
+        .eq('id', userId)
+        .single();
+      
+      if (profile) {
+        userPrefs = profile;
+      }
+    }
 
     // Step 1: Extract text and recipe data from screenshot using GPT-5 Nano Vision
     const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -92,7 +106,18 @@ Example response format:
             content: [
               {
                 type: 'text',
-                text: 'Please extract the recipe information from this image. Look for ingredients, instructions, cooking times, and any other recipe details. If this is a screenshot of a recipe from a website, book, or handwritten note, extract all visible recipe content.'
+                text: `Please extract the recipe information from this image. Look for ingredients, instructions, cooking times, and any other recipe details. If this is a screenshot of a recipe from a website, book, or handwritten note, extract all visible recipe content.
+
+IMPORTANT REQUIREMENTS:
+- ${userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
+   userPrefs.language === 'en' ? 'Translate all text to English.' :
+   userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
+   userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
+   userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+   'Keep text in original language.'}
+- ${userPrefs.measurement_unit === 'metric' ? 'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' : 'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).'}
+- Ensure all ingredient quantities use the specified measurement system
+- Keep cooking instructions clear and detailed`
               },
               {
                 type: 'image_url',

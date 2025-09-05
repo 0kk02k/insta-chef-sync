@@ -57,6 +57,19 @@ serve(async (req) => {
       // Handle JSON content (text or URL)
       const body = await req.json();
       
+      // Get user preferences for language and measurement units
+      let userPrefs = { language: 'de', measurement_unit: 'metric' };
+      if (body.userId) {
+        const { data: profile } = await supabase.from('profiles')
+          .select('language, measurement_unit')
+          .eq('id', body.userId)
+          .single();
+        
+        if (profile) {
+          userPrefs = profile;
+        }
+      }
+      
       if (body.url) {
         // Handle URL scraping
         const url = body.url;
@@ -153,6 +166,18 @@ serve(async (req) => {
       // Handle text content
       const processContent = content.trim();
       
+      const languageInstructions = userPrefs.language === 'de' ? 
+        'Übersetze alle Texte ins Deutsche.' : 
+        userPrefs.language === 'en' ? 'Translate all text to English.' :
+        userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
+        userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
+        userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+        'Keep text in original language.';
+
+      const measurementInstructions = userPrefs.measurement_unit === 'metric' ? 
+        'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' :
+        'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).';
+      
       const prompt = `
 Analysiere den folgenden Rezept-Inhalt und extrahiere Rezeptdaten. 
 Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
@@ -165,6 +190,12 @@ Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
   "cooking_time": Minuten_als_Zahl_oder_null,
   "servings": Portionen_als_Zahl_oder_null
 }
+
+WICHTIGE ANFORDERUNGEN:
+- ${languageInstructions}
+- ${measurementInstructions}
+- Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
+- Halte Kochanweisungen klar und detailliert
 
 Rezept-Inhalt:
 ${processContent}

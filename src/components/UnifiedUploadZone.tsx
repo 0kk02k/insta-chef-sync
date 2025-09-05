@@ -3,6 +3,8 @@ import { Upload, FileText, ImageIcon, Globe, Copy, X, Loader2 } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UploadedContent {
   type: 'text' | 'url' | 'pdf' | 'image' | 'screenshot';
@@ -23,6 +25,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const detectContentType = (file: File): 'pdf' | 'image' | 'screenshot' => {
     if (file.type === 'application/pdf') return 'pdf';

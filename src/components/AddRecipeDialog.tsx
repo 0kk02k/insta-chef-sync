@@ -53,9 +53,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       .from('recipe-images')
       .upload(fileName, file);
 
-    if (error) {
-      throw new Error('Fehler beim Hochladen des Bildes: ' + error.message);
-    }
+    if (error) throw error;
 
     const { data: { publicUrl } } = supabase.storage
       .from('recipe-images')
@@ -65,45 +63,43 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   };
 
   const processContent = async (uploadedContent: UploadedContent) => {
+    setProcessing(true);
+    
     try {
-      setProcessing(true);
-      
       let response;
-      
-      if (uploadedContent.type === 'pdf' && uploadedContent.file) {
-        // Upload PDF to storage first, then process with pdf-processor
-        const fileName = `${Date.now()}-${uploadedContent.file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+
+      if (uploadedContent.type === 'screenshot' && uploadedContent.file) {
+        // Convert to base64 for processing
+        const base64Data = await convertImageToBase64(uploadedContent.file);
+        
+        response = await supabase.functions.invoke('process-screenshot-recipe', {
+          body: { imageBase64: base64Data, userId: user?.id }
+        });
+      } else if (uploadedContent.type === 'pdf' && uploadedContent.file) {
+        // Upload PDF to storage first
+        const fileName = `${Date.now()}-${uploadedContent.file.name}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-uploads')
-          .upload(`${user.id}/${Date.now()}-${fileName}`, uploadedContent.file);
+          .upload(fileName, uploadedContent.file);
 
         if (uploadError) {
-          throw new Error('Fehler beim Hochladen der PDF: ' + uploadError.message);
+          throw uploadError;
         }
 
+        // Process PDF with the pdf-processor function
         response = await supabase.functions.invoke('pdf-processor', {
-          body: { path: uploadData.path }
-        });
-      } else if (uploadedContent.type === 'screenshot' && uploadedContent.file) {
-        // Process screenshot with GPT-5 Nano
-        const imageBase64 = await convertImageToBase64(uploadedContent.file);
-        
-        response = await supabase.functions.invoke('process-screenshot-recipe', {
-          body: { 
-            imageBase64,
-            fileName: uploadedContent.file.name
-          }
+          body: { path: fileName, userId: user?.id }
         });
       } else if (uploadedContent.type === 'text' && uploadedContent.content) {
-        // Send text content to existing function
+        // Send text content to the function
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { content: uploadedContent.content }
+          body: { content: uploadedContent.content, userId: user?.id }
         });
       } else if (uploadedContent.type === 'url' && uploadedContent.content) {
         // Send URL to the function for scraping
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { url: uploadedContent.content }
+          body: { url: uploadedContent.content, userId: user?.id }
         });
       } else {
         throw new Error('Unbekannter Content-Typ oder fehlende Daten');

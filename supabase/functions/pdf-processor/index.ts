@@ -20,8 +20,22 @@ serve(async (req) => {
   }
 
   try {
-    const { path } = await req.json();
+    const { path, userId } = await req.json();
     console.log("Processing PDF:", path);
+
+    // Get user preferences for language and measurement units
+    let userPrefs = { language: 'de', measurement_unit: 'metric' };
+    if (userId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('language, measurement_unit')
+        .eq('id', userId)
+        .single();
+      
+      if (profile) {
+        userPrefs = profile;
+      }
+    }
 
     // 1) PDF aus Supabase Storage holen
     const { data, error } = await supabase.storage
@@ -67,6 +81,17 @@ serve(async (req) => {
   "cooking_time": Minuten_als_Zahl_oder_null,
   "servings": Portionen_als_Zahl_oder_null
 }
+
+WICHTIGE ANFORDERUNGEN:
+- ${userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
+   userPrefs.language === 'en' ? 'Translate all text to English.' :
+   userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
+   userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
+   userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+   'Keep text in original language.'}
+- ${userPrefs.measurement_unit === 'metric' ? 'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' : 'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).'}
+- Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
+- Halte Kochanweisungen klar und detailliert
 
 Text:
 ${text}` 
