@@ -116,8 +116,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         const fileName = `${Date.now()}-${pdfFile.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('recipe-images')
-          .upload(fileName, pdfFile);
+          .from('pdf-uploads')
+          .upload(`userpdfs/${Date.now()}-${fileName}`, pdfFile);
 
         if (uploadError) {
           throw new Error('Fehler beim Hochladen der PDF: ' + uploadError.message);

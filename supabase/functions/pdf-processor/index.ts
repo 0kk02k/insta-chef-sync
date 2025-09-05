@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import pdf from "npm:pdf-parse";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getDocument } from "npm:pdfjs-dist";
+import { createCanvas } from "npm:canvas";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,33 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
+
+async function extractTextAndImages(arrayBuffer: ArrayBuffer) {
+  const pdf = await getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+
+  let text = "";
+  const images: string[] = [];
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+
+    // ---- Text extrahieren ----
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(" ") + "\n";
+
+    // ---- Seite als Bild rendern ----
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = createCanvas(viewport.width, viewport.height);
+    const context = canvas.getContext("2d");
+
+    await page.render({ canvasContext: context, viewport }).promise;
+
+    const pngBase64 = canvas.toBuffer("image/png").toString("base64");
+    images.push(`data:image/png;base64,${pngBase64}`);
+  }
+
+  return { text, images };
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -24,7 +52,7 @@ serve(async (req) => {
 
     // 1) PDF aus Supabase Storage holen
     const { data, error } = await supabase.storage
-      .from("recipe-images")  // Using existing bucket
+      .from("pdf-uploads")
       .download(path);
 
     if (error) {
@@ -35,10 +63,10 @@ serve(async (req) => {
     const buffer = await data.arrayBuffer();
     console.log("PDF downloaded, size:", buffer.byteLength);
 
-    // 2) Text extrahieren
-    const parsed = await pdf(Buffer.from(buffer));
-    const text = parsed.text.substring(0, 4000); // Text begrenzen
+    // 2) Text + Bilder extrahieren
+    const { text, images } = await extractTextAndImages(buffer);
     console.log("Extracted text length:", text.length);
+    console.log("Extracted images count:", images.length);
 
     // 3) DeepSeek Chat API anfragen für Rezept-Extraktion
     const completion = await fetch("https://api.deepseek.com/v1/chat/completions", {
@@ -68,8 +96,12 @@ serve(async (req) => {
 }
 
 Text:
-${text}` 
+${text.slice(0, 4000)}` 
           },
+          ...images.map((img) => ({
+            role: "user",
+            content: [{ type: "image_url", image_url: { url: img } }],
+          })),
         ],
         temperature: 0.1,
         max_tokens: 2000,
