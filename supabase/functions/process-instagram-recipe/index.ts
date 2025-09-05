@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// @deno-types="https://esm.sh/@types/pdf-parse@1.1.1"
+import pdfParse from 'https://esm.sh/pdf-parse@1.1.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,17 +26,17 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { instagram_url, content, type, filename } = body;
+    const { content, type, filename, pdfData } = body;
     
-    // Validate input - either instagram_url or content is required
-    if (!instagram_url && !content) {
+    // Validate input - content or pdfData is required
+    if (!content && !pdfData) {
       return new Response(
-        JSON.stringify({ error: 'Instagram URL oder Content ist erforderlich' }), 
+        JSON.stringify({ error: 'Content oder PDF-Daten sind erforderlich' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Processing request:', { type, filename, hasInstagramUrl: !!instagram_url, hasContent: !!content });
+    console.log('Processing request:', { type, filename, hasContent: !!content, hasPdfData: !!pdfData });
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -43,59 +45,25 @@ serve(async (req) => {
 
     let processContent = content;
 
-    let extractedImageUrl: string | null = null;
-
-    // If we have an Instagram URL, scrape it with Firecrawl
-    if (instagram_url) {
-      const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-      if (!firecrawlApiKey) {
-        throw new Error('FIRECRAWL_API_KEY nicht konfiguriert');
-      }
-
-      console.log('Scraping content with Firecrawl...');
-      const scrapeResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${firecrawlApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: instagram_url,
-          pageOptions: {
-            onlyMainContent: true,
-            includeHtml: true
-          }
-        }),
-      });
-
-      if (!scrapeResponse.ok) {
-        const errorText = await scrapeResponse.text();
-        console.error('Firecrawl error:', errorText);
-        throw new Error(`Fehler beim Scrapen: ${scrapeResponse.status}`);
-      }
-
-      const scrapeData = await scrapeResponse.json();
-      processContent = scrapeData?.data?.content || scrapeData?.data?.markdown || '';
-      
-      // Try to extract image URL from HTML
-      const html = scrapeData?.data?.html || '';
-      const imgMatch = html.match(/<img[^>]*src="([^"]*)"[^>]*>/i);
-      if (imgMatch && imgMatch[1]) {
-        extractedImageUrl = imgMatch[1];
-        console.log('Extracted image URL from Instagram:', extractedImageUrl);
-      }
-      
-      if (!processContent) {
-        throw new Error('Kein Content vom Instagram-Post extrahiert');
-      }
-    }
-
     // Handle PDF content
-    if (type === 'pdf' && filename) {
+    if (type === 'pdf' && pdfData) {
       console.log('Processing PDF content...');
-      // If content starts with "PDF file:", it means we got filename instead of content
-      if (!processContent || processContent.trim().startsWith('PDF file:')) {
-        throw new Error('Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn in das Textfeld ein, anstatt die PDF-Datei hochzuladen.');
+      try {
+        // Convert base64 to buffer
+        const pdfBuffer = new Uint8Array(atob(pdfData).split('').map(char => char.charCodeAt(0)));
+        
+        // Extract text from PDF
+        const data = await pdfParse(pdfBuffer);
+        processContent = data.text;
+        
+        if (!processContent || processContent.trim().length < 50) {
+          throw new Error('PDF-Text konnte nicht extrahiert werden oder ist zu kurz');
+        }
+        
+        console.log('Successfully extracted text from PDF:', processContent.substring(0, 200) + '...');
+      } catch (error) {
+        console.error('PDF parsing error:', error);
+        throw new Error('Fehler beim Verarbeiten der PDF-Datei. Bitte versuchen Sie es mit einem anderen Format.');
       }
     }
     
@@ -185,11 +153,10 @@ ${processContent}
 
     console.log('Successfully extracted recipe data:', recipeData);
 
-    // Generate AI image if no image was extracted from source
-    let finalImageUrl = extractedImageUrl;
-    if (!finalImageUrl) {
-      console.log('No image found in source, generating AI image...');
-      try {
+    // Generate AI image for the recipe
+    let finalImageUrl: string | null = null;
+    console.log('Generating AI image...');
+    try {
         const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
         if (openaiApiKey) {
           const imagePrompt = `A high-quality, appetizing food photograph of ${recipeData.title}. Professional food photography, well-lit, attractive presentation, restaurant quality.`;
@@ -233,18 +200,16 @@ ${processContent}
             }
           }
         }
-      } catch (error) {
-        console.error('Error generating AI image:', error);
-        // Continue without image if generation fails
-      }
+    } catch (error) {
+      console.error('Error generating AI image:', error);
+      // Continue without image if generation fails
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         ...recipeData,
-        image_url: finalImageUrl,
-        instagram_url: instagram_url
+        image_url: finalImageUrl
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

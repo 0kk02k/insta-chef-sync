@@ -41,16 +41,25 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     }
   };
 
-  const processContent = async (content: string, filename?: string) => {
+  const processContent = async (content: string, filename?: string, pdfData?: string) => {
     try {
       setProcessing(true);
       
+      const body: any = { 
+        content,
+        type: filename ? 'pdf' : 'text'
+      };
+      
+      if (filename) {
+        body.filename = filename;
+      }
+      
+      if (pdfData) {
+        body.pdfData = pdfData;
+      }
+      
       const { data, error } = await supabase.functions.invoke('process-instagram-recipe', {
-        body: { 
-          content,
-          filename,
-          type: filename ? 'pdf' : 'text'
-        }
+        body
       });
 
       if (error) {
@@ -95,13 +104,47 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       // Handle PDF file
       if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const base64String = btoa(String.fromCharCode(...uint8Array));
         
-        // Convert PDF to text (you might want to use a PDF parsing library)
-        // For now, we'll pass the filename and let the edge function handle it
         filename = file.name;
-        content = `PDF file: ${file.name}`;
+        content = ''; // Clear text content when using PDF
+        
+        // Process PDF with base64 data
+        const processedData = await processContent('', filename, base64String);
+        
+        if (!processedData || !processedData.title) {
+          throw new Error('Konnte das Rezept nicht verarbeiten');
+        }
+
+        // Save processed recipe to database
+        const { error } = await supabase
+          .from('recipes')
+          .insert({
+            user_id: user.id,
+            title: processedData.title,
+            description: processedData.description || null,
+            image_url: processedData.image_url || null,
+            ingredients: processedData.ingredients || [],
+            instructions: processedData.instructions || [],
+            cooking_time: processedData.cooking_time || null,
+            servings: processedData.servings || null,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "Erfolgreich!",
+          description: "Ihr PDF-Rezept wurde verarbeitet und hinzugefügt.",
+        });
+
+        resetForm();
+        setOpen(false);
+        onRecipeAdded?.();
+        return;
       }
 
       // Process content with DeepSeek
@@ -118,7 +161,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           user_id: user.id,
           title: processedData.title,
           description: processedData.description || null,
-          instagram_url: processedData.instagram_url || null,
+          
           image_url: processedData.image_url || null,
           ingredients: processedData.ingredients || [],
           instructions: processedData.instructions || [],
