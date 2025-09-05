@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,19 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Auto-resize textareas on mount and when data changes
+  useEffect(() => {
+    const textareas = document.querySelectorAll('textarea[data-instruction-index]');
+    textareas.forEach((textarea) => {
+      autoResizeTextarea(textarea as HTMLTextAreaElement);
+    });
+  }, [formData.instructions]);
+
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(60, textarea.scrollHeight) + 'px';
+  };
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -90,10 +103,21 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     return publicUrl;
   };
 
+
   const handleArrayChange = (field: 'ingredients' | 'instructions', index: number, value: string) => {
     const newArray = [...formData[field]];
     newArray[index] = value;
     handleInputChange(field, newArray);
+    
+    // Auto-resize for instructions
+    if (field === 'instructions') {
+      setTimeout(() => {
+        const textarea = document.querySelector(`textarea[data-instruction-index="${index}"]`) as HTMLTextAreaElement;
+        if (textarea) {
+          autoResizeTextarea(textarea);
+        }
+      }, 0);
+    }
   };
 
   const addArrayItem = (field: 'ingredients' | 'instructions') => {
@@ -365,9 +389,11 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   <Textarea
                     value={instruction}
                     onChange={(e) => handleArrayChange('instructions', index, e.target.value)}
+                    onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
                     placeholder={`Schritt ${index + 1}...`}
-                    className="flex-1 min-h-[60px]"
-                    rows={2}
+                    className="flex-1 min-h-[60px] resize-none overflow-hidden"
+                    data-instruction-index={index}
+                    style={{ height: 'auto' }}
                   />
                   <Button
                     type="button"
