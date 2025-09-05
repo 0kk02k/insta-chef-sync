@@ -13,6 +13,7 @@ interface Recipe {
   title: string;
   description: string | null;
   instagram_url: string | null;
+  image_url: string | null;
   ingredients: string[];
   instructions: string[];
   cooking_time: number | null;

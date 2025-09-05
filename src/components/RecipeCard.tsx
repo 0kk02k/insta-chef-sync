@@ -8,6 +8,7 @@ interface Recipe {
   title: string;
   description: string | null;
   instagram_url: string | null;
+  image_url: string | null;
   ingredients: string[];
   instructions: string[];
   cooking_time: number | null;
@@ -21,7 +22,17 @@ interface RecipeCardProps {
 
 const RecipeCard = ({ recipe }: RecipeCardProps) => {
   return (
-    <Card className="h-full">
+    <Card className="h-full overflow-hidden">
+      {recipe.image_url && (
+        <div className="aspect-video w-full overflow-hidden">
+          <img
+            src={recipe.image_url}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      
       <CardHeader>
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg">{recipe.title}</CardTitle>

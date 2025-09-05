@@ -119,6 +119,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           title: processedData.title,
           description: processedData.description || null,
           instagram_url: processedData.instagram_url || null,
+          image_url: processedData.image_url || null,
           ingredients: processedData.ingredients || [],
           instructions: processedData.instructions || [],
           cooking_time: processedData.cooking_time || null,

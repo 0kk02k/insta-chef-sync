@@ -15,6 +15,7 @@ interface RecipeData {
   cooking_time?: number;
   servings?: number;
 }
+  image_url?: string;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -35,7 +36,14 @@ serve(async (req) => {
 
     console.log('Processing request:', { type, filename, hasInstagramUrl: !!instagram_url, hasContent: !!content });
 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     let processContent = content;
+
+    let extractedImageUrl: string | null = null;
 
     // If we have an Instagram URL, scrape it with Firecrawl
     if (instagram_url) {
@@ -54,7 +62,8 @@ serve(async (req) => {
         body: JSON.stringify({
           url: instagram_url,
           pageOptions: {
-            onlyMainContent: true
+            onlyMainContent: true,
+            includeHtml: true
           }
         }),
       });
@@ -67,6 +76,14 @@ serve(async (req) => {
 
       const scrapeData = await scrapeResponse.json();
       processContent = scrapeData?.data?.content || scrapeData?.data?.markdown || '';
+      
+      // Try to extract image URL from HTML
+      const html = scrapeData?.data?.html || '';
+      const imgMatch = html.match(/<img[^>]*src="([^"]*)"[^>]*>/i);
+      if (imgMatch && imgMatch[1]) {
+        extractedImageUrl = imgMatch[1];
+        console.log('Extracted image URL from Instagram:', extractedImageUrl);
+      }
       
       if (!processContent) {
         throw new Error('Kein Content vom Instagram-Post extrahiert');
@@ -168,10 +185,65 @@ ${processContent}
 
     console.log('Successfully extracted recipe data:', recipeData);
 
+    // Generate AI image if no image was extracted from source
+    let finalImageUrl = extractedImageUrl;
+    if (!finalImageUrl) {
+      console.log('No image found in source, generating AI image...');
+      try {
+        const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+        if (openaiApiKey) {
+          const imagePrompt = `A high-quality, appetizing food photograph of ${recipeData.title}. Professional food photography, well-lit, attractive presentation, restaurant quality.`;
+          
+          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-image-1',
+              prompt: imagePrompt,
+              size: '1024x1024',
+              quality: 'standard',
+              n: 1
+            }),
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            const imageBase64 = imageData.data[0].b64_json;
+            
+            // Upload image to Supabase Storage
+            const imageBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+            const fileName = `${Date.now()}-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+            
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('recipe-images')
+              .upload(fileName, imageBuffer, {
+                contentType: 'image/png'
+              });
+
+            if (!uploadError && uploadData) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('recipe-images')
+                .getPublicUrl(fileName);
+              
+              finalImageUrl = publicUrl;
+              console.log('Generated and uploaded AI image:', finalImageUrl);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error generating AI image:', error);
+        // Continue without image if generation fails
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         ...recipeData,
+        image_url: finalImageUrl,
         instagram_url: instagram_url
       }),
       {
