@@ -360,7 +360,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 Hinzufügen
               </Button>
             </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2">
               {formData.instructions.map((instruction, index) => (
                 <div key={index} className="flex items-start space-x-2">
                   <Textarea
