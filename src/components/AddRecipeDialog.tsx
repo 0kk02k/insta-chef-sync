@@ -79,62 +79,13 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
       setSelectedPdf(file);
       
-      try {
-        setPdfProcessing(true);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        // Try to extract text from PDF
-        const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-pdf-text', {
-          body: formData,
-        });
-
-        if (extractError) {
-          console.error('PDF extraction error:', extractError);
-          throw new Error('Fehler beim Verarbeiten der PDF-Datei');
-        }
-
-        if (!extractData.success) {
-          // PDF extraction failed - show alternative options
-          toast({
-            title: "PDF-Textextraktion fehlgeschlagen",
-            description: "Die PDF enthält möglicherweise nur Bilder oder ist verschlüsselt. Bitte kopieren Sie den Text manuell oder verwenden Sie ein anderes Format.",
-            variant: "destructive",
-          });
-          setSelectedPdf(null);
-          return;
-        }
-
-        if (!extractData.text || extractData.text.length < 50) {
-          // Very little text extracted
-          toast({
-            title: "Zu wenig Text extrahiert",
-            description: "Aus der PDF konnte nur sehr wenig Text extrahiert werden. Bitte versuchen Sie es mit einer anderen PDF oder kopieren Sie den Text manuell.",
-            variant: "destructive",
-          });
-          setSelectedPdf(null);
-          return;
-        }
-
-        // Show extracted text in the textarea first for user review
-        setRawInput(extractData.text);
-        
-        toast({
-          title: "PDF-Text extrahiert!",
-          description: `${extractData.text.length} Zeichen wurden extrahiert. Überprüfen Sie den Text und klicken Sie dann auf "Rezept hinzufügen".`,
-        });
-
-      } catch (error) {
-        console.error('Error processing PDF:', error);
-        toast({
-          title: "Fehler",
-          description: error instanceof Error ? error.message : "Fehler beim Verarbeiten der PDF.",
-          variant: "destructive",
-        });
-        setSelectedPdf(null);
-      } finally {
-        setPdfProcessing(false);
-      }
+      // Clear text input since we'll process the PDF directly
+      setRawInput('');
+      
+      toast({
+        title: "PDF-Datei ausgewählt",
+        description: "Die PDF wird direkt von der KI verarbeitet. Klicken Sie auf 'Rezept hinzufügen' um fortzufahren.",
+      });
     }
   };
 
@@ -156,13 +107,30 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     return publicUrl;
   };
 
-  const processContent = async (content: string) => {
+  const processContent = async (content?: string, pdfFile?: File) => {
     try {
       setProcessing(true);
       
-      const { data, error } = await supabase.functions.invoke('process-instagram-recipe', {
-        body: { content }
-      });
+      let response;
+      
+      if (pdfFile) {
+        // Send PDF directly to DeepSeek
+        const formData = new FormData();
+        formData.append('file', pdfFile);
+        
+        response = await supabase.functions.invoke('process-instagram-recipe', {
+          body: formData,
+        });
+      } else if (content) {
+        // Send text content
+        response = await supabase.functions.invoke('process-instagram-recipe', {
+          body: { content }
+        });
+      } else {
+        throw new Error('Weder PDF noch Text-Inhalt bereitgestellt');
+      }
+
+      const { data, error } = response;
 
       if (error) {
         throw error;
@@ -189,7 +157,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!rawInput.trim()) {
+    if (!rawInput.trim() && !selectedPdf) {
       toast({
         title: "Fehler",
         description: "Bitte geben Sie Rezepttext ein oder laden Sie eine PDF-Datei hoch.",
@@ -201,8 +169,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setLoading(true);
 
     try {
-      // Process text content with DeepSeek
-      const processedData = await processContent(rawInput);
+      // Process content with DeepSeek - either PDF or text
+      const processedData = await processContent(rawInput.trim() || undefined, selectedPdf || undefined);
       
       if (!processedData || !processedData.title) {
         throw new Error('Konnte das Rezept nicht verarbeiten');
@@ -304,7 +272,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Text wurde erfolgreich extrahiert
+                        PDF bereit für KI-Verarbeitung
                       </p>
                     </div>
                   ) : (
@@ -402,7 +370,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || pdfProcessing || !rawInput.trim()}>
+            <Button type="submit" disabled={loading || processing || pdfProcessing || (!rawInput.trim() && !selectedPdf)}>
               {(loading || processing || pdfProcessing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {pdfProcessing ? 'PDF wird verarbeitet...' : processing ? 'Verarbeitung...' : 'Rezept hinzufügen'}
             </Button>

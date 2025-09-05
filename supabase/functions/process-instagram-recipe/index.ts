@@ -23,35 +23,106 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const { content } = body;
+    let content: string = '';
+    let contentType = req.headers.get('content-type') || '';
     
-    // Validate input - content is required
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Rezepttext ist erforderlich' }), 
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Handle both JSON and FormData (for PDF files)
+    if (contentType.includes('multipart/form-data')) {
+      // Handle PDF file upload
+      const formData = await req.formData();
+      const file = formData.get('file') as File;
+      
+      if (!file) {
+        return new Response(
+          JSON.stringify({ error: 'PDF-Datei ist erforderlich' }), 
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-    console.log('Processing request with content length:', content.length);
+      if (file.type !== 'application/pdf') {
+        return new Response(
+          JSON.stringify({ error: 'Nur PDF-Dateien werden unterstützt' }), 
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Convert PDF to base64 for DeepSeek API
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const base64 = btoa(String.fromCharCode(...uint8Array));
+      content = `PDF_FILE:${base64}`;
+      
+      console.log('Processing PDF file:', file.name, 'Size:', file.size);
+    } else {
+      // Handle JSON content
+      const body = await req.json();
+      content = body.content;
+      
+      // Validate text input
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Rezepttext ist erforderlich' }), 
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('Processing text content, length:', content.length);
+    }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const processContent = content.trim();
+    console.log('Content received, analyzing with DeepSeek...');
 
-    console.log('Content extracted, analyzing with DeepSeek...');
-
-    // 2. Extract recipe data with DeepSeek
+    // Extract recipe data with DeepSeek
     const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
     if (!deepseekApiKey) {
       throw new Error('DEEPSEEK_API_KEY nicht konfiguriert');
     }
 
-    const prompt = `
+    let messages;
+    
+    if (content.startsWith('PDF_FILE:')) {
+      // Handle PDF file - send as base64 to DeepSeek
+      const base64Content = content.replace('PDF_FILE:', '');
+      
+      messages = [
+        {
+          role: 'system',
+          content: 'Du bist ein Rezept-Extraktions-Experte. Analysiere PDF-Dokumente und extrahiere Rezeptdaten. Antworte nur mit gültigem JSON.'
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Analysiere diese PDF-Datei und extrahiere Rezeptdaten. Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
+
+{
+  "title": "Rezeptname",
+  "description": "Kurze Beschreibung",
+  "ingredients": ["Zutat 1", "Zutat 2", ...],
+  "instructions": ["Schritt 1", "Schritt 2", ...],
+  "cooking_time": Minuten_als_Zahl_oder_null,
+  "servings": Portionen_als_Zahl_oder_null
+}`
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:application/pdf;base64,${base64Content}`
+              }
+            }
+          ]
+        }
+      ];
+    } else {
+      // Handle text content
+      const processContent = content.trim();
+      
+      const prompt = `
 Analysiere den folgenden Rezept-Inhalt und extrahiere Rezeptdaten. 
 Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
 
@@ -68,6 +139,18 @@ Rezept-Inhalt:
 ${processContent}
 `;
 
+      messages = [
+        {
+          role: 'system',
+          content: 'Du bist ein Rezept-Extraktions-Experte. Extrahiere Rezeptdaten aus Text-Inhalten und antworte nur mit gültigem JSON.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ];
+    }
+
     const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -76,16 +159,7 @@ ${processContent}
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content: 'Du bist ein Rezept-Extraktions-Experte. Extrahiere Rezeptdaten aus Text-Inhalten und antworte nur mit gültigem JSON.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+        messages: messages,
         temperature: 0.1,
         max_tokens: 2000
       }),
