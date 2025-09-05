@@ -22,7 +22,7 @@ interface RecipeCardProps {
 
 const RecipeCard = ({ recipe }: RecipeCardProps) => {
   return (
-    <Card className="h-full overflow-hidden">
+    <Card className="h-full overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
       {recipe.image_url && (
         <div className="aspect-video w-full overflow-hidden">
           <img

@@ -8,15 +8,15 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Farbschema basierend auf der neuen lebendigen Palette */
-    --background: 0 0% 99%; /* Sehr helles Weiß */
-    --foreground: 0 0% 15%; /* Dunkles Grau */
+    /* Lebendiger Hintergrund mit subtilen Farbakzenten */
+    --background: 30 15% 98%; /* Sehr warmes, helles Beige */
+    --foreground: 271 15% 20%; /* Dunkles Lila-Grau */
 
-    --card: 0 0% 100%; /* Weiß für Cards */
-    --card-foreground: 0 0% 15%; /* Dunkles Grau */
+    --card: 0 0% 100%; /* Reines Weiß für Kontrast */
+    --card-foreground: 271 15% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
+    --popover-foreground: 271 15% 20%;
 
     /* Orange-Pfirsich als Primärfarbe (#ffb56b) */
     --primary: 30 100% 71%; /* #ffb56b */
@@ -28,17 +28,17 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 100%; /* Weiß auf Lila */
     --secondary-hover: 271 100% 65%; /* Dunklere Version */
 
-    --muted: 0 0% 96%; /* Sehr helles Grau */
-    --muted-foreground: 0 0% 45%; /* Mittelgrau */
+    --muted: 30 25% 96%; /* Warmes, helles Grau mit Orange-Touch */
+    --muted-foreground: 271 20% 45%; /* Lila-Grau */
 
     --accent: 329 100% 71%; /* Pink (#ff6bb5) */
-    --accent-foreground: 0 0% 100%; /* Weiß auf Pink */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 100% 71%; /* Coral-Rot (#ff6b6b) */
     --destructive-foreground: 0 0% 100%; /* Weiß auf Rot */
 
-    --border: 0 0% 89%; /* Helles Grau für Rahmen */
-    --input: 0 0% 89%; /* Helles Grau für Inputs */
+    --border: 30 30% 90%; /* Warme, helle Rahmen */
+    --input: 30 20% 94%; /* Warme Input-Hintergründe */
     --ring: 30 100% 71%; /* Orange für Focus-Ring */
 
     --radius: 0.5rem;
@@ -56,10 +56,12 @@ All colors MUST be HSL.
     --purple-soft: 271 100% 71%; /* #b56bff */
     --purple-soft-foreground: 0 0% 100%;
 
-    /* Gradients */
+    /* Gradients für lebendige Effekte */
     --gradient-primary: linear-gradient(135deg, hsl(30 100% 71%), hsl(0 100% 71%));
     --gradient-secondary: linear-gradient(135deg, hsl(271 100% 71%), hsl(300 100% 71%));
     --gradient-accent: linear-gradient(135deg, hsl(329 100% 71%), hsl(300 100% 71%));
+    --gradient-warm: linear-gradient(135deg, hsl(30 60% 95%), hsl(329 40% 97%));
+    --gradient-subtle: linear-gradient(135deg, hsl(30 15% 98%), hsl(271 10% 97%));
 
     /* Sidebar */
     --sidebar-background: 0 0% 99%;
@@ -142,5 +144,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: linear-gradient(135deg, hsl(30 15% 98%), hsl(271 8% 98%), hsl(329 12% 98%));
+    min-height: 100vh;
   }
 }
