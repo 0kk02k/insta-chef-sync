@@ -88,10 +88,6 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
             </p>
           )}
         </div>
-        
-        <div className="text-xs text-muted-foreground/60 group-hover:text-primary/60 transition-colors text-center mt-2">
-          → Details ansehen
-        </div>
       </div>
     </Card>
   );
