@@ -85,39 +85,18 @@ serve(async (req) => {
     let messages;
     
     if (content.startsWith('PDF_FILE:')) {
-      // Handle PDF file - send as base64 to DeepSeek
-      const base64Content = content.replace('PDF_FILE:', '');
-      
-      messages = [
+      // For now, return an error suggesting manual text input
+      // TODO: Implement proper PDF-to-text conversion
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'PDF-Verarbeitung noch nicht verfügbar. Bitte kopieren Sie den Text aus der PDF und fügen Sie ihn manuell ein.' 
+        }),
         {
-          role: 'system',
-          content: 'Du bist ein Rezept-Extraktions-Experte. Analysiere PDF-Dokumente und extrahiere Rezeptdaten. Antworte nur mit gültigem JSON.'
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `Analysiere diese PDF-Datei und extrahiere Rezeptdaten. Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
-
-{
-  "title": "Rezeptname",
-  "description": "Kurze Beschreibung",
-  "ingredients": ["Zutat 1", "Zutat 2", ...],
-  "instructions": ["Schritt 1", "Schritt 2", ...],
-  "cooking_time": Minuten_als_Zahl_oder_null,
-  "servings": Portionen_als_Zahl_oder_null
-}`
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:application/pdf;base64,${base64Content}`
-              }
-            }
-          ]
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
-      ];
+      );
     } else {
       // Handle text content
       const processContent = content.trim();
