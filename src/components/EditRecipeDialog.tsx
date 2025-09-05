@@ -367,8 +367,11 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                     value={instruction}
                     onChange={(e) => handleArrayChange('instructions', index, e.target.value)}
                     placeholder={`Schritt ${index + 1}...`}
-                    className="flex-1 min-h-[80px] resize-y"
-                    rows={3}
+                    className="flex-1 resize-none overflow-hidden"
+                    style={{ 
+                      minHeight: '80px',
+                      height: `${Math.max(80, instruction.split('\n').length * 24 + 48)}px`
+                    }}
                   />
                   <Button
                     type="button"
