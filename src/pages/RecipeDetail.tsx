@@ -219,6 +219,27 @@ const RecipeDetail = () => {
               </CardHeader>
             </Card>
 
+            {/* Ingredients - Moved above Instructions for mobile */}
+            <div className="lg:hidden">
+              {recipe.ingredients.length > 0 && (
+                <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-pink-vibrant">Zutaten</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {recipe.ingredients.map((ingredient, index) => (
+                        <li key={index} className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-foreground">{ingredient}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
             {/* Instructions */}
             {recipe.instructions.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
@@ -241,8 +262,8 @@ const RecipeDetail = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Only visible on desktop */}
+          <div className="hidden lg:block space-y-6">
             {/* Ingredients */}
             {recipe.ingredients.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
