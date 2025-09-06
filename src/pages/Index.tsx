@@ -247,7 +247,7 @@ const Index = () => {
                   onClick={handleSignOut}
                   className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 text-pink-500" />
                 </Button>
               ) : (
                 <Button 
