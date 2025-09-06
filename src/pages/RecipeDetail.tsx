@@ -39,80 +39,70 @@ const RecipeDetail = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    
     fetchRecipe();
-  }, [id, user]);
+  }, [id]);
 
   const fetchRecipe = async () => {
     if (!id) return;
 
-    // For published recipes, allow access without user authentication
-    const fetchRecipe = async () => {
-      try {
-        // First try to fetch as published recipe (accessible to everyone)
-        const { data: recipeData, error: recipeError } = await supabase
-          .from('recipes')
-          .select('*')
-          .eq('id', id)
-          .single();
+    try {
+      // First try to fetch the recipe (accessible to everyone for published recipes)
+      const { data: recipeData, error: recipeError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-        if (recipeError) {
-          throw recipeError;
-        }
+      if (recipeError) {
+        throw recipeError;
+      }
 
-        if (!recipeData) {
-          toast({
-            title: "Fehler",
-            description: "Rezept nicht gefunden.",
-            variant: "destructive",
-          });
-          navigate('/');
-          return;
-        }
-
-        // Check if user has access to this recipe
-        if (!recipeData.published && (!user || user.id !== recipeData.user_id)) {
-          toast({
-            title: "Zugriff verweigert",
-            description: "Dieses Rezept ist nicht veröffentlicht.",
-            variant: "destructive",
-          });
-          navigate('/');
-          return;
-        }
-
-        // Then fetch the creator's profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('id', recipeData.user_id)
-          .single();
-
-        // Combine recipe with creator name
-        const recipeWithCreator = {
-          ...recipeData,
-          creator_name: profileData?.display_name || 'Unbekannt'
-        };
-
-        setRecipe(recipeWithCreator);
-      } catch (error) {
-        console.error('Error fetching recipe:', error);
+      if (!recipeData) {
         toast({
           title: "Fehler",
-          description: "Rezept konnte nicht geladen werden.",
+          description: "Rezept nicht gefunden.",
           variant: "destructive",
         });
         navigate('/');
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchRecipe();
+      // Check if user has access to this recipe
+      if (!recipeData.published && (!user || user.id !== recipeData.user_id)) {
+        toast({
+          title: "Zugriff verweigert",
+          description: "Dieses Rezept ist nicht veröffentlicht.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      // Then fetch the creator's profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', recipeData.user_id)
+        .single();
+
+      // Combine recipe with creator name
+      const recipeWithCreator = {
+        ...recipeData,
+        creator_name: profileData?.display_name || 'Unbekannt'
+      };
+
+      setRecipe(recipeWithCreator);
+    } catch (error) {
+      console.error('Error fetching recipe:', error);
+      toast({
+        title: "Fehler",
+        description: "Rezept konnte nicht geladen werden.",
+        variant: "destructive",
+      });
+      navigate('/');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async () => {
