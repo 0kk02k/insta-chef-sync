@@ -119,7 +119,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-primary bg-lavender px-4 py-2 rounded-lg">
-                  InstaChef
+                  CookingCompiler
                 </h1>
                 <p className="text-muted-foreground">Willkommen, {user?.email}</p>
               </div>
