@@ -69,14 +69,15 @@ serve(async (req) => {
       throw new Error('No image data provided');
     }
 
-    // MIME-Type Check: Log Data-URL prefix for debugging
-    const base64Prefix = imageBase64.substring(0, 50);
-    console.log('🔍 Image Data-URL prefix:', `data:image/jpeg;base64,${base64Prefix}...`);
+    // Extract MIME type and analyze data URL structure
+    const dataUrlMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+    const mimeType = dataUrlMatch ? dataUrlMatch[1] : 'unknown';
+    const base64Data = dataUrlMatch ? dataUrlMatch[2] : imageBase64;
+    const dataUrlHeader = imageBase64.substring(0, 80);
     
-    // Validate base64 format (should start with typical JPEG/PNG patterns)
-    if (!imageBase64.match(/^[A-Za-z0-9+/]+={0,2}$/)) {
-      throw new Error('Invalid base64 image format detected');
-    }
+    console.log('🔍 Data-URL Header (first 80 chars):', dataUrlHeader);
+    console.log('📋 MIME Type detected:', mimeType);
+    console.log('📏 Base64 Data Length:', base64Data.length, 'characters');
 
     // Get user preferences for language and measurement units
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
@@ -102,6 +103,7 @@ serve(async (req) => {
     const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
     console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Chat Completions - Fallback)');
+    console.log('🎯 API Endpoint: /v1/chat/completions');
 
     // Fallback to Chat Completions API (more stable for GPT-5-Nano)
     const payload = {
@@ -131,6 +133,11 @@ serve(async (req) => {
         }
       ]
     };
+
+    // Log complete payload without API key for debugging
+    const payloadForLogging = { ...payload };
+    console.log('📋 Complete Payload (without API key):');
+    console.log(JSON.stringify(payloadForLogging, null, 2));
 
     console.log('📤 Sending payload to OpenAI Chat Completions API (GPT-5-Nano fallback)');
     console.log('🔧 Payload model:', payload.model);
