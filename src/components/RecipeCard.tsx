@@ -74,7 +74,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out">
         {/* Titel und Tags - immer sichtbar */}
         <div className="space-y-2">
-          <h3 className="recipe-card__title font-semibold text-sm line-clamp-2 text-white group-hover:text-white transition-colors">
+          <h3 className="recipe-card__title font-semibold text-base line-clamp-2 text-white group-hover:text-white transition-colors">
             {recipe.title}
           </h3>
           
