@@ -77,47 +77,38 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a specialized recipe extraction AI. Your task is to analyze images containing recipes and extract structured recipe data. 
+            content: `You are a specialized recipe extraction AI. Extract recipe information from images and respond with ONLY a valid JSON object.
 
-IMPORTANT: You must respond with a valid JSON object only, no additional text.
-
-Extract the following information:
-- title: Recipe name/title
-- description: Brief description (optional)
-- ingredients: Array of ingredient strings with amounts
-- instructions: Array of step-by-step instructions
-- cooking_time: Cooking time in minutes (if mentioned)
-- servings: Number of servings (if mentioned)
-
-If you can't find certain information, use null for optional fields or empty arrays for required arrays.
-
-Example response format:
+Required format:
 {
-  "title": "Chocolate Chip Cookies",
-  "description": "Delicious homemade cookies",
-  "ingredients": ["2 cups flour", "1 cup sugar", "1/2 cup butter"],
-  "instructions": ["Mix dry ingredients", "Add butter", "Bake for 12 minutes"],
-  "cooking_time": 12,
-  "servings": 24
-}`
+  "title": "Recipe name",
+  "description": "Brief description",
+  "ingredients": ["ingredient 1", "ingredient 2"],
+  "instructions": ["step 1", "step 2"],
+  "cooking_time": 30,
+  "servings": 4
+}
+
+Rules:
+- Response must be valid JSON only
+- No additional text before or after JSON
+- Use null for missing optional fields
+- Empty arrays for missing required arrays`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please extract the recipe information from this image. Look for ingredients, instructions, cooking times, and any other recipe details. If this is a screenshot of a recipe from a website, book, or handwritten note, extract all visible recipe content.
-
-IMPORTANT REQUIREMENTS:
+                text: `Extract recipe from this image. Requirements:
 - ${userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
    userPrefs.language === 'en' ? 'Translate all text to English.' :
    userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
    userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
    'Keep text in original language.'}
-- ${userPrefs.measurement_unit === 'metric' ? 'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' : 'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).'}
-- Ensure all ingredient quantities use the specified measurement system
-- Keep cooking instructions clear and detailed`
+- ${userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).'}
+- Return only valid JSON, no other text`
               },
               {
                 type: 'image_url',
@@ -145,8 +136,11 @@ IMPORTANT REQUIREMENTS:
     
     let recipeData: RecipeData;
     try {
-      // Try to extract JSON from the response (handle cases where AI adds extra text)
+      // Clean and extract JSON from response
       let jsonStr = extractedContent.trim();
+      
+      // Remove any markdown code blocks
+      jsonStr = jsonStr.replace(/```json\s*/g, '').replace(/```\s*/g, '');
       
       // Look for JSON object within the response
       const jsonStart = jsonStr.indexOf('{');
@@ -156,44 +150,44 @@ IMPORTANT REQUIREMENTS:
         jsonStr = jsonStr.substring(jsonStart, jsonEnd + 1);
       }
       
+      console.log('🔍 Cleaned JSON string:', jsonStr);
       recipeData = JSON.parse(jsonStr);
+      
+      // Validate required fields
+      if (!recipeData.title) {
+        throw new Error('No title found in extracted data');
+      }
+      
+      console.log('✅ Successfully parsed recipe data:', recipeData.title);
+      
     } catch (parseError) {
       console.error('❌ Failed to parse extracted JSON:', extractedContent);
       console.error('❌ Parse error details:', parseError);
       
-      // Fallback: try to extract basic recipe info using regex patterns
-      try {
-        const titleMatch = extractedContent.match(/["\']title["\']:\s*["\']([^"']+)["\']/) || 
-                          extractedContent.match(/title:\s*([^\n,}]+)/i);
-        const ingredientsMatch = extractedContent.match(/["\']ingredients["\']:\s*\[(.*?)\]/s);
-        const instructionsMatch = extractedContent.match(/["\']instructions["\']:\s*\[(.*?)\]/s);
-        
-        if (titleMatch) {
-          recipeData = {
-            title: titleMatch[1].trim(),
-            description: 'Rezept aus Screenshot extrahiert',
-            ingredients: ingredientsMatch ? 
-              ingredientsMatch[1].split(',').map(i => i.replace(/["\'\s]/g, '').trim()).filter(i => i) :
-              ['Zutaten konnten nicht vollständig extrahiert werden'],
-            instructions: instructionsMatch ? 
-              instructionsMatch[1].split(',').map(i => i.replace(/["\'\s]/g, '').trim()).filter(i => i) :
-              ['Anweisungen konnten nicht vollständig extrahiert werden'],
-            cooking_time: null,
-            servings: null
-          };
-          console.log('✅ Used fallback parsing for recipe data');
-        } else {
-          throw new Error('Failed to parse recipe data from image - no valid data found');
-        }
-      } catch (fallbackError) {
-        console.error('❌ Fallback parsing also failed:', fallbackError);
-        throw new Error('Failed to parse recipe data from image');
-      }
+      // Create fallback recipe data
+      recipeData = {
+        title: 'Screenshot-Rezept',
+        description: 'Rezept aus Screenshot extrahiert - Details konnten nicht vollständig verarbeitet werden',
+        ingredients: ['Zutaten konnten nicht extrahiert werden - bitte manuell hinzufügen'],
+        instructions: ['Anweisungen konnten nicht extrahiert werden - bitte manuell hinzufügen'],
+        cooking_time: null,
+        servings: null
+      };
+      
+      console.log('⚠️ Using fallback recipe data due to parsing error');
     }
 
-    // Validate extracted data
+    // Validate extracted data - use fallback data if validation fails
     if (!recipeData.title || !Array.isArray(recipeData.ingredients) || !Array.isArray(recipeData.instructions)) {
-      throw new Error('Invalid recipe data extracted from image');
+      console.log('⚠️ Invalid recipe data structure, using fallback');
+      recipeData = {
+        title: recipeData.title || 'Screenshot-Rezept',
+        description: 'Rezept aus Screenshot extrahiert',
+        ingredients: Array.isArray(recipeData.ingredients) ? recipeData.ingredients : ['Zutaten konnten nicht extrahiert werden'],
+        instructions: Array.isArray(recipeData.instructions) ? recipeData.instructions : ['Anweisungen konnten nicht extrahiert werden'],
+        cooking_time: recipeData.cooking_time || null,
+        servings: recipeData.servings || null
+      };
     }
 
     console.log('✅ Recipe data extracted:', recipeData.title);
