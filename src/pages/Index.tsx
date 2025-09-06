@@ -90,8 +90,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Header mit Gradient */}
-      <div className="bg-gradient-to-br from-orange-warm/10 via-purple-soft/10 to-pink-vibrant/10 border-b border-border/50">
+      {/* Hero Header mit Pink Gradient */}
+      <div className="header" style={{ background: 'var(--gradient-header)' }}>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-3">
