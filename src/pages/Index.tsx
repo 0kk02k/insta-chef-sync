@@ -111,8 +111,8 @@ const Index = () => {
     <div className="min-h-screen">
       {/* Hero Header mit Pink Gradient */}
       <div className="header" style={{ background: 'var(--gradient-header)' }}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-gradient-to-br from-orange-warm to-coral rounded-xl shadow-lg">
                 <ChefHat className="h-8 w-8 text-white" />
@@ -140,10 +140,10 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Search Bar */}
         {recipes.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="relative max-w-md mx-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -168,17 +168,17 @@ const Index = () => {
         )}
 
         {recipes.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-12">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-warm/20 via-purple-soft/20 to-pink-vibrant/20 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-card/90 backdrop-blur-sm rounded-2xl p-12 border border-border/50 shadow-xl">
-                <div className="p-6 bg-gradient-to-br from-orange-warm/10 to-purple-soft/10 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <ChefHat className="h-12 w-12 text-orange-warm" />
+              <div className="relative bg-card/90 backdrop-blur-sm rounded-2xl p-8 border border-border/50 shadow-xl">
+                <div className="p-6 bg-gradient-to-br from-orange-warm/10 to-purple-soft/10 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <ChefHat className="h-10 w-10 text-orange-warm" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-3">
                   Noch keine Rezepte vorhanden
                 </h2>
-                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Fügen Sie Ihr erstes Rezept hinzu, um Ihre kulinarische Sammlung zu starten!
                 </p>
                 <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
@@ -186,17 +186,17 @@ const Index = () => {
             </div>
           </div>
         ) : filteredRecipes.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-12">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-warm/20 via-purple-soft/20 to-pink-vibrant/20 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-card/90 backdrop-blur-sm rounded-2xl p-12 border border-border/50 shadow-xl">
-                <div className="p-6 bg-gradient-to-br from-orange-warm/10 to-purple-soft/10 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <Search className="h-12 w-12 text-orange-warm" />
+              <div className="relative bg-card/90 backdrop-blur-sm rounded-2xl p-8 border border-border/50 shadow-xl">
+                <div className="p-6 bg-gradient-to-br from-orange-warm/10 to-purple-soft/10 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <Search className="h-10 w-10 text-orange-warm" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-3">
                   Keine Rezepte gefunden
                 </h2>
-                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Keine Rezepte entsprechen Ihrer Suche nach "{searchTerm}". 
                   Versuchen Sie es mit anderen Begriffen.
                 </p>
