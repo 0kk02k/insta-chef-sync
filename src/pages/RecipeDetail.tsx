@@ -68,7 +68,6 @@ const RecipeDetail = () => {
         return;
       }
 
-      console.log('Fetched recipe data:', data);
       setRecipe(data);
     } catch (error) {
       console.error('Error fetching recipe:', error);
@@ -249,20 +248,15 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
-                  {(() => {
-                    console.log('Recipe tags:', recipe.tags);
-                    console.log('Tags exists:', !!recipe.tags);
-                    console.log('Tags length:', recipe.tags?.length);
-                    return recipe.tags && recipe.tags.length > 0 && recipe.tags.map((tag, index) => (
-                      <Badge 
-                        key={index} 
-                        className="text-sm py-2 px-4 bg-purple-soft text-white border-purple-soft hover:bg-purple-soft/90"
-                      >
-                        <Hash className="h-4 w-4 mr-2" />
-                        {tag}
-                      </Badge>
-                    ));
-                  })()}
+                  {recipe.tags && recipe.tags.length > 0 ? recipe.tags.map((tag, index) => (
+                    <Badge 
+                      key={index} 
+                      className="text-sm py-2 px-4 bg-purple-soft text-white border-purple-soft hover:bg-purple-soft/90"
+                    >
+                      <Hash className="h-4 w-4 mr-2" />
+                      {tag}
+                    </Badge>
+                  )) : null}
                 </div>
 
                 {/* Rating Section */}
