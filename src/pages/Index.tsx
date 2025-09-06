@@ -118,7 +118,7 @@ const Index = () => {
                 <ChefHat className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-warm via-purple-soft to-pink-vibrant bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-primary bg-lavender px-4 py-2 rounded-lg">
                   InstaChef
                 </h1>
                 <p className="text-muted-foreground">Willkommen, {user?.email}</p>

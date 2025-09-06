@@ -294,7 +294,7 @@ const RecipeDetail = () => {
                   <ol className="space-y-4">
                     {recipe.instructions.map((instruction, index) => (
                       <li key={index} className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-orange-warm to-coral rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 bg-lavender text-primary rounded-full flex items-center justify-center font-bold text-sm">
                           {index + 1}
                         </div>
                         <p className="text-foreground pt-1">{instruction}</p>
