@@ -21,6 +21,7 @@ interface Recipe {
   cooking_time: number | null;
   servings: number | null;
   rating: number | null;
+  tags: string[];
   created_at: string;
 }
 
@@ -43,7 +44,9 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     cooking_time: recipe.cooking_time || '',
     servings: recipe.servings || '',
     rating: recipe.rating || null,
+    tags: [...(recipe.tags || [])],
   });
+  const [newTag, setNewTag] = useState('');
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -133,6 +136,25 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     handleInputChange(field, newArray);
   };
 
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim().toLowerCase())) {
+      handleInputChange('tags', [...formData.tags, newTag.trim().toLowerCase()]);
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (index: number) => {
+    const newTags = formData.tags.filter((_, i) => i !== index);
+    handleInputChange('tags', newTags);
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -179,6 +201,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
           cooking_time: formData.cooking_time ? parseInt(formData.cooking_time.toString()) : null,
           servings: formData.servings ? parseInt(formData.servings.toString()) : null,
           rating: formData.rating,
+          tags: formData.tags,
         })
         .eq('id', recipe.id)
         .eq('user_id', user.id);
@@ -426,6 +449,51 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Tags</Label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {formData.tags.map((tag, index) => (
+                <div 
+                  key={index} 
+                  className="inline-flex items-center bg-purple-soft/10 text-purple-soft px-3 py-1 rounded-full text-sm border border-purple-soft/20"
+                >
+                  {tag}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeTag(index)}
+                    className="ml-2 h-4 w-4 p-0 hover:bg-purple-soft/20"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={handleTagKeyPress}
+                placeholder="Tag eingeben..."
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addTag}
+                disabled={!newTag.trim() || formData.tags.includes(newTag.trim().toLowerCase())}
+                className="h-10"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tags helfen beim Organisieren und Finden Ihrer Rezepte. Drücken Sie Enter oder klicken Sie auf +, um einen Tag hinzuzufügen.
+            </p>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">

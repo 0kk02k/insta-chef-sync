@@ -20,6 +20,7 @@ interface Recipe {
   cooking_time: number | null;
   servings: number | null;
   rating: number | null;
+  tags: string[];
   created_at: string;
 }
 
@@ -85,13 +86,16 @@ const Index = () => {
     
     const searchLower = searchTerm.toLowerCase();
     
-    // Search in title, description, and ingredients
+    // Search in title, description, ingredients, and tags
     return (
       recipe.title.toLowerCase().includes(searchLower) ||
       (recipe.description && recipe.description.toLowerCase().includes(searchLower)) ||
       recipe.ingredients.some(ingredient => 
         ingredient.toLowerCase().includes(searchLower)
-      )
+      ) ||
+      (recipe.tags && recipe.tags.some(tag => 
+        tag.toLowerCase().includes(searchLower)
+      ))
     );
   });
 
@@ -148,7 +152,7 @@ const Index = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Rezepte durchsuchen..."
+                placeholder="Rezepte durchsuchen (Titel, Beschreibung, Zutaten, Tags)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-surface border-border/50 focus:border-primary"

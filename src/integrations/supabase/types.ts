@@ -59,6 +59,7 @@ export type Database = {
           instructions: string[] | null
           rating: number | null
           servings: number | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
@@ -74,6 +75,7 @@ export type Database = {
           instructions?: string[] | null
           rating?: number | null
           servings?: number | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
@@ -89,6 +91,7 @@ export type Database = {
           instructions?: string[] | null
           rating?: number | null
           servings?: number | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string

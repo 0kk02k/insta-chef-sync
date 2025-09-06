@@ -21,6 +21,7 @@ interface Recipe {
   cooking_time: number | null;
   servings: number | null;
   rating: number | null;
+  tags: string[];
   created_at: string;
 }
 
