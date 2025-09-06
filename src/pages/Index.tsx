@@ -121,7 +121,7 @@ const Index = () => {
                 <h1 className="text-3xl font-bold text-primary bg-lavender px-4 py-2 rounded-lg">
                   CookingCompiler
                 </h1>
-                <p className="text-muted-foreground">Willkommen, {user?.email}</p>
+                
               </div>
             </div>
             <div className="flex items-center space-x-3">
