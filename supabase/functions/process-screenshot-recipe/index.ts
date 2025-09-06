@@ -121,7 +121,7 @@ serve(async (req) => {
           content: [
             {
               type: 'text',
-              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. 
+              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null, "tags": [string] }. 
 
 ${languagePrompt} 
 ${unitPrompt}
@@ -149,6 +149,13 @@ KOCHZEIT: Analysiere alle Zubereitungsschritte und summiere alle Zeitangaben (Ba
 - "10 Min braten + 30 Min backen + 15 Min ruhen" = 55 Minuten
 - "5 Min vorbereiten + 20 Min köcheln" = 25 Minuten
 Falls keine Zeiten erkennbar sind, schätze basierend auf der Art des Gerichts.
+
+TAGS: Erstelle mindestens 3 passende Tags für das Rezept basierend auf:
+- Küche/Herkunft (z.B. "italienisch", "asiatisch", "mediterran")
+- Hauptzutat (z.B. "hähnchen", "pasta", "vegetarisch")
+- Art des Gerichts (z.B. "hauptgang", "dessert", "snack")
+- Besonderheiten (z.B. "schnell", "gesund", "comfort-food")
+Tags sollen in Kleinbuchstaben und ohne Leerzeichen sein (z.B. "tex-mex" statt "Tex Mex").
 
 Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             },

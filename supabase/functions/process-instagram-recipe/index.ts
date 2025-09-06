@@ -188,7 +188,8 @@ Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
   "ingredients": ["Zutat 1", "Zutat 2", ...],
   "instructions": ["Schritt 1", "Schritt 2", ...],
   "cooking_time": Minuten_als_Zahl_oder_null,
-  "servings": Portionen_als_Zahl_oder_null
+  "servings": Portionen_als_Zahl_oder_null,
+  "tags": ["tag1", "tag2", "tag3", ...]
 }
 
 WICHTIGE ANFORDERUNGEN:
@@ -196,6 +197,12 @@ WICHTIGE ANFORDERUNGEN:
 - ${measurementInstructions}
 - Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
 - Halte Kochanweisungen klar und detailliert
+- Erstelle mindestens 3 passende Tags für das Rezept basierend auf:
+  * Küche/Herkunft (z.B. "italienisch", "asiatisch", "mediterran")
+  * Hauptzutat (z.B. "hähnchen", "pasta", "vegetarisch")
+  * Art des Gerichts (z.B. "hauptgang", "dessert", "snack")
+  * Besonderheiten (z.B. "schnell", "gesund", "comfort-food")
+- Tags sollen in Kleinbuchstaben und ohne Leerzeichen sein (z.B. "tex-mex" statt "Tex Mex")
 
 Rezept-Inhalt:
 ${processContent}

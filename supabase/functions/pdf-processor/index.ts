@@ -79,7 +79,8 @@ serve(async (req) => {
   "ingredients": ["Zutat 1", "Zutat 2", ...],
   "instructions": ["Schritt 1", "Schritt 2", ...],
   "cooking_time": Minuten_als_Zahl_oder_null,
-  "servings": Portionen_als_Zahl_oder_null
+  "servings": Portionen_als_Zahl_oder_null,
+  "tags": ["tag1", "tag2", "tag3", ...]
 }
 
 WICHTIGE ANFORDERUNGEN:
@@ -92,6 +93,12 @@ WICHTIGE ANFORDERUNGEN:
 - ${userPrefs.measurement_unit === 'metric' ? 'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' : 'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).'}
 - Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
 - Halte Kochanweisungen klar und detailliert
+- Erstelle mindestens 3 passende Tags für das Rezept basierend auf:
+  * Küche/Herkunft (z.B. "italienisch", "asiatisch", "mediterran")
+  * Hauptzutat (z.B. "hähnchen", "pasta", "vegetarisch")
+  * Art des Gerichts (z.B. "hauptgang", "dessert", "snack")
+  * Besonderheiten (z.B. "schnell", "gesund", "comfort-food")
+- Tags sollen in Kleinbuchstaben und ohne Leerzeichen sein (z.B. "tex-mex" statt "Tex Mex")
 
 Text:
 ${text}` 
@@ -129,7 +136,8 @@ ${text}`
         ingredients: text.split('\n').filter(line => line.includes('-') || line.includes('•')).slice(0, 10),
         instructions: ["Bitte bearbeiten Sie das Rezept manuell"],
         cooking_time: null,
-        servings: null
+        servings: null,
+        tags: ["pdf", "manuell-bearbeiten", "unverarbeitet"]
       };
     }
 
