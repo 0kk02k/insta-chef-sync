@@ -155,7 +155,7 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate }: InlineEdi
           size="sm"
           variant="ghost"
           onClick={() => setIsEditing(true)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-slate-700 hover:text-slate-900"
         >
           <Edit className="h-4 w-4" />
         </Button>
