@@ -35,7 +35,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       onClick={handleClick}
     >
       {/* Obere Hälfte: Bild - feste Höhe */}
-      <div className="h-1/2 w-full overflow-hidden relative">
+      <div className="h-2/3 w-full overflow-hidden relative">
         {recipe.image_url ? (
           <img
             src={recipe.image_url}
@@ -43,8 +43,8 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">Kein Bild</span>
+          <div className="w-full h-full recipe-card__media recipe-card__media--empty flex items-center justify-center">
+            <span className="text-muted-foreground text-sm opacity-80">Kein Bild</span>
           </div>
         )}
         
@@ -61,40 +61,44 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         )}
       </div>
       
-      {/* Untere Hälfte: Titel, Tags und Beschreibung - feste Höhe */}
-      <div className="h-1/2 p-3 flex flex-col">
+      {/* Untere Hälfte: Titel und Tags - kompakter */}
+      <div className="h-1/3 p-3 flex flex-col relative overflow-hidden">
+        {/* Titel und Tags - immer sichtbar */}
         <div className="flex-1 space-y-2">
-          <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="recipe-card__title font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
             {recipe.title}
           </h3>
           
-          <div className="flex flex-wrap gap-1">
+          <div className="meta flex flex-wrap gap-1">
             {recipe.rating && (
-              <Badge variant="default" className="text-xs px-2 py-0.5 badge--primary">
+              <Badge variant="default" className="badge badge--primary text-xs px-2 py-0.5">
                 <Star className="h-3 w-3 mr-1 fill-current" />
                 {recipe.rating}
               </Badge>
             )}
             {recipe.cooking_time && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5">
                 <Clock className="h-3 w-3 mr-1" />
                 {recipe.cooking_time}m
               </Badge>
             )}
             {recipe.servings && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5">
                 <Users className="h-3 w-3 mr-1" />
                 {recipe.servings}
               </Badge>
             )}
           </div>
-          
-          {recipe.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
+        </div>
+        
+        {/* Beschreibung - slide up animation on hover */}
+        {recipe.description && (
+          <div className="absolute bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border/30 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+            <p className="text-xs text-muted-foreground line-clamp-3">
               {recipe.description}
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Card>
   );
