@@ -232,7 +232,7 @@ const Index = () => {
                 <ChefHat className="h-8 w-8 text-pink-500" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-700 px-4 py-2 rounded-lg border-2 border-pink-500">
+                <h1 className="text-3xl font-bold text-slate-700 px-4 py-2" style={{ WebkitTextStroke: '2px #ec4899' }}>
                   CookingCompiler
                 </h1>
                 
