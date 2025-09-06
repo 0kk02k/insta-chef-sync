@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, ExternalLink, Star } from 'lucide-react';
+import { Clock, Users, ExternalLink, Star, ImageIcon } from 'lucide-react';
 
 interface Recipe {
   id: string;
@@ -46,6 +46,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           />
         ) : (
           <div className="w-full h-full recipe-card__media recipe-card__media--empty flex items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-muted-foreground opacity-60" />
           </div>
         )}
         

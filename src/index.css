@@ -241,11 +241,6 @@ All colors MUST be HSL.
     place-items: center;
     color: hsl(var(--brand));
   }
-  .recipe-card__media--empty::before {
-    content: "Kein Bild";
-    font-weight: 600;
-    opacity: 0.8;
-  }
   .recipe-card__title { 
     color: hsl(var(--ink-900)); 
   }
