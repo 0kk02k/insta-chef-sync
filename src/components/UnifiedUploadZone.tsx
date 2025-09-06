@@ -74,10 +74,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
         file,
         name: file.name,
       });
-      toast({
-        title: "PDF erfolgreich ausgewählt",
-        description: "Die PDF wird von der KI verarbeitet.",
-      });
     } else if (contentType === 'screenshot' || contentType === 'image') {
       // Create preview for images
       const reader = new FileReader();
