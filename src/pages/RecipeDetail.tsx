@@ -248,6 +248,11 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
+                  {recipe.tags && recipe.tags.length > 0 && (
+                    <div style={{border: '2px solid red', padding: '10px', background: 'yellow'}}>
+                      DEBUG: Tags gefunden: {recipe.tags.join(', ')}
+                    </div>
+                  )}
                   {recipe.tags && recipe.tags.length > 0 ? recipe.tags.map((tag, index) => (
                     <Badge 
                       key={index} 
