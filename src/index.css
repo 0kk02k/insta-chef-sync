@@ -9,8 +9,8 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Core backgrounds */
-    --bg: 204 60% 98%; /* #f6fbfd */
-    --background: 204 60% 98%; /* #f6fbfd */
+    --bg: 349 12% 98%; /* #fdf8f9 - sehr helles Rosa */
+    --background: 349 12% 98%; /* #fdf8f9 - sehr helles Rosa */
     --surface: 0 0% 100%; /* #ffffff */
     --foreground: 208 5% 39%; /* #5f6366 - ink-900 */
 
@@ -81,7 +81,7 @@ All colors MUST be HSL.
     --space-6: 1.5rem; /* 24px */
 
     /* Sidebar */
-    --sidebar-background: 204 60% 98%; /* bg */
+    --sidebar-background: 349 12% 98%; /* bg - sehr helles Rosa */
     --sidebar-foreground: 208 5% 39%; /* ink-900 */
     --sidebar-primary: 218 33% 45%; /* brand */
     --sidebar-primary-foreground: 0 0% 100%;
