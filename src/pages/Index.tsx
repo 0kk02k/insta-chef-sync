@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { ChefHat, LogOut, Loader2, Plus, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +35,7 @@ const Index = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoading, setRecipesLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -184,23 +186,30 @@ const Index = () => {
     navigate('/auth');
   };
 
-  // Filter recipes based on search term
+  // Get unique creators for filter dropdown
+  const uniqueCreators = Array.from(
+    new Map(recipes.map(recipe => [recipe.user_id, recipe.creator_name])).entries()
+  ).map(([userId, creatorName]) => ({ userId, creatorName }));
+
+  // Filter recipes based on search term and user filter
   const filteredRecipes = recipes.filter(recipe => {
-    if (!searchTerm.trim()) return true;
-    
-    const searchLower = searchTerm.toLowerCase();
-    
-    // Search in title, description, ingredients, and tags
-    return (
-      recipe.title.toLowerCase().includes(searchLower) ||
-      (recipe.description && recipe.description.toLowerCase().includes(searchLower)) ||
-      recipe.ingredients.some(ingredient => 
-        ingredient.toLowerCase().includes(searchLower)
-      ) ||
-      (recipe.tags && recipe.tags.some(tag => 
-        tag.toLowerCase().includes(searchLower)
-      ))
-    );
+    const matchesSearch = !searchTerm.trim() || (() => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        recipe.title.toLowerCase().includes(searchLower) ||
+        (recipe.description && recipe.description.toLowerCase().includes(searchLower)) ||
+        recipe.ingredients.some(ingredient => 
+          ingredient.toLowerCase().includes(searchLower)
+        ) ||
+        (recipe.tags && recipe.tags.some(tag => 
+          tag.toLowerCase().includes(searchLower)
+        ))
+      );
+    })();
+
+    const matchesUser = !selectedUser || recipe.user_id === selectedUser;
+
+    return matchesSearch && matchesUser;
   });
 
   if (loading || recipesLoading) {
@@ -256,25 +265,43 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        {/* Search Bar */}
+        {/* Search Bar and User Filter */}
         {recipes.length > 0 && (
           <div className="mb-6">
-            <div className="relative max-w-md mx-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Rezepte durchsuchen (Titel, Beschreibung, Zutaten, Tags)..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-surface border-border/50 focus:border-primary"
-              />
+            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Rezepte durchsuchen (Titel, Beschreibung, Zutaten, Tags)..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-surface border-border/50 focus:border-primary"
+                />
+              </div>
+              <div className="sm:w-48">
+                <Select value={selectedUser} onValueChange={setSelectedUser}>
+                  <SelectTrigger className="bg-surface border-border/50 focus:border-primary">
+                    <SelectValue placeholder="Alle Benutzer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Alle Benutzer</SelectItem>
+                    {uniqueCreators.map(({ userId, creatorName }) => (
+                      <SelectItem key={userId} value={userId}>
+                        {creatorName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            {searchTerm && (
+            {(searchTerm || selectedUser) && (
               <div className="text-center mt-4">
                 <p className="text-sm text-muted-foreground">
                   {filteredRecipes.length} {filteredRecipes.length === 1 ? 'Rezept gefunden' : 'Rezepte gefunden'}
-                  {filteredRecipes.length > 0 && searchTerm && (
-                    <span> für "{searchTerm}"</span>
+                  {searchTerm && <span> für "{searchTerm}"</span>}
+                  {selectedUser && uniqueCreators.find(u => u.userId === selectedUser) && (
+                    <span> von {uniqueCreators.find(u => u.userId === selectedUser)?.creatorName}</span>
                   )}
                 </p>
               </div>
@@ -324,12 +351,20 @@ const Index = () => {
                   Keine Rezepte entsprechen Ihrer Suche nach "{searchTerm}". 
                   Versuchen Sie es mit anderen Begriffen.
                 </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSearchTerm('')}
-                >
-                  Suche zurücksetzen
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSearchTerm('')}
+                  >
+                    Suche zurücksetzen
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedUser('')}
+                  >
+                    Filter zurücksetzen
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
