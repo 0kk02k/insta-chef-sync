@@ -100,7 +100,7 @@ serve(async (req) => {
        userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
        'Keep text in original language.';
 
-    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse".' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
     console.log('📸 Processing screenshot with GPT-4o-mini Vision API (Chat Completions)');
     console.log('🎯 API Endpoint: /v1/chat/completions');
@@ -134,12 +134,21 @@ WICHTIGE UMRECHNUNGSREGELN für "cups":
 - 1 cup gehackte Nüsse = 100g
 - 1 cup Reis (ungekocht) = 185g
 
+WICHTIGE UMRECHNUNGSREGELN für Löffel:
+- tsb/tbsp = EL (Esslöffel)
+- tsp = TL (Teelöffel)
+
 Schreibe niemals "Tasse" sondern immer die korrekte metrische Angabe.
 
 BESCHREIBUNG: Wenn keine Beschreibung im Bild vorhanden ist, erstelle eine appetitliche, kurze Beschreibung (1-2 Sätze) basierend auf den Zutaten und der Art des Gerichts. Beispiele:
 - "Ein saftiger Schokoladenkuchen mit intensivem Kakaogeschmack"
 - "Cremige Pasta mit würziger Tomatensauce und frischen Kräutern"
 - "Knuspriges Hähnchen mit mediterranen Gewürzen und Gemüse"
+
+KOCHZEIT: Analysiere alle Zubereitungsschritte und summiere alle Zeitangaben (Backen, Kochen, Braten, Ruhen, etc.) zu einer Gesamtzeit in Minuten. Beispiele:
+- "10 Min braten + 30 Min backen + 15 Min ruhen" = 55 Minuten
+- "5 Min vorbereiten + 20 Min köcheln" = 25 Minuten
+Falls keine Zeiten erkennbar sind, schätze basierend auf der Art des Gerichts.
 
 Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             },
