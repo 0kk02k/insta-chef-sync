@@ -46,7 +46,6 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           />
         ) : (
           <div className="w-full h-full recipe-card__media recipe-card__media--empty flex items-center justify-center">
-            <span className="text-muted-foreground text-sm opacity-80">Kein Bild</span>
           </div>
         )}
         
