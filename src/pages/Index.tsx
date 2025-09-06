@@ -46,24 +46,45 @@ const Index = () => {
     if (!user) return;
     
     try {
-      // First fetch user's own recipes (published and unpublished)
-      const { data: recipesData, error: recipesError } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Fetch user's own recipes (all) and published recipes from others
+      const [ownRecipesResponse, publishedRecipesResponse] = await Promise.all([
+        // User's own recipes (published and unpublished)
+        supabase
+          .from('recipes')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        
+        // Published recipes from other users
+        supabase
+          .from('recipes')
+          .select('*')
+          .eq('published', true)
+          .neq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (recipesError) {
-        throw recipesError;
+      if (ownRecipesResponse.error) {
+        throw ownRecipesResponse.error;
+      }
+      if (publishedRecipesResponse.error) {
+        throw publishedRecipesResponse.error;
       }
 
-      if (!recipesData || recipesData.length === 0) {
+      const ownRecipes = ownRecipesResponse.data || [];
+      const publishedRecipes = publishedRecipesResponse.data || [];
+      
+      // Combine and sort all recipes by creation date
+      const allRecipes = [...ownRecipes, ...publishedRecipes]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      if (allRecipes.length === 0) {
         setRecipes([]);
         return;
       }
 
       // Get unique user IDs
-      const userIds = [...new Set(recipesData.map(recipe => recipe.user_id))];
+      const userIds = [...new Set(allRecipes.map(recipe => recipe.user_id))];
 
       // Fetch profiles for these users
       const { data: profilesData } = await supabase
@@ -77,7 +98,7 @@ const Index = () => {
       );
 
       // Transform recipes to include creator_name
-      const recipesWithCreators = recipesData.map(recipe => ({
+      const recipesWithCreators = allRecipes.map(recipe => ({
         ...recipe,
         creator_name: profilesMap.get(recipe.user_id) || 'Unbekannt'
       }));
@@ -190,9 +211,6 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen">
