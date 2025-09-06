@@ -17,7 +17,8 @@ const Auth = () => {
   const [displayName, setDisplayName] = useState('');
   const [language, setLanguage] = useState('de');
   const [measurementUnit, setMeasurementUnit] = useState('metric');
-  const { signUp, signIn, user } = useAuth();
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const { signUp, signIn, resetPassword, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -100,6 +101,36 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "Fehler",
+        description: "Bitte E-Mail-Adresse eingeben.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await resetPassword(email);
+    
+    if (error) {
+      toast({
+        title: "Fehler",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "E-Mail gesendet",
+        description: "Überprüfen Sie Ihre E-Mails für den Passwort-Reset-Link.",
+      });
+      setShowResetPassword(false);
+    }
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -147,6 +178,37 @@ const Auth = () => {
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Anmelden
                 </Button>
+                <div className="text-center mt-4">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={() => setShowResetPassword(!showResetPassword)}
+                    className="text-sm"
+                  >
+                    Passwort vergessen?
+                  </Button>
+                </div>
+                {showResetPassword && (
+                  <form onSubmit={handleResetPassword} className="mt-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">E-Mail für Passwort-Reset</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Ihre E-Mail-Adresse"
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading} size="sm">
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Passwort-Reset senden
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </form>
             </TabsContent>
             
