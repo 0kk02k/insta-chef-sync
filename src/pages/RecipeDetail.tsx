@@ -10,6 +10,11 @@ import { useAuth } from '@/hooks/useAuth';
 import EditRecipeDialog from '@/components/EditRecipeDialog';
 import StarRating from '@/components/StarRating';
 import CommentsSection from '@/components/CommentsSection';
+import InlineEditTitle from '@/components/InlineEditTitle';
+import InlineEditDescription from '@/components/InlineEditDescription';
+import InlineEditIngredients from '@/components/InlineEditIngredients';
+import InlineEditInstructions from '@/components/InlineEditInstructions';
+import InlineEditMetadata from '@/components/InlineEditMetadata';
 
 interface Recipe {
   id: string;
@@ -147,6 +152,36 @@ const RecipeDetail = () => {
     fetchRecipe();
   };
 
+  const handleTitleUpdate = (newTitle: string) => {
+    if (recipe) {
+      setRecipe({ ...recipe, title: newTitle });
+    }
+  };
+
+  const handleDescriptionUpdate = (newDescription: string | null) => {
+    if (recipe) {
+      setRecipe({ ...recipe, description: newDescription });
+    }
+  };
+
+  const handleIngredientsUpdate = (newIngredients: string[]) => {
+    if (recipe) {
+      setRecipe({ ...recipe, ingredients: newIngredients });
+    }
+  };
+
+  const handleInstructionsUpdate = (newInstructions: string[]) => {
+    if (recipe) {
+      setRecipe({ ...recipe, instructions: newInstructions });
+    }
+  };
+
+  const handleMetadataUpdate = (cookingTime: number | null, servings: number | null) => {
+    if (recipe) {
+      setRecipe({ ...recipe, cooking_time: cookingTime, servings: servings });
+    }
+  };
+
   const handleRatingChange = async (newRating: number) => {
     if (!recipe || !user) return;
 
@@ -203,22 +238,24 @@ const RecipeDetail = () => {
             Zurück
           </Button>
           
-          <div className="flex items-center space-x-2">
-            <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
-            <Button 
-              variant="outline" 
-              onClick={handleDelete}
-              disabled={deleting}
-              className="border-coral/30 hover:bg-coral/5 text-coral"
-            >
-              {deleting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4 mr-2" />
-              )}
-              Löschen
-            </Button>
-          </div>
+          {user && user.id === recipe.user_id && (
+            <div className="flex items-center space-x-2">
+              <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
+              <Button 
+                variant="outline" 
+                onClick={handleDelete}
+                disabled={deleting}
+                className="border-coral/30 hover:bg-coral/5 text-coral"
+              >
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Löschen
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -239,12 +276,18 @@ const RecipeDetail = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-warm via-purple-soft to-pink-vibrant bg-clip-text text-transparent mb-2">
-                      {recipe.title}
-                    </CardTitle>
-                    {recipe.description && (
-                      <p className="text-muted-foreground text-lg">{recipe.description}</p>
-                    )}
+                    <InlineEditTitle
+                      value={recipe.title}
+                      recipeId={recipe.id}
+                      isOwner={user?.id === recipe.user_id}
+                      onUpdate={handleTitleUpdate}
+                    />
+                    <InlineEditDescription
+                      value={recipe.description}
+                      recipeId={recipe.id}
+                      isOwner={user?.id === recipe.user_id}
+                      onUpdate={handleDescriptionUpdate}
+                    />
                   </div>
                   {recipe.instagram_url && (
                     <a
@@ -258,29 +301,27 @@ const RecipeDetail = () => {
                   )}
                 </div>
                 
-                <div className="flex flex-wrap gap-3 pt-4">
-                  {recipe.cooking_time && (
-                    <Badge variant="secondary" className="text-sm py-2 px-4">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {recipe.cooking_time} Minuten
-                    </Badge>
-                  )}
-                  {recipe.servings && (
-                    <Badge variant="secondary" className="text-sm py-2 px-4">
-                      <Users className="h-4 w-4 mr-2" />
-                      {recipe.servings} Portionen
-                    </Badge>
-                  )}
-                  {recipe.tags && recipe.tags.length > 0 ? recipe.tags.map((tag, index) => (
-                    <span 
-                      key={index} 
-                      className="inline-flex items-center text-sm py-2 px-4 bg-purple-600 text-white rounded-md"
-                    >
-                      <Hash className="h-4 w-4 mr-2" />
-                      {tag}
-                    </span>
-                  )) : null}
-                </div>
+                <InlineEditMetadata
+                  cookingTime={recipe.cooking_time}
+                  servings={recipe.servings}
+                  recipeId={recipe.id}
+                  isOwner={user?.id === recipe.user_id}
+                  onUpdate={handleMetadataUpdate}
+                />
+                
+                {recipe.tags && recipe.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    {recipe.tags.map((tag, index) => (
+                      <span 
+                        key={index} 
+                        className="inline-flex items-center text-sm py-2 px-4 bg-purple-600 text-white rounded-md"
+                      >
+                        <Hash className="h-4 w-4 mr-2" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Rating Section */}
                 <div className="pt-4 border-t border-border/50">
@@ -300,18 +341,13 @@ const RecipeDetail = () => {
             <div className="lg:hidden">
               {recipe.ingredients.length > 0 && (
                 <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-pink-vibrant">Zutaten</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {recipe.ingredients.map((ingredient, index) => (
-                        <li key={index} className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-foreground">{ingredient}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <CardContent className="pt-6">
+                    <InlineEditIngredients
+                      value={recipe.ingredients}
+                      recipeId={recipe.id}
+                      isOwner={user?.id === recipe.user_id}
+                      onUpdate={handleIngredientsUpdate}
+                    />
                   </CardContent>
                 </Card>
               )}
@@ -320,20 +356,13 @@ const RecipeDetail = () => {
             {/* Instructions */}
             {recipe.instructions.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl text-purple-soft">Zubereitung</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ol className="space-y-4">
-                    {recipe.instructions.map((instruction, index) => (
-                      <li key={index} className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-lavender text-primary rounded-full flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <p className="text-foreground pt-1">{instruction}</p>
-                      </li>
-                    ))}
-                  </ol>
+                <CardContent className="pt-6">
+                  <InlineEditInstructions
+                    value={recipe.instructions}
+                    recipeId={recipe.id}
+                    isOwner={user?.id === recipe.user_id}
+                    onUpdate={handleInstructionsUpdate}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -344,18 +373,13 @@ const RecipeDetail = () => {
             {/* Ingredients */}
             {recipe.ingredients.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl text-pink-vibrant">Zutaten</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {recipe.ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-foreground">{ingredient}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <CardContent className="pt-6">
+                  <InlineEditIngredients
+                    value={recipe.ingredients}
+                    recipeId={recipe.id}
+                    isOwner={user?.id === recipe.user_id}
+                    onUpdate={handleIngredientsUpdate}
+                  />
                 </CardContent>
               </Card>
             )}
