@@ -176,10 +176,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         throw error;
       }
 
-      toast({
-        title: "Erfolgreich!",
-        description: "Ihr Rezept wurde verarbeitet und hinzugefügt.",
-      });
 
       resetForm();
       setOpen(false);

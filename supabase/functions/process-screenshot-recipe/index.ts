@@ -155,7 +155,15 @@ Rules:
       
       // Validate required fields
       if (!recipeData.title) {
-        throw new Error('No title found in extracted data');
+        throw new Error('Kein Rezepttitel im Screenshot erkennbar');
+      }
+      
+      if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients) || recipeData.ingredients.length === 0) {
+        throw new Error('Keine Zutaten im Screenshot erkennbar');
+      }
+      
+      if (!recipeData.instructions || !Array.isArray(recipeData.instructions) || recipeData.instructions.length === 0) {
+        throw new Error('Keine Zubereitungsschritte im Screenshot erkennbar');
       }
       
       console.log('✅ Successfully parsed recipe data:', recipeData.title);
@@ -164,30 +172,11 @@ Rules:
       console.error('❌ Failed to parse extracted JSON:', extractedContent);
       console.error('❌ Parse error details:', parseError);
       
-      // Create fallback recipe data
-      recipeData = {
-        title: 'Screenshot-Rezept',
-        description: 'Rezept aus Screenshot extrahiert - Details konnten nicht vollständig verarbeitet werden',
-        ingredients: ['Zutaten konnten nicht extrahiert werden - bitte manuell hinzufügen'],
-        instructions: ['Anweisungen konnten nicht extrahiert werden - bitte manuell hinzufügen'],
-        cooking_time: null,
-        servings: null
-      };
+      if (parseError instanceof Error && parseError.message.includes('erkennbar')) {
+        throw parseError;
+      }
       
-      console.log('⚠️ Using fallback recipe data due to parsing error');
-    }
-
-    // Validate extracted data - use fallback data if validation fails
-    if (!recipeData.title || !Array.isArray(recipeData.ingredients) || !Array.isArray(recipeData.instructions)) {
-      console.log('⚠️ Invalid recipe data structure, using fallback');
-      recipeData = {
-        title: recipeData.title || 'Screenshot-Rezept',
-        description: 'Rezept aus Screenshot extrahiert',
-        ingredients: Array.isArray(recipeData.ingredients) ? recipeData.ingredients : ['Zutaten konnten nicht extrahiert werden'],
-        instructions: Array.isArray(recipeData.instructions) ? recipeData.instructions : ['Anweisungen konnten nicht extrahiert werden'],
-        cooking_time: recipeData.cooking_time || null,
-        servings: recipeData.servings || null
-      };
+      throw new Error('Das Rezept im Screenshot konnte nicht richtig erkannt werden. Bitte verwenden Sie ein klareres Bild oder einen anderen Upload-Typ.');
     }
 
     console.log('✅ Recipe data extracted:', recipeData.title);
