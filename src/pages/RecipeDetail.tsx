@@ -23,6 +23,8 @@ interface Recipe {
   rating: number | null;
   tags?: string[] | null;
   created_at: string;
+  user_id: string;
+  creator_name?: string;
 }
 
 const RecipeDetail = () => {
@@ -47,18 +49,19 @@ const RecipeDetail = () => {
     if (!id || !user) return;
 
     try {
-      const { data, error } = await supabase
+      // First fetch the recipe
+      const { data: recipeData, error: recipeError } = await supabase
         .from('recipes')
         .select('*')
         .eq('id', id)
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
-        throw error;
+      if (recipeError) {
+        throw recipeError;
       }
 
-      if (!data) {
+      if (!recipeData) {
         toast({
           title: "Fehler",
           description: "Rezept nicht gefunden.",
@@ -68,7 +71,20 @@ const RecipeDetail = () => {
         return;
       }
 
-      setRecipe(data);
+      // Then fetch the creator's profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', recipeData.user_id)
+        .single();
+
+      // Combine recipe with creator name
+      const recipeWithCreator = {
+        ...recipeData,
+        creator_name: profileData?.display_name || 'Unbekannt'
+      };
+
+      setRecipe(recipeWithCreator);
     } catch (error) {
       console.error('Error fetching recipe:', error);
       toast({
@@ -343,6 +359,10 @@ const RecipeDetail = () => {
                 <CardTitle className="text-xl text-coral">Rezept Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Erstellt von:</span>
+                  <div className="font-medium">{recipe.creator_name}</div>
+                </div>
                 <div className="text-sm">
                   <span className="text-muted-foreground">Erstellt am:</span>
                   <div className="font-medium">{new Date(recipe.created_at).toLocaleDateString('de-DE', {
