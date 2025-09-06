@@ -91,10 +91,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
       };
       reader.readAsDataURL(file);
       
-      toast({
-        title: "Screenshot erfolgreich ausgewählt",
-        description: "Das Bild wird von GPT-5 Nano analysiert.",
-      });
     }
   }, [handleContent, toast]);
 
