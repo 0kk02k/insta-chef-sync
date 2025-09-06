@@ -2,138 +2,160 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Denim-Lavender-Mint Design System
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Teal & Yellow Farbschema */
-    --background: 40 25% 91%; /* #EDEAE5 - Helles Grau/Beige für allgemeinen Hintergrund */
-    --foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
+    /* Core backgrounds */
+    --bg: 204 60% 98%; /* #f6fbfd */
+    --background: 204 60% 98%; /* #f6fbfd */
+    --surface: 0 0% 100%; /* #ffffff */
+    --foreground: 208 5% 39%; /* #5f6366 - ink-900 */
 
-    --card: 51 94% 74%; /* #FCE181 - Gedämpftes Gelb für Kachel-Hintergründe */
-    --card-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text in Kacheln */
+    /* Cards */
+    --card: 0 0% 100%; /* white surface */
+    --card-foreground: 208 5% 39%; /* ink-900 */
 
-    --popover: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb */
-    --popover-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 208 5% 39%;
 
-    /* Dunkles Türkis als Primärfarbe */
-    --primary: 184 93% 20%; /* #026670 - Dunkles Türkis für CTAs und wichtige Elemente */
-    --primary-foreground: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Text auf Türkis */
-    --primary-hover: 184 93% 15%; /* Dunklere Version für Hover */
+    /* Brand colors (Denim) */
+    --brand: 218 33% 45%; /* #4d6d9a */
+    --brand-600: 218 38% 38%; /* #3f5d86 - darker */
+    --brand-50: 218 44% 94%; /* #e7eef7 - very light */
+    --primary: 218 33% 45%; /* brand */
+    --primary-foreground: 0 0% 100%; /* white on brand */
+    --primary-hover: 218 38% 38%; /* brand-600 */
 
-    /* Mintgrün als Sekundärfarbe */
-    --secondary: 161 69% 78%; /* #9FEDD7 - Helles Mintgrün für Akzente */
-    --secondary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
-    --secondary-hover: 161 69% 73%; /* Dunklere Version für Hover */
+    /* Accent colors */
+    --accent-1: 210 46% 68%; /* #86b3d1 - Lavender */
+    --accent-1-50: 210 60% 96%; /* #f0f6fb - very light lavender */
+    --accent-2: 186 35% 71%; /* #99ced3 - Mint */
+    --accent-3: 349 49% 82%; /* #edb5bf - Blush */
 
-    --muted: 40 25% 91%; /* #EDEAE5 - Neutrales Grau/Beige */
-    --muted-foreground: 184 50% 40%; /* Gedämpfteres Türkis für sekundären Text */
+    /* Secondary uses mint */
+    --secondary: 186 35% 71%; /* accent-2/mint */
+    --secondary-foreground: 218 33% 45%; /* brand */
+    --secondary-hover: 186 35% 66%; /* darker mint */
 
-    --accent: 161 69% 78%; /* #9FEDD7 - Mintgrün für Akzente und Icons */
-    --accent-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
+    /* Text colors */
+    --ink-900: 208 5% 39%; /* #5f6366 - main text */
+    --ink-700: 210 7% 31%; /* #4b4f52 - secondary text */
+    --muted: 218 44% 94%; /* brand-50 */
+    --muted-foreground: 210 7% 31%; /* ink-700 */
 
-    --destructive: 0 50% 60%; /* Gedämpftes Rot */
-    --destructive-foreground: 0 0% 100%; /* Weiß auf Rot */
+    /* Accent uses lavender */
+    --accent: 210 46% 68%; /* accent-1/lavender */
+    --accent-foreground: 218 33% 45%; /* brand */
 
-    --border: 40 25% 85%; /* Helleres Grau für Rahmen */
-    --input: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Inputs */
-    --ring: 184 93% 20%; /* #026670 - Türkis für Focus-Ring */
+    /* Destructive */
+    --destructive: 0 50% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+    /* Borders and inputs */
+    --border: 204 30% 90%; /* #e4eef3 */
+    --input: 0 0% 100%; /* white surface */
+    --ring: 218 33% 45%; /* brand */
 
-    /* Zusätzliche Farben */
-    --coral: 0 40% 65%;
-    --coral-foreground: 0 0% 100%;
-    
-    --pink-vibrant: 340 20% 70%;
-    --pink-vibrant-foreground: 0 0% 100%;
-    
-    --orange-warm: 30 35% 65%;
-    --orange-warm-foreground: 0 0% 100%;
-    
-    --purple-soft: 280 20% 70%;
-    --purple-soft-foreground: 0 0% 100%;
+    --radius: 0.75rem; /* 12px */
 
-    /* Teal & Yellow Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(184 93% 20%), hsl(161 69% 78%));
-    --gradient-secondary: linear-gradient(135deg, hsl(51 94% 74%), hsl(56 91% 89%));
-    --gradient-accent: linear-gradient(135deg, hsl(161 69% 78%), hsl(56 91% 89%));
-    --gradient-warm: linear-gradient(135deg, hsl(40 25% 91%), hsl(56 91% 89%));
-    --gradient-subtle: linear-gradient(135deg, hsl(40 25% 91%), hsl(51 94% 74%));
+    /* Design system gradients */
+    --gradient-header: linear-gradient(90deg, hsl(210 46% 68%), hsl(186 35% 71%)); /* lavender to mint */
+    --gradient-card-placeholder: linear-gradient(180deg, 
+      color-mix(in oklch, hsl(210 46% 68%) 25%, transparent), 
+      color-mix(in oklch, hsl(186 35% 71%) 25%, transparent)); /* subtle lavender to mint */
+    --gradient-primary: linear-gradient(135deg, hsl(218 33% 45%), hsl(210 46% 68%)); /* brand to lavender */
+    --gradient-secondary: linear-gradient(135deg, hsl(186 35% 71%), hsl(210 46% 68%)); /* mint to lavender */
+
+    /* Shadows */
+    --shadow-1: 0 1px 2px rgba(46,63,92,0.06);
+    --shadow-2: 0 6px 20px rgba(46,63,92,0.10);
+
+    /* Spacing */
+    --space-2: 0.5rem; /* 8px */
+    --space-3: 0.75rem; /* 12px */
+    --space-4: 1rem; /* 16px */
+    --space-6: 1.5rem; /* 24px */
 
     /* Sidebar */
-    --sidebar-background: 40 25% 91%; /* #EDEAE5 */
-    --sidebar-foreground: 184 93% 20%; /* #026670 */
-    --sidebar-primary: 184 93% 20%; /* #026670 */
-    --sidebar-primary-foreground: 56 91% 89%; /* #FEF9C7 */
-    --sidebar-accent: 161 69% 78%; /* #9FEDD7 */
-    --sidebar-accent-foreground: 184 93% 20%; /* #026670 */
-    --sidebar-border: 40 25% 85%;
-    --sidebar-ring: 184 93% 20%; /* #026670 */
+    --sidebar-background: 204 60% 98%; /* bg */
+    --sidebar-foreground: 208 5% 39%; /* ink-900 */
+    --sidebar-primary: 218 33% 45%; /* brand */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%; /* surface */
+    --sidebar-accent-foreground: 208 5% 39%; /* ink-900 */
+    --sidebar-border: 204 30% 90%; /* border */
+    --sidebar-ring: 218 33% 45%; /* brand */
   }
 
   .dark {
-    /* Dark Mode - Teal & Yellow Schema */
-    --background: 184 20% 15%; /* Dunkles Türkis für Hintergrund */
-    --foreground: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Text */
+    /* Dark Mode - Denim Schema */
+    --bg: 214 20% 8%; /* #0f1418 */
+    --background: 214 20% 8%; /* #0f1418 */
+    --surface: 214 20% 12%; /* #141a20 */
+    --foreground: 210 25% 90%; /* #e8edf2 */
 
-    --card: 184 30% 18%; /* Dunkles Türkis für Cards */
-    --card-foreground: 56 91% 89%; /* #FEF9C7 - Helles Gelb für Text */
+    --card: 214 20% 12%; /* surface */
+    --card-foreground: 210 25% 90%;
 
-    --popover: 184 30% 18%;
-    --popover-foreground: 56 91% 89%;
+    --popover: 214 20% 12%;
+    --popover-foreground: 210 25% 90%;
 
-    /* Dark Mode Farben */
-    --primary: 161 69% 78%; /* #9FEDD7 - Mintgrün als primäre Farbe in Dark Mode */
-    --primary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
-    --primary-hover: 161 69% 73%;
+    /* Brand lighter in dark */
+    --brand: 210 46% 68%; /* #86b3d1 - lavender becomes brand in dark */
+    --brand-600: 210 46% 73%; /* #9cc2db - lighter for hover */
+    --primary: 210 46% 68%; /* brand */
+    --primary-foreground: 214 20% 8%; /* dark bg */
+    --primary-hover: 210 46% 73%; /* brand-600 */
 
-    --secondary: 51 94% 74%; /* #FCE181 - Gedämpftes Gelb */
-    --secondary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
-    --secondary-hover: 51 94% 69%;
+    /* Secondary uses mint */
+    --secondary: 186 35% 71%; /* mint stays */
+    --secondary-foreground: 214 20% 8%;
+    --secondary-hover: 186 35% 76%;
 
-    --muted: 184 20% 20%; /* Dunkles Türkis-Grau */
-    --muted-foreground: 161 40% 70%; /* Gedämpftes Mintgrün */
+    /* Text colors adjusted */
+    --ink-900: 210 25% 90%; /* #e8edf2 */
+    --ink-700: 210 15% 75%; /* #b9c3cc */
+    --muted: 214 20% 20%; /* darker surface */
+    --muted-foreground: 210 15% 75%; /* ink-700 */
 
-    --accent: 51 94% 74%; /* #FCE181 - Gelb für Akzente */
-    --accent-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
+    /* Accent uses mint in dark */
+    --accent: 186 35% 71%; /* mint */
+    --accent-foreground: 214 20% 8%;
 
-    --destructive: 0 35% 55%; /* Gedämpftes Rot */
+    /* Accent colors adjusted */
+    --accent-1: 210 46% 68%; /* lavender */
+    --accent-1-50: 214 20% 15%;
+    --accent-2: 186 35% 71%; /* mint */
+    --accent-3: 349 35% 70%; /* blush darker */
+
+    --destructive: 0 35% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 184 20% 25%; /* Dunkle Türkis Rahmen */
-    --input: 184 20% 20%;
-    --ring: 161 69% 78%; /* Mintgrün für Focus-Ring */
+    --border: 214 20% 20%; /* #25303a */
+    --input: 214 20% 12%; /* surface */
+    --ring: 210 46% 68%; /* brand */
 
     /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(184 93% 20%), hsl(161 69% 78%));
-    --gradient-secondary: linear-gradient(135deg, hsl(51 94% 74%), hsl(161 69% 78%));
-    --gradient-accent: linear-gradient(135deg, hsl(161 69% 78%), hsl(51 94% 74%));
-
-    /* Dark Mode Zusatzfarben */
-    --coral: 0 30% 55%;
-    --coral-foreground: 0 0% 100%;
-    
-    --pink-vibrant: 340 15% 60%;
-    --pink-vibrant-foreground: 0 0% 100%;
-    
-    --orange-warm: 30 25% 55%;
-    --orange-warm-foreground: 0 0% 100%;
-    
-    --purple-soft: 280 15% 60%;
-    --purple-soft-foreground: 0 0% 100%;
+    --gradient-header: linear-gradient(90deg, hsl(210 46% 68%), hsl(186 35% 71%));
+    --gradient-card-placeholder: linear-gradient(180deg, 
+      color-mix(in oklch, hsl(210 46% 68%) 15%, transparent), 
+      color-mix(in oklch, hsl(186 35% 71%) 15%, transparent));
+    --gradient-primary: linear-gradient(135deg, hsl(210 46% 68%), hsl(186 35% 71%));
+    --gradient-secondary: linear-gradient(135deg, hsl(186 35% 71%), hsl(210 46% 68%));
 
     /* Sidebar Dark Mode */
-    --sidebar-background: 184 20% 15%;
-    --sidebar-foreground: 56 91% 89%;
-    --sidebar-primary: 161 69% 78%;
-    --sidebar-primary-foreground: 184 93% 20%;
-    --sidebar-accent: 184 30% 18%;
-    --sidebar-accent-foreground: 56 91% 89%;
-    --sidebar-border: 184 20% 25%;
-    --sidebar-ring: 161 69% 78%;
+    --sidebar-background: 214 20% 8%;
+    --sidebar-foreground: 210 25% 90%;
+    --sidebar-primary: 210 46% 68%;
+    --sidebar-primary-foreground: 214 20% 8%;
+    --sidebar-accent: 214 20% 12%;
+    --sidebar-accent-foreground: 210 25% 90%;
+    --sidebar-border: 214 20% 20%;
+    --sidebar-ring: 210 46% 68%;
   }
 }
 
@@ -144,7 +166,121 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, hsl(40 25% 91%), hsl(56 91% 89%), hsl(51 94% 74%));
+    background: hsl(var(--bg));
     min-height: 100vh;
+    color: hsl(var(--ink-900));
+  }
+
+  /* Global link styling */
+  a {
+    color: hsl(var(--brand));
+  }
+  a:hover {
+    color: hsl(var(--brand-600));
+  }
+
+  /* Header styling */
+  .header {
+    background: var(--gradient-header);
+    color: hsl(var(--ink-900));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .header .brand { 
+    color: hsl(var(--ink-900)); 
+    font-weight: 700; 
+  }
+  .header .greeting { 
+    opacity: 0.8; 
+  }
+  .header .cta, 
+  .fab--add {
+    background: hsl(var(--brand));
+    color: white;
+    border-radius: 10px;
+  }
+  .header .cta:hover, 
+  .fab--add:hover { 
+    background: hsl(var(--brand-600)); 
+  }
+
+  /* Page title styling */
+  h1.page-title {
+    color: hsl(var(--ink-900));
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: 0.2px;
+    margin-bottom: 8px;
+  }
+  h1.page-title::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 3px;
+    background: hsl(var(--brand));
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  /* Recipe card styling */
+  .recipe-card {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+  .recipe-card:hover { 
+    box-shadow: var(--shadow-2); 
+    transform: translateY(-1px); 
+  }
+
+  .recipe-card__media {
+    background: var(--gradient-card-placeholder);
+    min-height: 120px;
+    display: grid; 
+    place-items: center;
+    color: hsl(var(--brand));
+  }
+  .recipe-card__media--empty::before {
+    content: "Kein Bild";
+    font-weight: 600;
+    opacity: 0.8;
+  }
+  .recipe-card__title { 
+    color: hsl(var(--ink-900)); 
+  }
+  .recipe-card__body { 
+    padding: var(--space-4); 
+  }
+
+  /* Meta badges */
+  .meta { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: var(--space-3); 
+  }
+  .badge {
+    background: color-mix(in oklch, hsl(var(--accent-2)) 35%, #fff 65%);
+    color: hsl(var(--brand));
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .badge--primary { 
+    background: hsl(var(--brand)); 
+    color: white; 
+  }
+
+  /* Button styling */
+  .btn-primary {
+    background: hsl(var(--brand));
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: background-color 0.2s ease;
+  }
+  .btn-primary:hover { 
+    background: hsl(var(--brand-600)); 
   }
 }
