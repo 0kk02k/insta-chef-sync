@@ -281,7 +281,7 @@ const Index = () => {
               </div>
               <div className="sm:w-48">
                 <Select value={selectedUser} onValueChange={setSelectedUser}>
-                  <SelectTrigger className="bg-mint text-white border-mint hover:bg-mint/90">
+                  <SelectTrigger className="bg-accent-2 text-white border-accent-2 hover:bg-accent-2/90" style={{ backgroundColor: 'hsl(var(--accent-2))' }}>
                     <SelectValue placeholder="Alle Benutzer" />
                   </SelectTrigger>
                   <SelectContent>
