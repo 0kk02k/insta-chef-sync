@@ -21,7 +21,7 @@ interface Recipe {
   cooking_time: number | null;
   servings: number | null;
   rating: number | null;
-  tags: string[];
+  tags?: string[] | null;
   created_at: string;
 }
 
@@ -248,7 +248,7 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
-                  {recipe.tags && recipe.tags.map((tag, index) => (
+                  {recipe.tags && recipe.tags.length > 0 && recipe.tags.map((tag, index) => (
                     <Badge 
                       key={index} 
                       className="text-sm py-2 px-4 bg-purple-soft text-white border-purple-soft hover:bg-purple-soft/90"
