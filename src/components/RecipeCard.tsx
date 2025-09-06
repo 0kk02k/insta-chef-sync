@@ -71,7 +71,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       </div>
       
       {/* Textbereich - slided von unten über das Bild */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-white/95 backdrop-blur-sm p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex flex-col justify-between">{/* Fixed height with flexbox layout */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-white/95 backdrop-blur-sm p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex flex-col justify-between">{/* Increased height for 2-line titles */}
         {/* Titel und Tags - immer sichtbar */}
         <div className="space-y-2">
           <h3 className="recipe-card__title font-semibold text-base line-clamp-2 text-slate-800 group-hover:text-slate-800 transition-colors">
