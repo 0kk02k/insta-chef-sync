@@ -228,7 +228,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-secondary rounded-xl shadow-lg">
+              <div className="p-3 bg-slate-700 rounded-xl shadow-lg">
                 <ChefHat className="h-8 w-8 text-pink-500" />
               </div>
               <div>
