@@ -207,7 +207,7 @@ const Index = () => {
       );
     })();
 
-    const matchesUser = !selectedUser || recipe.user_id === selectedUser;
+    const matchesUser = !selectedUser || selectedUser === 'all' || recipe.user_id === selectedUser;
 
     return matchesSearch && matchesUser;
   });
@@ -285,7 +285,7 @@ const Index = () => {
                     <SelectValue placeholder="Alle Benutzer" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle Benutzer</SelectItem>
+                    <SelectItem value="all">Alle Benutzer</SelectItem>
                     {uniqueCreators.map(({ userId, creatorName }) => (
                       <SelectItem key={userId} value={userId}>
                         {creatorName}
