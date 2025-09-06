@@ -33,8 +33,8 @@ image_transformation = { enabled = true }
 [auth]
 enabled = true
 port = 54328
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+site_url = "https://cookingcompiler.lovable.app"
+additional_redirect_urls = ["https://cookingcompiler.lovable.app/**"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 security_update_password_require_reauthentication = true
