@@ -63,7 +63,7 @@ All colors MUST be HSL.
     --radius: 0.75rem; /* 12px */
 
     /* Design system gradients */
-    --gradient-header: linear-gradient(90deg, hsl(349 49% 82%), hsl(349 49% 87%)); /* blush gradient */
+    --gradient-header: linear-gradient(90deg, hsl(349 49% 82%), hsl(349 49% 85%)); /* pink/blush gradient */
     --gradient-card-placeholder: linear-gradient(180deg, 
       color-mix(in oklch, hsl(210 46% 68%) 25%, transparent), 
       color-mix(in oklch, hsl(186 35% 71%) 25%, transparent)); /* subtle lavender to mint */
