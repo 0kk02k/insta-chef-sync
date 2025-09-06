@@ -69,6 +69,15 @@ serve(async (req) => {
       throw new Error('No image data provided');
     }
 
+    // MIME-Type Check: Log Data-URL prefix for debugging
+    const base64Prefix = imageBase64.substring(0, 50);
+    console.log('🔍 Image Data-URL prefix:', `data:image/jpeg;base64,${base64Prefix}...`);
+    
+    // Validate base64 format (should start with typical JPEG/PNG patterns)
+    if (!imageBase64.match(/^[A-Za-z0-9+/]+={0,2}$/)) {
+      throw new Error('Invalid base64 image format detected');
+    }
+
     // Get user preferences for language and measurement units
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
     if (userId) {
@@ -94,10 +103,12 @@ serve(async (req) => {
 
     console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Responses API)');
 
-    // Use Responses API (Option B - recommended for GPT-5-Nano Vision)
+    // Use Responses API with correct parameters
     const payload = {
       model: 'gpt-5-nano-2025-08-07',
-      max_output_tokens: 2000,
+      max_output_tokens: 2000, // Correct parameter for Responses API
+      // Explicitly disable streaming
+      stream: false,
       input: [
         {
           role: 'system',
@@ -118,6 +129,11 @@ serve(async (req) => {
         },
       ],
     };
+
+    console.log('📤 Sending payload to OpenAI Responses API');
+    console.log('🔧 Payload model:', payload.model);
+    console.log('🔧 Max output tokens:', payload.max_output_tokens);
+    console.log('🔧 Stream disabled:', payload.stream === false);
 
     const visionResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
@@ -154,6 +170,13 @@ serve(async (req) => {
       );
     }
 
+    // Log moderation info, usage, finish_reason, warnings
+    console.log('📊 Response metadata:');
+    console.log('  - finish_reason:', visionData?.finish_reason);
+    console.log('  - usage:', JSON.stringify(visionData?.usage || 'none'));
+    console.log('  - warnings:', JSON.stringify(visionData?.warnings || 'none'));
+    console.log('  - moderation:', JSON.stringify(visionData?.moderation || 'none'));
+
     // Extract text from Responses API
     function extractResponsesText(res: any): string | null {
       if (typeof res?.output_text === 'string' && res.output_text.trim()) return res.output_text;
@@ -165,10 +188,16 @@ serve(async (req) => {
     console.log('📝 extracted content:', content);
 
     if (!content || !content.trim()) {
+      console.log('❌ Empty content - exploring response structure:');
+      console.log('  - response keys:', Object.keys(visionData || {}));
+      console.log('  - output structure:', JSON.stringify(visionData?.output || 'none'));
+      console.log('  - full response structure:', JSON.stringify(visionData, null, 2));
+      
       return new Response(
         JSON.stringify({ 
           error: 'OpenAI returned empty content', 
           details: 'Responses API returned empty content',
+          responseKeys: Object.keys(visionData || {}),
           rawResponse 
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
