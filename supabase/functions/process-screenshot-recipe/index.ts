@@ -100,7 +100,7 @@ serve(async (req) => {
        userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
        'Keep text in original language.';
 
-    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse".' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
     console.log('📸 Processing screenshot with GPT-4o-mini Vision API (Chat Completions)');
     console.log('🎯 API Endpoint: /v1/chat/completions');
@@ -121,7 +121,22 @@ serve(async (req) => {
           content: [
             {
               type: 'text',
-              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. ${languagePrompt} ${unitPrompt} Wenn unlesbar: {"status":"unreadable","reason": "..."}`
+              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. 
+
+${languagePrompt} 
+${unitPrompt}
+
+WICHTIGE UMRECHNUNGSREGELN für "cups":
+- 1 cup Mehl = 125g
+- 1 cup Zucker = 200g  
+- 1 cup Butter = 225g
+- 1 cup Milch/Wasser = 240ml
+- 1 cup gehackte Nüsse = 100g
+- 1 cup Reis (ungekocht) = 185g
+
+Schreibe niemals "Tasse" sondern immer die korrekte metrische Angabe.
+
+Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             },
             {
               type: 'image_url',
