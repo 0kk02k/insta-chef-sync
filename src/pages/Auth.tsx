@@ -84,16 +84,21 @@ const Auth = () => {
     const { error } = await signIn(email, password);
     
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
+      // Handle various Supabase auth error messages
+      if (error.message.includes('Invalid login credentials') || 
+          error.message.includes('Email not confirmed') ||
+          error.message.includes('Invalid email or password') ||
+          error.message.toLowerCase().includes('invalid') ||
+          error.message.toLowerCase().includes('not found')) {
         toast({
           title: "Anmeldung fehlgeschlagen",
-          description: "Ungültige E-Mail oder Passwort.",
+          description: "E-Mail oder Passwort ungültig. Überprüfen Sie Ihre Eingaben oder nutzen Sie 'Passwort vergessen?'",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Anmeldung fehlgeschlagen",
-          description: error.message,
+          description: `Fehler: ${error.message}`,
           variant: "destructive",
         });
       }
