@@ -102,13 +102,13 @@ serve(async (req) => {
 
     const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
-    console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Chat Completions - Fallback)');
+    console.log('📸 Processing screenshot with GPT-4o-mini Vision API (Chat Completions)');
     console.log('🎯 API Endpoint: /v1/chat/completions');
 
     // Fallback to Chat Completions API (more stable for GPT-5-Nano)
     const payload = {
-      model: 'gpt-5-nano-2025-08-07',
-      max_completion_tokens: 2000, // Correct parameter for Chat Completions API
+      model: 'gpt-4o-mini', // Bewährtes Vision-Modell statt GPT-5 Nano
+      max_tokens: 2000, // Für gpt-4o-mini verwenden wir max_tokens
       // Explicitly disable streaming
       stream: false,
       messages: [
@@ -139,9 +139,9 @@ serve(async (req) => {
     console.log('📋 Complete Payload (without API key):');
     console.log(JSON.stringify(payloadForLogging, null, 2));
 
-    console.log('📤 Sending payload to OpenAI Chat Completions API (GPT-5-Nano fallback)');
+    console.log('📤 Sending payload to OpenAI Chat Completions API (GPT-4o-mini)');
     console.log('🔧 Payload model:', payload.model);
-    console.log('🔧 Max completion tokens:', payload.max_completion_tokens);
+    console.log('🔧 Max tokens:', payload.max_tokens);
     console.log('🔧 Stream disabled:', payload.stream === false);
 
     const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
