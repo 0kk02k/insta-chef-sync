@@ -22,6 +22,8 @@ interface Recipe {
   rating: number | null;
   tags?: string[] | null;
   created_at: string;
+  user_id: string;
+  creator_name?: string;
 }
 
 const Index = () => {
@@ -42,17 +44,43 @@ const Index = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      // First fetch recipes
+      const { data: recipesData, error: recipesError } = await supabase
         .from('recipes')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+      if (recipesError) {
+        throw recipesError;
       }
 
-      setRecipes(data || []);
+      if (!recipesData || recipesData.length === 0) {
+        setRecipes([]);
+        return;
+      }
+
+      // Get unique user IDs
+      const userIds = [...new Set(recipesData.map(recipe => recipe.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', userIds);
+
+      // Create a map of user_id to display_name
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile.display_name])
+      );
+
+      // Transform recipes to include creator_name
+      const recipesWithCreators = recipesData.map(recipe => ({
+        ...recipe,
+        creator_name: profilesMap.get(recipe.user_id) || 'Unbekannt'
+      }));
+
+      setRecipes(recipesWithCreators);
     } catch (error) {
       console.error('Error fetching recipes:', error);
       toast({

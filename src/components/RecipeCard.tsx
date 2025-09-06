@@ -16,6 +16,8 @@ interface Recipe {
   servings: number | null;
   rating: number | null;
   created_at: string;
+  user_id: string;
+  creator_name?: string;
 }
 
 interface RecipeCardProps {
@@ -45,6 +47,13 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         ) : (
           <div className="w-full h-full recipe-card__media recipe-card__media--empty flex items-center justify-center">
             <span className="text-muted-foreground text-sm opacity-80">Kein Bild</span>
+          </div>
+        )}
+        
+        {/* Creator name in top left */}
+        {recipe.creator_name && (
+          <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md z-10">
+            {recipe.creator_name}
           </div>
         )}
         
