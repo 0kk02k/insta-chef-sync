@@ -295,17 +295,6 @@ const Index = () => {
                 </Select>
               </div>
             </div>
-            {(searchTerm || selectedUser) && (
-              <div className="text-center mt-4">
-                <p className="text-sm text-muted-foreground">
-                  {filteredRecipes.length} {filteredRecipes.length === 1 ? 'Rezept gefunden' : 'Rezepte gefunden'}
-                  {searchTerm && <span> für "{searchTerm}"</span>}
-                  {selectedUser && uniqueCreators.find(u => u.userId === selectedUser) && (
-                    <span> von {uniqueCreators.find(u => u.userId === selectedUser)?.creatorName}</span>
-                  )}
-                </p>
-              </div>
-            )}
           </div>
         )}
 
