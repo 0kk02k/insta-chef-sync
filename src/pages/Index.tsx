@@ -327,11 +327,9 @@ const Index = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => setSearchTerm('')}
-                  className="mr-3"
                 >
                   Suche zurücksetzen
                 </Button>
-                <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
               </div>
             </div>
           </div>
