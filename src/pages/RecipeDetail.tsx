@@ -250,6 +250,21 @@ const RecipeDetail = () => {
                   )}
                 </div>
 
+                {/* Tags Section */}
+                {recipe.tags && recipe.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-3">
+                    {recipe.tags.map((tag, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="bg-purple-soft/10 border-purple-soft/30 text-purple-soft hover:bg-purple-soft/20 rounded-full px-3 py-1 text-xs"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
                 {/* Rating Section */}
                 <div className="pt-4 border-t border-border/50">
                   <div className="flex flex-col gap-2">
