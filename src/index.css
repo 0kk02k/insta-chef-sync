@@ -8,132 +8,132 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Lebendiger Hintergrund mit subtilen Farbakzenten */
-    --background: 30 15% 98%; /* Sehr warmes, helles Beige */
-    --foreground: 271 15% 20%; /* Dunkles Lila-Grau */
+    /* Warmes neutrales Farbschema */
+    --background: 28 20% 97%; /* Warmes, helles Creme */
+    --foreground: 28 15% 25%; /* Dunkles warmes Grau */
 
     --card: 0 0% 100%; /* Reines Weiß für Kontrast */
-    --card-foreground: 271 15% 20%;
+    --card-foreground: 28 15% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 271 15% 20%;
+    --popover-foreground: 28 15% 25%;
 
-    /* Orange-Pfirsich als Primärfarbe (#ffb56b) */
-    --primary: 30 100% 71%; /* #ffb56b */
-    --primary-foreground: 0 0% 100%; /* Weiß auf Orange */
-    --primary-hover: 30 100% 65%; /* Dunklere Version */
+    /* Warmes Beige als Primärfarbe */
+    --primary: 28 25% 55%; /* Warmes Beige-Braun */
+    --primary-foreground: 0 0% 100%; /* Weiß auf Beige */
+    --primary-hover: 28 25% 50%; /* Dunklere Version */
 
-    /* Lila als Sekundärfarbe (#b56bff) */
-    --secondary: 271 100% 71%; /* #b56bff */
-    --secondary-foreground: 0 0% 100%; /* Weiß auf Lila */
-    --secondary-hover: 271 100% 65%; /* Dunklere Version */
+    /* Sanftes warmes Grau als Sekundärfarbe */
+    --secondary: 25 15% 65%; /* Warmes helles Grau */
+    --secondary-foreground: 28 15% 25%; /* Dunkles Grau auf hellem Grau */
+    --secondary-hover: 25 15% 60%; /* Dunklere Version */
 
-    --muted: 30 25% 96%; /* Warmes, helles Grau mit Orange-Touch */
-    --muted-foreground: 271 20% 45%; /* Lila-Grau */
+    --muted: 28 20% 94%; /* Sehr helles warmes Grau */
+    --muted-foreground: 28 10% 50%; /* Mittleres warmes Grau */
 
-    --accent: 329 100% 71%; /* Pink (#ff6bb5) */
+    --accent: 35 25% 60%; /* Sanftes warmes Braun */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 100% 71%; /* Coral-Rot (#ff6b6b) */
+    --destructive: 0 50% 60%; /* Gedämpftes Rot */
     --destructive-foreground: 0 0% 100%; /* Weiß auf Rot */
 
-    --border: 30 30% 90%; /* Warme, helle Rahmen */
-    --input: 30 20% 94%; /* Warme Input-Hintergründe */
-    --ring: 30 100% 71%; /* Orange für Focus-Ring */
+    --border: 28 15% 88%; /* Warme, helle Rahmen */
+    --input: 28 15% 92%; /* Warme Input-Hintergründe */
+    --ring: 28 25% 55%; /* Warmes Beige für Focus-Ring */
 
     --radius: 0.5rem;
 
-    /* Zusätzliche Farben aus der Palette */
-    --coral: 0 100% 71%; /* #ff6b6b */
+    /* Zusätzliche neutrale Farben */
+    --coral: 0 40% 65%; /* Gedämpftes Coral */
     --coral-foreground: 0 0% 100%;
     
-    --pink-vibrant: 300 100% 71%; /* #ff6bff */
+    --pink-vibrant: 340 20% 70%; /* Gedämpftes Rosa */
     --pink-vibrant-foreground: 0 0% 100%;
     
-    --orange-warm: 30 100% 71%; /* #ffb56b */
+    --orange-warm: 30 35% 65%; /* Gedämpftes Orange */
     --orange-warm-foreground: 0 0% 100%;
     
-    --purple-soft: 271 100% 71%; /* #b56bff */
+    --purple-soft: 280 20% 70%; /* Gedämpftes Lila */
     --purple-soft-foreground: 0 0% 100%;
 
-    /* Gradients für lebendige Effekte */
-    --gradient-primary: linear-gradient(135deg, hsl(30 100% 71%), hsl(0 100% 71%));
-    --gradient-secondary: linear-gradient(135deg, hsl(271 100% 71%), hsl(300 100% 71%));
-    --gradient-accent: linear-gradient(135deg, hsl(329 100% 71%), hsl(300 100% 71%));
-    --gradient-warm: linear-gradient(135deg, hsl(30 60% 95%), hsl(329 40% 97%));
-    --gradient-subtle: linear-gradient(135deg, hsl(30 15% 98%), hsl(271 10% 97%));
+    /* Sanfte Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(28 25% 55%), hsl(35 25% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(25 15% 65%), hsl(28 20% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(35 25% 60%), hsl(40 20% 65%));
+    --gradient-warm: linear-gradient(135deg, hsl(28 20% 96%), hsl(25 15% 95%));
+    --gradient-subtle: linear-gradient(135deg, hsl(28 20% 97%), hsl(25 10% 96%));
 
     /* Sidebar */
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 30 100% 71%;
+    --sidebar-background: 28 20% 98%;
+    --sidebar-foreground: 28 15% 25%;
+    --sidebar-primary: 28 25% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 15%;
-    --sidebar-border: 0 0% 89%;
-    --sidebar-ring: 30 100% 71%;
+    --sidebar-accent: 28 15% 92%;
+    --sidebar-accent-foreground: 28 15% 25%;
+    --sidebar-border: 28 15% 88%;
+    --sidebar-ring: 28 25% 55%;
   }
 
   .dark {
-    /* Dark Mode Varianten der neuen Farbpalette */
-    --background: 0 0% 8%; /* Sehr dunkles Grau */
-    --foreground: 0 0% 95%; /* Helles Grau */
+    /* Dark Mode - warmes neutrales Schema */
+    --background: 25 15% 12%; /* Sehr dunkles warmes Grau */
+    --foreground: 28 10% 90%; /* Helles warmes Grau */
 
-    --card: 0 0% 11%; /* Dunkle Cards */
-    --card-foreground: 0 0% 95%;
+    --card: 25 15% 15%; /* Dunkle warme Cards */
+    --card-foreground: 28 10% 90%;
 
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 25 15% 15%;
+    --popover-foreground: 28 10% 90%;
 
-    /* Sanftere Versionen für Dark Mode */
-    --primary: 30 85% 65%; /* Gedämpftes Orange */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 30 85% 60%;
+    /* Gedämpfte neutrale Farben für Dark Mode */
+    --primary: 28 20% 45%; /* Gedämpftes warmes Beige */
+    --primary-foreground: 28 10% 95%;
+    --primary-hover: 28 20% 40%;
 
-    --secondary: 271 75% 65%; /* Gedämpftes Lila */
-    --secondary-foreground: 0 0% 100%;
-    --secondary-hover: 271 75% 60%;
+    --secondary: 25 10% 50%; /* Gedämpftes warmes Grau */
+    --secondary-foreground: 28 10% 95%;
+    --secondary-hover: 25 10% 45%;
 
-    --muted: 0 0% 15%; /* Dunkles Grau */
-    --muted-foreground: 0 0% 65%; /* Helles Grau */
+    --muted: 25 15% 18%; /* Dunkles warmes Grau */
+    --muted-foreground: 28 8% 65%; /* Mittleres warmes Grau */
 
-    --accent: 329 75% 65%; /* Gedämpftes Pink */
-    --accent-foreground: 0 0% 100%;
+    --accent: 35 15% 50%; /* Gedämpftes warmes Braun */
+    --accent-foreground: 28 10% 95%;
 
-    --destructive: 0 85% 65%; /* Gedämpftes Rot */
+    --destructive: 0 35% 55%; /* Gedämpftes Rot */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%; /* Dunkle Rahmen */
-    --input: 0 0% 20%;
-    --ring: 30 85% 65%;
+    --border: 25 15% 25%; /* Dunkle warme Rahmen */
+    --input: 25 15% 22%;
+    --ring: 28 20% 45%;
 
     /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(30 85% 65%), hsl(0 85% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(271 75% 65%), hsl(300 75% 65%));
-    --gradient-accent: linear-gradient(135deg, hsl(329 75% 65%), hsl(300 75% 65%));
+    --gradient-primary: linear-gradient(135deg, hsl(28 20% 45%), hsl(35 15% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(25 10% 50%), hsl(28 15% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(35 15% 50%), hsl(40 10% 45%));
 
     /* Dark Mode Zusatzfarben */
-    --coral: 0 85% 65%;
+    --coral: 0 30% 55%;
     --coral-foreground: 0 0% 100%;
     
-    --pink-vibrant: 300 75% 65%;
+    --pink-vibrant: 340 15% 60%;
     --pink-vibrant-foreground: 0 0% 100%;
     
-    --orange-warm: 30 85% 65%;
+    --orange-warm: 30 25% 55%;
     --orange-warm-foreground: 0 0% 100%;
     
-    --purple-soft: 271 75% 65%;
+    --purple-soft: 280 15% 60%;
     --purple-soft-foreground: 0 0% 100%;
 
     /* Sidebar Dark Mode */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 30 85% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 30 85% 65%;
+    --sidebar-background: 25 15% 12%;
+    --sidebar-foreground: 28 10% 90%;
+    --sidebar-primary: 28 20% 45%;
+    --sidebar-primary-foreground: 28 10% 95%;
+    --sidebar-accent: 25 15% 18%;
+    --sidebar-accent-foreground: 28 10% 90%;
+    --sidebar-border: 25 15% 25%;
+    --sidebar-ring: 28 20% 45%;
   }
 }
 
@@ -144,7 +144,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, hsl(30 15% 98%), hsl(271 8% 98%), hsl(329 12% 98%));
+    background: linear-gradient(135deg, hsl(28 20% 97%), hsl(25 15% 96%), hsl(30 18% 96%));
     min-height: 100vh;
   }
 }
