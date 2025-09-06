@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -248,22 +248,16 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
+                  {recipe.tags && recipe.tags.map((tag, index) => (
+                    <Badge 
+                      key={index} 
+                      className="text-sm py-2 px-4 bg-purple-soft text-white border-purple-soft hover:bg-purple-soft/90"
+                    >
+                      <Hash className="h-4 w-4 mr-2" />
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
-
-                {/* Tags Section */}
-                {recipe.tags && recipe.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-3">
-                    {recipe.tags.map((tag, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="outline" 
-                        className="bg-purple-soft/10 border-purple-soft/30 text-purple-soft hover:bg-purple-soft/20 rounded-full px-3 py-1 text-xs"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
 
                 {/* Rating Section */}
                 <div className="pt-4 border-t border-border/50">
