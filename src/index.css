@@ -8,109 +8,109 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Warmes neutrales Farbschema */
-    --background: 28 20% 97%; /* Warmes, helles Creme */
-    --foreground: 28 15% 25%; /* Dunkles warmes Grau */
+    /* Teal & Yellow Farbschema */
+    --background: 40 25% 91%; /* #EDEAE5 - Helles Grau/Beige für allgemeinen Hintergrund */
+    --foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
 
-    --card: 0 0% 100%; /* Reines Weiß für Kontrast */
-    --card-foreground: 28 15% 25%;
+    --card: 51 94% 74%; /* #FCE181 - Gedämpftes Gelb für Kachel-Hintergründe */
+    --card-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text in Kacheln */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 28 15% 25%;
+    --popover: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb */
+    --popover-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
 
-    /* Warmes Beige als Primärfarbe */
-    --primary: 28 25% 55%; /* Warmes Beige-Braun */
-    --primary-foreground: 0 0% 100%; /* Weiß auf Beige */
-    --primary-hover: 28 25% 50%; /* Dunklere Version */
+    /* Dunkles Türkis als Primärfarbe */
+    --primary: 184 93% 20%; /* #026670 - Dunkles Türkis für CTAs und wichtige Elemente */
+    --primary-foreground: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Text auf Türkis */
+    --primary-hover: 184 93% 15%; /* Dunklere Version für Hover */
 
-    /* Sanftes warmes Grau als Sekundärfarbe */
-    --secondary: 25 15% 65%; /* Warmes helles Grau */
-    --secondary-foreground: 28 15% 25%; /* Dunkles Grau auf hellem Grau */
-    --secondary-hover: 25 15% 60%; /* Dunklere Version */
+    /* Mintgrün als Sekundärfarbe */
+    --secondary: 161 69% 78%; /* #9FEDD7 - Helles Mintgrün für Akzente */
+    --secondary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
+    --secondary-hover: 161 69% 73%; /* Dunklere Version für Hover */
 
-    --muted: 28 20% 94%; /* Sehr helles warmes Grau */
-    --muted-foreground: 28 10% 50%; /* Mittleres warmes Grau */
+    --muted: 40 25% 91%; /* #EDEAE5 - Neutrales Grau/Beige */
+    --muted-foreground: 184 50% 40%; /* Gedämpfteres Türkis für sekundären Text */
 
-    --accent: 35 25% 60%; /* Sanftes warmes Braun */
-    --accent-foreground: 0 0% 100%;
+    --accent: 161 69% 78%; /* #9FEDD7 - Mintgrün für Akzente und Icons */
+    --accent-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
 
     --destructive: 0 50% 60%; /* Gedämpftes Rot */
     --destructive-foreground: 0 0% 100%; /* Weiß auf Rot */
 
-    --border: 28 15% 88%; /* Warme, helle Rahmen */
-    --input: 28 15% 92%; /* Warme Input-Hintergründe */
-    --ring: 28 25% 55%; /* Warmes Beige für Focus-Ring */
+    --border: 40 25% 85%; /* Helleres Grau für Rahmen */
+    --input: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Inputs */
+    --ring: 184 93% 20%; /* #026670 - Türkis für Focus-Ring */
 
     --radius: 0.5rem;
 
-    /* Zusätzliche neutrale Farben */
-    --coral: 0 40% 65%; /* Gedämpftes Coral */
+    /* Zusätzliche Farben */
+    --coral: 0 40% 65%;
     --coral-foreground: 0 0% 100%;
     
-    --pink-vibrant: 340 20% 70%; /* Gedämpftes Rosa */
+    --pink-vibrant: 340 20% 70%;
     --pink-vibrant-foreground: 0 0% 100%;
     
-    --orange-warm: 30 35% 65%; /* Gedämpftes Orange */
+    --orange-warm: 30 35% 65%;
     --orange-warm-foreground: 0 0% 100%;
     
-    --purple-soft: 280 20% 70%; /* Gedämpftes Lila */
+    --purple-soft: 280 20% 70%;
     --purple-soft-foreground: 0 0% 100%;
 
-    /* Sanfte Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(28 25% 55%), hsl(35 25% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(25 15% 65%), hsl(28 20% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(35 25% 60%), hsl(40 20% 65%));
-    --gradient-warm: linear-gradient(135deg, hsl(28 20% 96%), hsl(25 15% 95%));
-    --gradient-subtle: linear-gradient(135deg, hsl(28 20% 97%), hsl(25 10% 96%));
+    /* Teal & Yellow Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(184 93% 20%), hsl(161 69% 78%));
+    --gradient-secondary: linear-gradient(135deg, hsl(51 94% 74%), hsl(56 91% 89%));
+    --gradient-accent: linear-gradient(135deg, hsl(161 69% 78%), hsl(56 91% 89%));
+    --gradient-warm: linear-gradient(135deg, hsl(40 25% 91%), hsl(56 91% 89%));
+    --gradient-subtle: linear-gradient(135deg, hsl(40 25% 91%), hsl(51 94% 74%));
 
     /* Sidebar */
-    --sidebar-background: 28 20% 98%;
-    --sidebar-foreground: 28 15% 25%;
-    --sidebar-primary: 28 25% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 28 15% 92%;
-    --sidebar-accent-foreground: 28 15% 25%;
-    --sidebar-border: 28 15% 88%;
-    --sidebar-ring: 28 25% 55%;
+    --sidebar-background: 40 25% 91%; /* #EDEAE5 */
+    --sidebar-foreground: 184 93% 20%; /* #026670 */
+    --sidebar-primary: 184 93% 20%; /* #026670 */
+    --sidebar-primary-foreground: 56 91% 89%; /* #FEF9C7 */
+    --sidebar-accent: 161 69% 78%; /* #9FEDD7 */
+    --sidebar-accent-foreground: 184 93% 20%; /* #026670 */
+    --sidebar-border: 40 25% 85%;
+    --sidebar-ring: 184 93% 20%; /* #026670 */
   }
 
   .dark {
-    /* Dark Mode - warmes neutrales Schema */
-    --background: 25 15% 12%; /* Sehr dunkles warmes Grau */
-    --foreground: 28 10% 90%; /* Helles warmes Grau */
+    /* Dark Mode - Teal & Yellow Schema */
+    --background: 184 20% 15%; /* Dunkles Türkis für Hintergrund */
+    --foreground: 56 91% 89%; /* #FEF9C7 - Sehr helles Gelb für Text */
 
-    --card: 25 15% 15%; /* Dunkle warme Cards */
-    --card-foreground: 28 10% 90%;
+    --card: 184 30% 18%; /* Dunkles Türkis für Cards */
+    --card-foreground: 56 91% 89%; /* #FEF9C7 - Helles Gelb für Text */
 
-    --popover: 25 15% 15%;
-    --popover-foreground: 28 10% 90%;
+    --popover: 184 30% 18%;
+    --popover-foreground: 56 91% 89%;
 
-    /* Gedämpfte neutrale Farben für Dark Mode */
-    --primary: 28 20% 45%; /* Gedämpftes warmes Beige */
-    --primary-foreground: 28 10% 95%;
-    --primary-hover: 28 20% 40%;
+    /* Dark Mode Farben */
+    --primary: 161 69% 78%; /* #9FEDD7 - Mintgrün als primäre Farbe in Dark Mode */
+    --primary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis für Text */
+    --primary-hover: 161 69% 73%;
 
-    --secondary: 25 10% 50%; /* Gedämpftes warmes Grau */
-    --secondary-foreground: 28 10% 95%;
-    --secondary-hover: 25 10% 45%;
+    --secondary: 51 94% 74%; /* #FCE181 - Gedämpftes Gelb */
+    --secondary-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
+    --secondary-hover: 51 94% 69%;
 
-    --muted: 25 15% 18%; /* Dunkles warmes Grau */
-    --muted-foreground: 28 8% 65%; /* Mittleres warmes Grau */
+    --muted: 184 20% 20%; /* Dunkles Türkis-Grau */
+    --muted-foreground: 161 40% 70%; /* Gedämpftes Mintgrün */
 
-    --accent: 35 15% 50%; /* Gedämpftes warmes Braun */
-    --accent-foreground: 28 10% 95%;
+    --accent: 51 94% 74%; /* #FCE181 - Gelb für Akzente */
+    --accent-foreground: 184 93% 20%; /* #026670 - Dunkles Türkis */
 
     --destructive: 0 35% 55%; /* Gedämpftes Rot */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 15% 25%; /* Dunkle warme Rahmen */
-    --input: 25 15% 22%;
-    --ring: 28 20% 45%;
+    --border: 184 20% 25%; /* Dunkle Türkis Rahmen */
+    --input: 184 20% 20%;
+    --ring: 161 69% 78%; /* Mintgrün für Focus-Ring */
 
     /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(28 20% 45%), hsl(35 15% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(25 10% 50%), hsl(28 15% 45%));
-    --gradient-accent: linear-gradient(135deg, hsl(35 15% 50%), hsl(40 10% 45%));
+    --gradient-primary: linear-gradient(135deg, hsl(184 93% 20%), hsl(161 69% 78%));
+    --gradient-secondary: linear-gradient(135deg, hsl(51 94% 74%), hsl(161 69% 78%));
+    --gradient-accent: linear-gradient(135deg, hsl(161 69% 78%), hsl(51 94% 74%));
 
     /* Dark Mode Zusatzfarben */
     --coral: 0 30% 55%;
@@ -126,14 +126,14 @@ All colors MUST be HSL.
     --purple-soft-foreground: 0 0% 100%;
 
     /* Sidebar Dark Mode */
-    --sidebar-background: 25 15% 12%;
-    --sidebar-foreground: 28 10% 90%;
-    --sidebar-primary: 28 20% 45%;
-    --sidebar-primary-foreground: 28 10% 95%;
-    --sidebar-accent: 25 15% 18%;
-    --sidebar-accent-foreground: 28 10% 90%;
-    --sidebar-border: 25 15% 25%;
-    --sidebar-ring: 28 20% 45%;
+    --sidebar-background: 184 20% 15%;
+    --sidebar-foreground: 56 91% 89%;
+    --sidebar-primary: 161 69% 78%;
+    --sidebar-primary-foreground: 184 93% 20%;
+    --sidebar-accent: 184 30% 18%;
+    --sidebar-accent-foreground: 56 91% 89%;
+    --sidebar-border: 184 20% 25%;
+    --sidebar-ring: 161 69% 78%;
   }
 }
 
@@ -144,7 +144,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, hsl(28 20% 97%), hsl(25 15% 96%), hsl(30 18% 96%));
+    background: linear-gradient(135deg, hsl(40 25% 91%), hsl(56 91% 89%), hsl(51 94% 74%));
     min-height: 100vh;
   }
 }
