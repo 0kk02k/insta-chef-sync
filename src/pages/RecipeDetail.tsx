@@ -248,19 +248,14 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
-                  {recipe.tags && recipe.tags.length > 0 && (
-                    <div style={{border: '2px solid red', padding: '10px', background: 'yellow'}}>
-                      DEBUG: Tags gefunden: {recipe.tags.join(', ')}
-                    </div>
-                  )}
                   {recipe.tags && recipe.tags.length > 0 ? recipe.tags.map((tag, index) => (
-                    <Badge 
+                    <span 
                       key={index} 
-                      className="text-sm py-2 px-4 bg-purple-soft text-white border-purple-soft hover:bg-purple-soft/90"
+                      className="inline-flex items-center text-sm py-2 px-4 bg-purple-600 text-white rounded-md"
                     >
                       <Hash className="h-4 w-4 mr-2" />
                       {tag}
-                    </Badge>
+                    </span>
                   )) : null}
                 </div>
 
