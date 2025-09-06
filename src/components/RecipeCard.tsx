@@ -71,10 +71,10 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
       </div>
       
       {/* Textbereich - slided von unten über das Bild */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out">
+      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out">
         {/* Titel und Tags - immer sichtbar */}
         <div className="space-y-2">
-          <h3 className="recipe-card__title font-semibold text-base line-clamp-2 text-white group-hover:text-white transition-colors">
+          <h3 className="recipe-card__title font-semibold text-base line-clamp-2 text-slate-800 group-hover:text-slate-800 transition-colors">
             {recipe.title}
           </h3>
           
@@ -86,13 +86,13 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
               </Badge>
             )}
             {recipe.cooking_time && (
-              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-white/20 text-white border-white/30">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-slate-100 text-slate-700 border-slate-200">
                 <Clock className="h-3 w-3 mr-1" />
                 {recipe.cooking_time}m
               </Badge>
             )}
             {recipe.servings && (
-              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-white/20 text-white border-white/30">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-slate-100 text-slate-700 border-slate-200">
                 <Users className="h-3 w-3 mr-1" />
                 {recipe.servings}
               </Badge>
@@ -102,7 +102,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           {/* Beschreibung - wird beim Hover sichtbar */}
           {recipe.description && (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-              <p className="text-xs text-white/90 line-clamp-3 mt-2">
+              <p className="text-xs text-slate-600 line-clamp-3 mt-2">
                 {recipe.description}
               </p>
             </div>
