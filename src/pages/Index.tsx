@@ -18,6 +18,7 @@ interface Recipe {
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
+  rating: number | null;
   created_at: string;
 }
 

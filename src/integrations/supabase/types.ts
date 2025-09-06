@@ -57,6 +57,7 @@ export type Database = {
           ingredients: string[] | null
           instagram_url: string | null
           instructions: string[] | null
+          rating: number | null
           servings: number | null
           title: string
           updated_at: string
@@ -71,6 +72,7 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          rating?: number | null
           servings?: number | null
           title: string
           updated_at?: string
@@ -85,6 +87,7 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          rating?: number | null
           servings?: number | null
           title?: string
           updated_at?: string

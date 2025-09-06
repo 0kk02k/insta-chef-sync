@@ -8,6 +8,7 @@ import { Edit, Loader2, Plus, X, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import StarRating from '@/components/StarRating';
 
 interface Recipe {
   id: string;
@@ -19,6 +20,7 @@ interface Recipe {
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
+  rating: number | null;
   created_at: string;
 }
 
@@ -40,6 +42,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     instructions: [...recipe.instructions],
     cooking_time: recipe.cooking_time || '',
     servings: recipe.servings || '',
+    rating: recipe.rating || null,
   });
 
   const { toast } = useToast();
@@ -175,6 +178,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
           instructions: cleanedInstructions,
           cooking_time: formData.cooking_time ? parseInt(formData.cooking_time.toString()) : null,
           servings: formData.servings ? parseInt(formData.servings.toString()) : null,
+          rating: formData.rating,
         })
         .eq('id', recipe.id)
         .eq('user_id', user.id);
@@ -279,6 +283,15 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   value={formData.instagram_url}
                   onChange={(e) => handleInputChange('instagram_url', e.target.value)}
                   placeholder="https://instagram.com/..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="rating">Bewertung</Label>
+                <StarRating 
+                  rating={formData.rating} 
+                  onRatingChange={(rating) => handleInputChange('rating', rating)}
+                  size="md"
                 />
               </div>
             </div>

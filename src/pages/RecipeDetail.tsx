@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import EditRecipeDialog from '@/components/EditRecipeDialog';
+import StarRating from '@/components/StarRating';
 
 interface Recipe {
   id: string;
@@ -19,6 +20,7 @@ interface Recipe {
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
+  rating: number | null;
   created_at: string;
 }
 
@@ -121,6 +123,36 @@ const RecipeDetail = () => {
     fetchRecipe();
   };
 
+  const handleRatingChange = async (newRating: number) => {
+    if (!recipe || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('recipes')
+        .update({ rating: newRating })
+        .eq('id', recipe.id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setRecipe({ ...recipe, rating: newRating });
+      
+      toast({
+        title: "Bewertung gespeichert!",
+        description: `${newRating} Sterne vergeben.`,
+      });
+    } catch (error) {
+      console.error('Error updating rating:', error);
+      toast({
+        title: "Fehler",
+        description: "Bewertung konnte nicht gespeichert werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -215,6 +247,18 @@ const RecipeDetail = () => {
                       {recipe.servings} Portionen
                     </Badge>
                   )}
+                </div>
+
+                {/* Rating Section */}
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Bewertung:</span>
+                    <StarRating 
+                      rating={recipe.rating} 
+                      onRatingChange={handleRatingChange} 
+                      size="lg"
+                    />
+                  </div>
                 </div>
               </CardHeader>
             </Card>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, ExternalLink } from 'lucide-react';
+import { Clock, Users, ExternalLink, Star } from 'lucide-react';
 
 interface Recipe {
   id: string;
@@ -14,6 +14,7 @@ interface Recipe {
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
+  rating: number | null;
   created_at: string;
 }
 
@@ -68,6 +69,12 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           </h3>
           
           <div className="flex flex-wrap gap-1">
+            {recipe.rating && (
+              <Badge variant="default" className="text-xs px-2 py-0.5 badge--primary">
+                <Star className="h-3 w-3 mr-1 fill-current" />
+                {recipe.rating}
+              </Badge>
+            )}
             {recipe.cooking_time && (
               <Badge variant="secondary" className="text-xs px-2 py-0.5">
                 <Clock className="h-3 w-3 mr-1" />
