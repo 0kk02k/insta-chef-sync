@@ -136,6 +136,11 @@ WICHTIGE UMRECHNUNGSREGELN für "cups":
 
 Schreibe niemals "Tasse" sondern immer die korrekte metrische Angabe.
 
+BESCHREIBUNG: Wenn keine Beschreibung im Bild vorhanden ist, erstelle eine appetitliche, kurze Beschreibung (1-2 Sätze) basierend auf den Zutaten und der Art des Gerichts. Beispiele:
+- "Ein saftiger Schokoladenkuchen mit intensivem Kakaogeschmack"
+- "Cremige Pasta mit würziger Tomatensauce und frischen Kräutern"
+- "Knuspriges Hähnchen mit mediterranen Gewürzen und Gemüse"
+
 Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             },
             {
