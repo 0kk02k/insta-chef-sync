@@ -101,41 +101,43 @@ serve(async (req) => {
 
     const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
-    console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Responses API)');
+    console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Chat Completions - Fallback)');
 
-    // Use Responses API with correct parameters
+    // Fallback to Chat Completions API (more stable for GPT-5-Nano)
     const payload = {
       model: 'gpt-5-nano-2025-08-07',
-      max_output_tokens: 2000, // Correct parameter for Responses API
+      max_completion_tokens: 2000, // Correct parameter for Chat Completions API
       // Explicitly disable streaming
       stream: false,
-      input: [
+      messages: [
         {
           role: 'system',
-          content: [{ 
-            type: 'input_text', 
-            text: `Du bist ein zuverlässiger Parser. Antworte ausschließlich mit valider JSON. ${languagePrompt} ${unitPrompt}`
-          }],
+          content: `Du bist ein zuverlässiger Parser. Antworte ausschließlich mit valider JSON. ${languagePrompt} ${unitPrompt}`
         },
         {
           role: 'user',
           content: [
             {
-              type: 'input_text',
-              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. ${languagePrompt} ${unitPrompt} Wenn unlesbar: {"status":"unreadable","reason": "..."}`,
+              type: 'text',
+              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. ${languagePrompt} ${unitPrompt} Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             },
-            { type: 'input_image', image_url: `data:image/jpeg;base64,${imageBase64}` },
-          ],
-        },
-      ],
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`
+              }
+            }
+          ]
+        }
+      ]
     };
 
-    console.log('📤 Sending payload to OpenAI Responses API');
+    console.log('📤 Sending payload to OpenAI Chat Completions API (GPT-5-Nano fallback)');
     console.log('🔧 Payload model:', payload.model);
-    console.log('🔧 Max output tokens:', payload.max_output_tokens);
+    console.log('🔧 Max completion tokens:', payload.max_completion_tokens);
     console.log('🔧 Stream disabled:', payload.stream === false);
 
-    const visionResponse = await fetch('https://api.openai.com/v1/responses', {
+    const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -177,15 +179,24 @@ serve(async (req) => {
     console.log('  - warnings:', JSON.stringify(visionData?.warnings || 'none'));
     console.log('  - moderation:', JSON.stringify(visionData?.moderation || 'none'));
 
-    // Extract text from Responses API
-    function extractResponsesText(res: any): string | null {
-      if (typeof res?.output_text === 'string' && res.output_text.trim()) return res.output_text;
-      const t = res?.output?.[0]?.content?.[0]?.text ?? null;
+    // Extract text from Chat Completions API
+    function extractChatContent(res: any): string | null {
+      const t = res?.choices?.[0]?.message?.content ??
+                res?.choices?.[0]?.delta?.content ??
+                null;
       return typeof t === 'string' && t.trim() ? t : null;
     }
 
-    let content = extractResponsesText(visionData);
-    console.log('📝 extracted content:', content);
+    let content = extractChatContent(visionData);
+    console.log('📝 extracted content from Chat Completions:', content);
+
+    // Fallback: Try Responses API fields if Chat Completions fails
+    if (!content) {
+      content = typeof visionData?.output_text === 'string' && visionData.output_text.trim()
+        ? visionData.output_text
+        : visionData?.output?.[0]?.content?.[0]?.text ?? null;
+      console.log('🧪 fallback extracted text from Responses fields:', content);
+    }
 
     if (!content || !content.trim()) {
       console.log('❌ Empty content - exploring response structure:');
