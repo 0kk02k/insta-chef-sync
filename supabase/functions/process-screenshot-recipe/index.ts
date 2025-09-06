@@ -42,13 +42,32 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Smoke test endpoint
+    const url = new URL(req.url);
+    if (url.searchParams.get('selftest') === '1') {
+      console.log('🧪 Running smoke test');
+      const payload = {
+        model: 'gpt-5-nano-2025-08-07',
+        max_output_tokens: 50,
+        input: [{ role: 'user', content: [{ type: 'input_text', text: 'Sage nur: {"ok":true}' }] }],
+      };
+      const resp = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openAIApiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const raw = await resp.text();
+      return new Response(raw, { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } });
+    }
+
     const { imageBase64, fileName, userId } = await req.json();
 
     if (!imageBase64) {
       throw new Error('No image data provided');
     }
-
-    console.log('📸 Processing screenshot with GPT-5 Nano Vision API');
 
     // Get user preferences for language and measurement units
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
@@ -64,62 +83,49 @@ serve(async (req) => {
       }
     }
 
-    // Step 1: Extract text and recipe data from screenshot using GPT-5 Nano Vision
-    const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const languagePrompt = userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
+       userPrefs.language === 'en' ? 'Translate all text to English.' :
+       userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
+       userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
+       userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+       'Keep text in original language.';
+
+    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+
+    console.log('📸 Processing screenshot with GPT-5 Nano Vision API (Responses API)');
+
+    // Use Responses API (Option B - recommended for GPT-5-Nano Vision)
+    const payload = {
+      model: 'gpt-5-nano-2025-08-07',
+      max_output_tokens: 2000,
+      input: [
+        {
+          role: 'system',
+          content: [{ 
+            type: 'input_text', 
+            text: `Du bist ein zuverlässiger Parser. Antworte ausschließlich mit valider JSON. ${languagePrompt} ${unitPrompt}`
+          }],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null }. ${languagePrompt} ${unitPrompt} Wenn unlesbar: {"status":"unreadable","reason": "..."}`,
+            },
+            { type: 'input_image', image_url: `data:image/jpeg;base64,${imageBase64}` },
+          ],
+        },
+      ],
+    };
+
+    const visionResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
-        max_completion_tokens: 2000,
-        messages: [
-          {
-            role: 'system',
-            content: `You are a specialized recipe extraction AI. Extract recipe information from images and respond with ONLY a valid JSON object.
-
-Required format:
-{
-  "title": "Recipe name",
-  "description": "Brief description",
-  "ingredients": ["ingredient 1", "ingredient 2"],
-  "instructions": ["step 1", "step 2"],
-  "cooking_time": 30,
-  "servings": 4
-}
-
-Rules:
-- Response must be valid JSON only
-- No additional text before or after JSON
-- Use null for missing optional fields
-- Empty arrays for missing required arrays`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Extract recipe from this image. Requirements:
-- ${userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
-   userPrefs.language === 'en' ? 'Translate all text to English.' :
-   userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
-   userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
-   userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
-   'Keep text in original language.'}
-- ${userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).'}
-- Return only valid JSON, no other text`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
-        ]
-      }),
+      body: JSON.stringify(payload)
     });
 
     if (!visionResponse.ok) {
@@ -128,56 +134,96 @@ Rules:
       throw new Error(`OpenAI Vision API error: ${visionResponse.status}`);
     }
 
-    const visionData = await visionResponse.json();
     console.log('✅ GPT-5 Nano Vision response received');
-
-    const extractedContent = visionData.choices[0].message.content;
-    console.log('📝 Raw AI response:', extractedContent);
     
-    let recipeData: RecipeData;
+    const rawResponse = await visionResponse.text();
+    console.log('🔍 COMPLETE OpenAI Response (raw text):', rawResponse);
+    
+    let visionData: any = null;
     try {
-      // Clean and extract JSON from response
-      let jsonStr = extractedContent.trim();
-      
-      // Remove any markdown code blocks
-      jsonStr = jsonStr.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-      
-      // Look for JSON object within the response
-      const jsonStart = jsonStr.indexOf('{');
-      const jsonEnd = jsonStr.lastIndexOf('}');
-      
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        jsonStr = jsonStr.substring(jsonStart, jsonEnd + 1);
-      }
-      
-      console.log('🔍 Cleaned JSON string:', jsonStr);
-      recipeData = JSON.parse(jsonStr);
-      
-      // Validate required fields
-      if (!recipeData.title) {
-        throw new Error('Kein Rezepttitel im Screenshot erkennbar');
-      }
-      
-      if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients) || recipeData.ingredients.length === 0) {
-        throw new Error('Keine Zutaten im Screenshot erkennbar');
-      }
-      
-      if (!recipeData.instructions || !Array.isArray(recipeData.instructions) || recipeData.instructions.length === 0) {
-        throw new Error('Keine Zubereitungsschritte im Screenshot erkennbar');
-      }
-      
-      console.log('✅ Successfully parsed recipe data:', recipeData.title);
-      
+      visionData = JSON.parse(rawResponse);
     } catch (parseError) {
-      console.error('❌ Failed to parse extracted JSON:', extractedContent);
-      console.error('❌ Parse error details:', parseError);
-      
-      if (parseError instanceof Error && parseError.message.includes('erkennbar')) {
-        throw parseError;
-      }
-      
-      throw new Error('Das Rezept im Screenshot konnte nicht richtig erkannt werden. Bitte verwenden Sie ein klareres Bild oder einen anderen Upload-Typ.');
+      console.error('❌ JSON parse of response failed:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI response parsing failed', 
+          details: parseError.message,
+          rawResponse 
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    // Extract text from Responses API
+    function extractResponsesText(res: any): string | null {
+      if (typeof res?.output_text === 'string' && res.output_text.trim()) return res.output_text;
+      const t = res?.output?.[0]?.content?.[0]?.text ?? null;
+      return typeof t === 'string' && t.trim() ? t : null;
+    }
+
+    let content = extractResponsesText(visionData);
+    console.log('📝 extracted content:', content);
+
+    if (!content || !content.trim()) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI returned empty content', 
+          details: 'Responses API returned empty content',
+          rawResponse 
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Safe JSON parsing with fallbacks
+    function safeParseJson(s: string) {
+      try {
+        return JSON.parse(s);
+      } catch {
+        const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (m) {
+          try { return JSON.parse(m[1]); } catch {}
+        }
+        const start = s.indexOf('{');
+        const end = s.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+          try { return JSON.parse(s.slice(start, end + 1)); } catch {}
+        }
+        return null;
+      }
+    }
+
+    const recipeData = safeParseJson(content);
+    if (!recipeData) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Could not parse model output as JSON', 
+          details: 'JSON parsing failed after all fallback attempts',
+          content 
+        }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check for unreadable status
+    if (recipeData.status === 'unreadable') {
+      throw new Error(`Das Rezept im Screenshot konnte nicht erkannt werden: ${recipeData.reason || 'Unbekannter Grund'}`);
+    }
+
+    // Validate required fields
+    if (!recipeData.title) {
+      throw new Error('Kein Rezepttitel im Screenshot erkennbar');
+    }
+    
+    if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients) || recipeData.ingredients.length === 0) {
+      throw new Error('Keine Zutaten im Screenshot erkennbar');
+    }
+    
+    if (!recipeData.instructions || !Array.isArray(recipeData.instructions) || recipeData.instructions.length === 0) {
+      throw new Error('Keine Zubereitungsschritte im Screenshot erkennbar');
+    }
+    
+    console.log('✅ Successfully parsed recipe data:', recipeData.title);
 
     console.log('✅ Recipe data extracted:', recipeData.title);
 
