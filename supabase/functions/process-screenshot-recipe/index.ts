@@ -141,13 +141,54 @@ IMPORTANT REQUIREMENTS:
     console.log('✅ GPT-5 Nano Vision response received');
 
     const extractedContent = visionData.choices[0].message.content;
+    console.log('📝 Raw AI response:', extractedContent);
     
     let recipeData: RecipeData;
     try {
-      recipeData = JSON.parse(extractedContent);
+      // Try to extract JSON from the response (handle cases where AI adds extra text)
+      let jsonStr = extractedContent.trim();
+      
+      // Look for JSON object within the response
+      const jsonStart = jsonStr.indexOf('{');
+      const jsonEnd = jsonStr.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        jsonStr = jsonStr.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      recipeData = JSON.parse(jsonStr);
     } catch (parseError) {
       console.error('❌ Failed to parse extracted JSON:', extractedContent);
-      throw new Error('Failed to parse recipe data from image');
+      console.error('❌ Parse error details:', parseError);
+      
+      // Fallback: try to extract basic recipe info using regex patterns
+      try {
+        const titleMatch = extractedContent.match(/["\']title["\']:\s*["\']([^"']+)["\']/) || 
+                          extractedContent.match(/title:\s*([^\n,}]+)/i);
+        const ingredientsMatch = extractedContent.match(/["\']ingredients["\']:\s*\[(.*?)\]/s);
+        const instructionsMatch = extractedContent.match(/["\']instructions["\']:\s*\[(.*?)\]/s);
+        
+        if (titleMatch) {
+          recipeData = {
+            title: titleMatch[1].trim(),
+            description: 'Rezept aus Screenshot extrahiert',
+            ingredients: ingredientsMatch ? 
+              ingredientsMatch[1].split(',').map(i => i.replace(/["\'\s]/g, '').trim()).filter(i => i) :
+              ['Zutaten konnten nicht vollständig extrahiert werden'],
+            instructions: instructionsMatch ? 
+              instructionsMatch[1].split(',').map(i => i.replace(/["\'\s]/g, '').trim()).filter(i => i) :
+              ['Anweisungen konnten nicht vollständig extrahiert werden'],
+            cooking_time: null,
+            servings: null
+          };
+          console.log('✅ Used fallback parsing for recipe data');
+        } else {
+          throw new Error('Failed to parse recipe data from image - no valid data found');
+        }
+      } catch (fallbackError) {
+        console.error('❌ Fallback parsing also failed:', fallbackError);
+        throw new Error('Failed to parse recipe data from image');
+      }
     }
 
     // Validate extracted data
