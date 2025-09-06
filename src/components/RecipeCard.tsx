@@ -31,11 +31,11 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
 
   return (
     <Card 
-      className="aspect-square overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col"
+      className="aspect-square overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group relative"
       onClick={handleClick}
     >
-      {/* Obere Hälfte: Bild - feste Höhe */}
-      <div className="h-2/3 w-full overflow-hidden relative">
+      {/* Vollflächiges Bild */}
+      <div className="absolute inset-0 w-full h-full">
         {recipe.image_url ? (
           <img
             src={recipe.image_url}
@@ -53,7 +53,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
             href={recipe.instagram_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute top-2 right-2 text-white hover:text-primary transition-colors bg-black/50 p-1 rounded"
+            className="absolute top-2 right-2 text-white hover:text-primary transition-colors bg-black/50 p-1 rounded z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-4 w-4" />
@@ -61,11 +61,11 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         )}
       </div>
       
-      {/* Untere Hälfte: Titel und Tags - kompakter */}
-      <div className="h-1/3 p-3 flex flex-col relative overflow-hidden">
+      {/* Textbereich - slided von unten über das Bild */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4 transform translate-y-1/3 group-hover:translate-y-0 transition-transform duration-300 ease-out">
         {/* Titel und Tags - immer sichtbar */}
-        <div className="flex-1 space-y-2">
-          <h3 className="recipe-card__title font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+        <div className="space-y-2">
+          <h3 className="recipe-card__title font-semibold text-sm line-clamp-2 text-white group-hover:text-white transition-colors">
             {recipe.title}
           </h3>
           
@@ -77,28 +77,28 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
               </Badge>
             )}
             {recipe.cooking_time && (
-              <Badge variant="secondary" className="badge text-xs px-2 py-0.5">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-white/20 text-white border-white/30">
                 <Clock className="h-3 w-3 mr-1" />
                 {recipe.cooking_time}m
               </Badge>
             )}
             {recipe.servings && (
-              <Badge variant="secondary" className="badge text-xs px-2 py-0.5">
+              <Badge variant="secondary" className="badge text-xs px-2 py-0.5 bg-white/20 text-white border-white/30">
                 <Users className="h-3 w-3 mr-1" />
                 {recipe.servings}
               </Badge>
             )}
           </div>
+          
+          {/* Beschreibung - wird beim Hover sichtbar */}
+          {recipe.description && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+              <p className="text-xs text-white/90 line-clamp-3 mt-2">
+                {recipe.description}
+              </p>
+            </div>
+          )}
         </div>
-        
-        {/* Beschreibung - slide up animation on hover */}
-        {recipe.description && (
-          <div className="absolute bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border/30 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-            <p className="text-xs text-muted-foreground line-clamp-3">
-              {recipe.description}
-            </p>
-          </div>
-        )}
       </div>
     </Card>
   );
