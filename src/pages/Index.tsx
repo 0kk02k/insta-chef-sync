@@ -229,7 +229,7 @@ const Index = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-secondary rounded-xl shadow-lg">
-                <ChefHat className="h-8 w-8 text-white" />
+                <ChefHat className="h-8 w-8 text-pink-500" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-secondary bg-primary px-4 py-2 rounded-lg">
