@@ -62,7 +62,7 @@ const InlineEditTitle = ({ value, recipeId, isOwner, onUpdate }: InlineEditTitle
 
   if (!isOwner) {
     return (
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-warm via-purple-soft to-pink-vibrant bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold text-slate-700 mb-2">
         {value}
       </h1>
     );
@@ -107,7 +107,7 @@ const InlineEditTitle = ({ value, recipeId, isOwner, onUpdate }: InlineEditTitle
 
   return (
     <div className="group flex items-start gap-2">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-warm via-purple-soft to-pink-vibrant bg-clip-text text-transparent mb-2 flex-1">
+      <h1 className="text-3xl font-bold text-slate-700 mb-2 flex-1">
         {value}
       </h1>
       <Button
