@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import EditRecipeDialog from '@/components/EditRecipeDialog';
 import StarRating from '@/components/StarRating';
+import CommentsSection from '@/components/CommentsSection';
 
 interface Recipe {
   id: string;
@@ -25,6 +26,7 @@ interface Recipe {
   created_at: string;
   user_id: string;
   creator_name?: string;
+  published: boolean;
 }
 
 const RecipeDetail = () => {
@@ -46,56 +48,71 @@ const RecipeDetail = () => {
   }, [id, user]);
 
   const fetchRecipe = async () => {
-    if (!id || !user) return;
+    if (!id) return;
 
-    try {
-      // First fetch the recipe
-      const { data: recipeData, error: recipeError } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
+    // For published recipes, allow access without user authentication
+    const fetchRecipe = async () => {
+      try {
+        // First try to fetch as published recipe (accessible to everyone)
+        const { data: recipeData, error: recipeError } = await supabase
+          .from('recipes')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-      if (recipeError) {
-        throw recipeError;
-      }
+        if (recipeError) {
+          throw recipeError;
+        }
 
-      if (!recipeData) {
+        if (!recipeData) {
+          toast({
+            title: "Fehler",
+            description: "Rezept nicht gefunden.",
+            variant: "destructive",
+          });
+          navigate('/');
+          return;
+        }
+
+        // Check if user has access to this recipe
+        if (!recipeData.published && (!user || user.id !== recipeData.user_id)) {
+          toast({
+            title: "Zugriff verweigert",
+            description: "Dieses Rezept ist nicht veröffentlicht.",
+            variant: "destructive",
+          });
+          navigate('/');
+          return;
+        }
+
+        // Then fetch the creator's profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', recipeData.user_id)
+          .single();
+
+        // Combine recipe with creator name
+        const recipeWithCreator = {
+          ...recipeData,
+          creator_name: profileData?.display_name || 'Unbekannt'
+        };
+
+        setRecipe(recipeWithCreator);
+      } catch (error) {
+        console.error('Error fetching recipe:', error);
         toast({
           title: "Fehler",
-          description: "Rezept nicht gefunden.",
+          description: "Rezept konnte nicht geladen werden.",
           variant: "destructive",
         });
         navigate('/');
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Then fetch the creator's profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', recipeData.user_id)
-        .single();
-
-      // Combine recipe with creator name
-      const recipeWithCreator = {
-        ...recipeData,
-        creator_name: profileData?.display_name || 'Unbekannt'
-      };
-
-      setRecipe(recipeWithCreator);
-    } catch (error) {
-      console.error('Error fetching recipe:', error);
-      toast({
-        title: "Fehler",
-        description: "Rezept konnte nicht geladen werden.",
-        variant: "destructive",
-      });
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
+    fetchRecipe();
   };
 
   const handleDelete = async () => {
@@ -381,6 +398,9 @@ const RecipeDetail = () => {
             </Card>
           </div>
         </div>
+
+        {/* Comments Section */}
+        <CommentsSection recipeId={recipe.id} isPublished={recipe.published} />
       </div>
     </div>
   );

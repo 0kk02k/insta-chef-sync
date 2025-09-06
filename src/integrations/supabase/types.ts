@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipe_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipe_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -57,6 +92,7 @@ export type Database = {
           ingredients: string[] | null
           instagram_url: string | null
           instructions: string[] | null
+          published: boolean
           rating: number | null
           servings: number | null
           tags: string[] | null
@@ -73,6 +109,7 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          published?: boolean
           rating?: number | null
           servings?: number | null
           tags?: string[] | null
@@ -89,6 +126,7 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          published?: boolean
           rating?: number | null
           servings?: number | null
           tags?: string[] | null

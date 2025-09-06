@@ -24,6 +24,7 @@ interface Recipe {
   created_at: string;
   user_id: string;
   creator_name?: string;
+  published: boolean;
 }
 
 const Index = () => {
@@ -36,7 +37,8 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      // Don't redirect, allow viewing published recipes
+      fetchPublishedRecipes();
     }
   }, [user, loading, navigate]);
 
@@ -44,7 +46,7 @@ const Index = () => {
     if (!user) return;
     
     try {
-      // First fetch recipes
+      // First fetch user's own recipes (published and unpublished)
       const { data: recipesData, error: recipesError } = await supabase
         .from('recipes')
         .select('*')
@@ -93,9 +95,62 @@ const Index = () => {
     }
   };
 
+  const fetchPublishedRecipes = async () => {
+    try {
+      // Fetch all published recipes for non-authenticated users
+      const { data: recipesData, error: recipesError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('published', true)
+        .order('created_at', { ascending: false });
+
+      if (recipesError) {
+        throw recipesError;
+      }
+
+      if (!recipesData || recipesData.length === 0) {
+        setRecipes([]);
+        return;
+      }
+
+      // Get unique user IDs
+      const userIds = [...new Set(recipesData.map(recipe => recipe.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', userIds);
+
+      // Create a map of user_id to display_name
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile.display_name])
+      );
+
+      // Transform recipes to include creator_name
+      const recipesWithCreators = recipesData.map(recipe => ({
+        ...recipe,
+        creator_name: profilesMap.get(recipe.user_id) || 'Unbekannt'
+      }));
+
+      setRecipes(recipesWithCreators);
+    } catch (error) {
+      console.error('Error fetching published recipes:', error);
+      toast({
+        title: "Fehler",
+        description: "Veröffentlichte Rezepte konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setRecipesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchRecipes();
+    } else {
+      fetchPublishedRecipes();
     }
   }, [user]);
 
@@ -157,15 +212,25 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleSignOut}
-                className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              {user && <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />}
+              {user ? (
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleSignOut}
+                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/auth')}
+                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
+                >
+                  Anmelden
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -208,12 +273,21 @@ const Index = () => {
                   <ChefHat className="h-10 w-10 text-orange-warm" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-3">
-                  Noch keine Rezepte vorhanden
+                  {user ? 'Noch keine Rezepte vorhanden' : 'Willkommen bei CookingCompiler'}
                 </h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Fügen Sie Ihr erstes Rezept hinzu, um Ihre kulinarische Sammlung zu starten!
+                  {user 
+                    ? 'Fügen Sie Ihr erstes Rezept hinzu, um Ihre kulinarische Sammlung zu starten!'
+                    : 'Entdecken Sie köstliche Rezepte aus der Community oder melden Sie sich an, um eigene Rezepte zu teilen!'
+                  }
                 </p>
-                <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
+                {user ? (
+                  <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
+                ) : (
+                  <Button onClick={() => navigate('/auth')}>
+                    Jetzt anmelden
+                  </Button>
+                )}
               </div>
             </div>
           </div>

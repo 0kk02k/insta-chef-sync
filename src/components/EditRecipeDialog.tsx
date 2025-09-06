@@ -23,6 +23,7 @@ interface Recipe {
   rating: number | null;
   tags?: string[] | null;
   created_at: string;
+  published: boolean;
 }
 
 interface EditRecipeDialogProps {
@@ -45,6 +46,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     servings: recipe.servings || '',
     rating: recipe.rating || null,
     tags: [...(recipe.tags || [])],
+    published: recipe.published,
   });
   const [newTag, setNewTag] = useState('');
 
@@ -202,6 +204,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
           servings: formData.servings ? parseInt(formData.servings.toString()) : null,
           rating: formData.rating,
           tags: formData.tags,
+          published: formData.published,
         })
         .eq('id', recipe.id)
         .eq('user_id', user.id);
@@ -493,6 +496,25 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
             </div>
             <p className="text-xs text-muted-foreground">
               Tags helfen beim Organisieren und Finden Ihrer Rezepte. Drücken Sie Enter oder klicken Sie auf +, um einen Tag hinzuzufügen.
+            </p>
+          </div>
+
+          {/* Published checkbox */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="published"
+                checked={formData.published}
+                onChange={(e) => handleInputChange('published', e.target.checked)}
+                className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+              />
+              <Label htmlFor="published" className="text-sm font-medium">
+                Rezept veröffentlichen
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Veröffentlichte Rezepte sind für alle Benutzer sichtbar und können kommentiert werden.
             </p>
           </div>
 
