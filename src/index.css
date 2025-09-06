@@ -63,7 +63,7 @@ All colors MUST be HSL.
     --radius: 0.75rem; /* 12px */
 
     /* Design system gradients */
-    --gradient-header: linear-gradient(90deg, hsl(186 35% 71%), hsl(186 35% 76%)); /* mint gradient */
+    --gradient-header: linear-gradient(90deg, hsl(0 0% 100%), hsl(204 30% 98%)); /* weißer bis sehr heller Hintergrund */
     --gradient-card-placeholder: linear-gradient(180deg, 
       color-mix(in oklch, hsl(210 46% 68%) 25%, transparent), 
       color-mix(in oklch, hsl(186 35% 71%) 25%, transparent)); /* subtle lavender to mint */
@@ -140,7 +140,7 @@ All colors MUST be HSL.
     --ring: 210 46% 68%; /* brand */
 
     /* Dark Mode Gradients */
-    --gradient-header: linear-gradient(90deg, hsl(186 35% 71%), hsl(186 35% 76%)); /* mint gradient for dark mode */
+    --gradient-header: linear-gradient(90deg, hsl(214 20% 12%), hsl(214 20% 15%)); /* dunkler Hintergrund für dark mode */
     --gradient-card-placeholder: linear-gradient(180deg, 
       color-mix(in oklch, hsl(210 46% 68%) 15%, transparent), 
       color-mix(in oklch, hsl(186 35% 71%) 15%, transparent));
