@@ -170,6 +170,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           instructions: processedData.instructions || [],
           cooking_time: processedData.cooking_time || null,
           servings: processedData.servings || null,
+          tags: processedData.tags || [],
         });
 
       if (error) {

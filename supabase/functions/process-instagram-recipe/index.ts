@@ -197,11 +197,12 @@ WICHTIGE ANFORDERUNGEN:
 - ${measurementInstructions}
 - Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
 - Halte Kochanweisungen klar und detailliert
-- Erstelle mindestens 3 passende Tags für das Rezept basierend auf:
-  * Küche/Herkunft (z.B. "italienisch", "asiatisch", "mediterran")
-  * Hauptzutat (z.B. "hähnchen", "pasta", "vegetarisch")
-  * Art des Gerichts (z.B. "hauptgang", "dessert", "snack")
-  * Besonderheiten (z.B. "schnell", "gesund", "comfort-food")
+- Erstelle mindestens 3-5 passende Tags für das Rezept basierend auf:
+  * Gericht-Kategorie (z.B. "hauptgericht", "dessert", "vorspeise", "snack", "cocktail", "beilage")
+  * Küche/Herkunft (z.B. "italienisch", "asiatisch", "mediterran", "deutsch", "französisch")
+  * Hauptzutat (z.B. "hähnchen", "pasta", "vegetarisch", "vegan", "fisch", "rindfleisch")
+  * Zubereitungsart (z.B. "gebacken", "gebraten", "gekocht", "roh", "gegrillt")
+  * Besonderheiten (z.B. "schnell", "gesund", "comfort-food", "festlich", "kalorienarm")
 - Tags sollen in Kleinbuchstaben und ohne Leerzeichen sein (z.B. "tex-mex" statt "Tex Mex")
 
 Rezept-Inhalt:
