@@ -227,18 +227,18 @@ const Index = () => {
       <div className="header" style={{ background: 'var(--gradient-header)' }}>
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-slate-700 rounded-xl shadow-lg">
-                <ChefHat className="h-8 w-8 text-pink-500" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-slate-700 rounded-xl shadow-lg">
+                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-pink-500" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-700 px-4 py-2">
+                <h1 className="text-xl sm:text-3xl font-bold text-slate-700 px-2 sm:px-4 py-2">
                   CookingCompiler
                 </h1>
                 
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {user && <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />}
               {user ? (
                 <Button 
