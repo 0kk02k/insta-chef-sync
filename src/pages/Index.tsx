@@ -229,10 +229,10 @@ const Index = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="p-2 sm:p-3 bg-slate-700 rounded-xl shadow-lg">
-                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-pink-500" />
+                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: 'hsl(var(--primary))' }} />
               </div>
               <div>
-                <h1 className="text-xl sm:text-3xl font-bold text-slate-700 px-2 sm:px-4 py-2">
+                <h1 className="text-xl sm:text-3xl font-bold px-2 sm:px-4 py-2" style={{ color: 'hsl(var(--primary))' }}>
                   CookingCompiler
                 </h1>
                 
@@ -247,7 +247,7 @@ const Index = () => {
                   onClick={handleSignOut}
                   className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
                 >
-                  <LogOut className="h-4 w-4 text-pink-500" />
+                  <LogOut className="h-4 w-4" style={{ color: 'hsl(var(--primary))' }} />
                 </Button>
               ) : (
                 <Button 
