@@ -250,7 +250,9 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
           <Edit className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-background border-border/60"
+        style={{ backgroundColor: 'hsl(var(--background))' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl bg-gradient-to-r from-purple-soft to-pink-vibrant bg-clip-text text-transparent">
             Rezept bearbeiten
@@ -268,6 +270,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="Rezepttitel..."
                 required
+                className="bg-card/50 border-border/50 focus:bg-card"
+                style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
               />
             </div>
 
@@ -279,6 +283,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Kurze Beschreibung des Rezepts..."
                 rows={3}
+                className="bg-card/50 border-border/50 focus:bg-card"
+                style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
               />
             </div>
 
@@ -292,6 +298,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   onChange={(e) => handleInputChange('cooking_time', e.target.value)}
                   placeholder="30"
                   min="1"
+                  className="bg-card/50 border-border/50 focus:bg-card"
+                  style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
                 />
               </div>
 
@@ -304,6 +312,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   onChange={(e) => handleInputChange('servings', e.target.value)}
                   placeholder="4"
                   min="1"
+                  className="bg-card/50 border-border/50 focus:bg-card"
+                  style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
                 />
               </div>
 
@@ -315,6 +325,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                   value={formData.instagram_url}
                   onChange={(e) => handleInputChange('instagram_url', e.target.value)}
                   placeholder="https://instagram.com/..."
+                  className="bg-card/50 border-border/50 focus:bg-card"
+                  style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
                 />
               </div>
 
@@ -398,7 +410,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                     value={ingredient}
                     onChange={(e) => handleArrayChange('ingredients', index, e.target.value)}
                     placeholder={`Zutat ${index + 1}...`}
-                    className="flex-1"
+                    className="flex-1 bg-card/50 border-border/50 focus:bg-card"
+                    style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
                   />
                   <Button
                     type="button"
@@ -439,11 +452,12 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                       autoResizeTextarea(e.target as HTMLTextAreaElement);
                     }}
                     placeholder={`Schritt ${index + 1}...`}
-                    className="flex-1 resize-none overflow-hidden"
+                    className="flex-1 resize-none overflow-hidden bg-card/50 border-border/50 focus:bg-card"
                     data-instruction-index={index}
                     style={{ 
                       minHeight: '80px',
-                      height: 'auto'
+                      height: 'auto',
+                      backgroundColor: 'hsl(var(--card) / 0.5)'
                     }}
                   />
                   <Button
@@ -488,7 +502,8 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={handleTagKeyPress}
                 placeholder="Tag eingeben..."
-                className="flex-1"
+                className="flex-1 bg-card/50 border-border/50 focus:bg-card"
+                style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
               />
               <Button
                 type="button"
