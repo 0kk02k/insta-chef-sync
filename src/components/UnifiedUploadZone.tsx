@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, ImageIcon, Globe, Copy, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, ImageIcon, Globe, Copy, X, Loader2, Type, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -292,16 +292,20 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
         ) : (
           <div className="space-y-4">            
             <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground max-w-md mx-auto">
-              <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4" />
                 <p>PDF</p>
               </div>
-              <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <ImageIcon className="w-4 h-4" />
                 <p>JPG, PNG</p>
               </div>
-              <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <Link className="w-4 h-4" />
                 <p>URL</p>
               </div>
-              <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <Type className="w-4 h-4" />
                 <p>Text</p>
               </div>
             </div>
