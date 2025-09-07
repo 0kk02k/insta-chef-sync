@@ -267,13 +267,13 @@ const RecipeDetail = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button 
+              size="icon"
               variant="ghost" 
               onClick={() => navigate('/')}
-              className="text-primary hover:bg-primary/10 hover:text-primary border border-primary"
+              className="text-primary hover:bg-primary/10 hover:text-primary border border-primary h-10 w-10"
               style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Zurück
+              <ArrowLeft className="h-6 w-6" />
             </Button>
             
             {user && user.id === recipe.user_id && (
