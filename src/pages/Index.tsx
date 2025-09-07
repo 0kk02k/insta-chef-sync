@@ -242,10 +242,9 @@ const Index = () => {
               {user && <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />}
               {user ? (
                 <Button 
-                  variant="outline" 
                   size="icon"
                   onClick={handleSignOut}
-                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
+                  className="bg-slate-700 hover:bg-slate-600 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <LogOut className="h-4 w-4" style={{ color: 'hsl(var(--primary))' }} />
                 </Button>
