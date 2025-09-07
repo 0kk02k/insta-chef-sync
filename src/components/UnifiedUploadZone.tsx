@@ -220,9 +220,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
   };
 
   return (
-    <div className="space-y-4">
-      <Label>Rezept hinzufügen - Alle Formate unterstützt</Label>
-      
+    <div className="space-y-4">      
       <div
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200
@@ -292,42 +290,21 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {getContentIcon()}
-            
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium text-foreground">
-                Rezept hinzufügen
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-primary">Dateien ablegen</span>, 
-                <span className="font-medium text-primary"> klicken</span> oder 
-                <span className="font-medium text-primary"> einfügen (Ctrl+V)</span>
-              </p>
-            </div>
-
+          <div className="space-y-4">            
             <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground max-w-md mx-auto">
               <div className="space-y-1">
-                <p className="font-medium">📄 Dokumente</p>
-                <p>PDF-Dateien</p>
+                <p>PDF</p>
               </div>
               <div className="space-y-1">
-                <p className="font-medium">🖼️ Bilder</p>
-                <p>Screenshots, JPG, PNG</p>
+                <p>JPG, PNG</p>
               </div>
               <div className="space-y-1">
-                <p className="font-medium">🌐 URLs</p>
-                <p>Website-Links</p>
+                <p>URL</p>
               </div>
               <div className="space-y-1">
-                <p className="font-medium">📝 Text</p>
-                <p>Copy & Paste</p>
+                <p>Text</p>
               </div>
             </div>
-
-            <p className="text-xs text-muted-foreground">
-              Maximale Dateigröße: 10MB | Automatische Erkennung mit GPT-5 Nano
-            </p>
           </div>
         )}
       </div>
