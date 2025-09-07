@@ -269,8 +269,8 @@ const RecipeDetail = () => {
             <Button 
               variant="ghost" 
               onClick={() => navigate('/')}
-              className="text-primary hover:bg-primary/10 hover:text-primary border-0"
-              style={{ color: 'hsl(var(--primary))' }}
+              className="text-primary hover:bg-primary/10 hover:text-primary border border-primary"
+              style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Zurück
