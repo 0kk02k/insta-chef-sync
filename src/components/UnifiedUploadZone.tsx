@@ -223,7 +223,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
     <div className="space-y-4">      
       <div
         className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:bg-primary/5'}
           ${uploadedContent ? 'bg-muted/30' : ''}
