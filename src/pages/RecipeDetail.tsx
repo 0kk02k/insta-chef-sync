@@ -262,37 +262,49 @@ const RecipeDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="border-purple-soft/30 hover:bg-purple-soft/5"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Zurück
-          </Button>
-          
-          {user && user.id === recipe.user_id && (
-            <div className="flex items-center space-x-2">
-              <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
-              <Button 
-                variant="outline" 
-                onClick={handleDelete}
-                disabled={deleting}
-                className="border-coral/30 hover:bg-coral/5 text-coral"
-              >
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-2" />
-                )}
-                Löschen
-              </Button>
-            </div>
-          )}
+      {/* Header with dark blue background */}
+      <div className="header" style={{ background: 'var(--gradient-header)' }}>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')}
+              className="text-primary hover:bg-primary/10 hover:text-primary border-0"
+              style={{ color: 'hsl(var(--primary))' }}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Zurück
+            </Button>
+            
+            {user && user.id === recipe.user_id && (
+              <div className="flex items-center space-x-2">
+                <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:border-0">
+                  <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
+                </div>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))' 
+                  }}
+                >
+                  {deleting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Löschen
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
