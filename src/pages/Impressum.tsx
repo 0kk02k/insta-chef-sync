@@ -1,10 +1,32 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const Impressum = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
+      {/* Header with dark blue background */}
+      <div className="header" style={{ background: 'var(--gradient-header)' }}>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center">
+            <Button 
+              size="icon"
+              variant="ghost" 
+              onClick={() => navigate('/')}
+              className="text-primary hover:bg-primary/10 hover:text-primary border border-primary h-10 w-10"
+              style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex-1 container mx-auto px-4 py-8">
         <Card className="max-w-4xl mx-auto border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
