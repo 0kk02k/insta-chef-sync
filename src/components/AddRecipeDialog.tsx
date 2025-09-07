@@ -167,6 +167,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           description: processedData.description || null,
           image_url: imageUrl,
           ingredients: processedData.ingredients || [],
+          structured_ingredients: processedData.structured_ingredients || null,
           instructions: processedData.instructions || [],
           cooking_time: processedData.cooking_time || null,
           servings: processedData.servings || null,
