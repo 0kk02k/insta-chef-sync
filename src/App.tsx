@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import RecipeDetail from "./pages/RecipeDetail";
+import Impressum from "./pages/Impressum";
+import Datenschutz from "./pages/Datenschutz";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -25,6 +27,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/recipe/:id" element={<RecipeDetail />} />
+              <Route path="/impressum" element={<Impressum />} />
+              <Route path="/datenschutz" element={<Datenschutz />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -16,6 +16,7 @@ import InlineEditIngredients from '@/components/InlineEditIngredients';
 import PortionConverter from '@/components/PortionConverter';
 import InlineEditInstructions from '@/components/InlineEditInstructions';
 import InlineEditMetadata from '@/components/InlineEditMetadata';
+import Footer from '@/components/Footer';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -483,6 +484,7 @@ const RecipeDetail = () => {
         {/* Comments Section */}
         <CommentsSection recipeId={recipe.id} isPublished={recipe.published} />
       </div>
+      <Footer />
     </div>
   );
 };

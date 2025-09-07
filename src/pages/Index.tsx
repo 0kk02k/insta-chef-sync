@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
 import RecipeCard from '@/components/RecipeCard';
+import Footer from '@/components/Footer';
 
 interface Recipe {
   id: string;
@@ -382,6 +383,7 @@ const Index = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChefHat } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -287,6 +288,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <Footer />
     </div>
   );
 };
