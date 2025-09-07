@@ -525,9 +525,6 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Tags helfen beim Organisieren und Finden Ihrer Rezepte. Drücken Sie Enter oder klicken Sie auf +, um einen Tag hinzuzufügen.
-            </p>
           </div>
 
           {/* Published checkbox */}
