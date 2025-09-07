@@ -3,19 +3,21 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-background border-t border-border/50 py-8 mt-12">
+    <footer className="fixed bottom-0 left-0 right-0 py-4 border-t border-border/30" style={{ backgroundColor: 'hsl(var(--accent-2))' }}>
       <div className="container mx-auto px-4">
         <div className="flex justify-center items-center space-x-8">
           <Link 
             to="/impressum" 
-            className="text-muted-foreground hover:text-primary transition-colors text-sm"
+            className="transition-colors text-sm hover:opacity-80"
+            style={{ color: 'hsl(var(--primary))' }}
           >
             Impressum
           </Link>
-          <div className="w-px h-4 bg-border"></div>
+          <div className="w-px h-4" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
           <Link 
             to="/datenschutz" 
-            className="text-muted-foreground hover:text-primary transition-colors text-sm"
+            className="transition-colors text-sm hover:opacity-80"
+            style={{ color: 'hsl(var(--primary))' }}
           >
             Datenschutz
           </Link>
