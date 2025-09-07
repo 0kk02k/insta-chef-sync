@@ -203,13 +203,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           <Plus className="h-6 w-6" style={{ color: 'hsl(var(--primary))' }} />
         </Button>
       </DialogTrigger>
-      <DialogContent 
-        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
-        style={{ 
-          borderColor: 'hsl(290 8% 28% / 0.8)',
-          backgroundColor: 'hsl(290 8% 28% / 0.15)'
-        }}
-      >
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Rezept hinzufügen</DialogTitle>
         </DialogHeader>
