@@ -206,8 +206,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       <DialogContent 
         className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
         style={{ 
-          borderColor: 'hsl(290 8% 28% / 0.6)',
-          backgroundColor: 'hsl(290 8% 28% / 0.08)'
+          borderColor: 'hsl(290 8% 28% / 0.8)',
+          backgroundColor: 'hsl(290 8% 28% / 0.15)'
         }}
       >
         <DialogHeader>
