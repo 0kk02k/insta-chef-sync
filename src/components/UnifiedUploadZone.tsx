@@ -229,8 +229,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
           ${uploadedContent ? 'bg-muted/30' : ''}
         `}
         style={{ 
-          borderColor: isDragOver ? undefined : 'hsl(var(--accent-2) / 0.3)',
-          backgroundColor: uploadedContent ? undefined : isDragOver ? undefined : 'hsl(var(--accent-2) / 0.02)'
+          borderColor: isDragOver ? undefined : 'hsl(var(--accent-2) / 0.6)'
         }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
