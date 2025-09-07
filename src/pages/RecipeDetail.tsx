@@ -282,21 +282,22 @@ const RecipeDetail = () => {
                   <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
                 </div>
                 <Button 
+                  size="icon"
                   variant="ghost" 
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-10 w-10"
                   style={{ 
                     backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))' 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--primary))'
                   }}
                 >
                   {deleting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin" />
                   ) : (
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-6 w-6" />
                   )}
-                  Löschen
                 </Button>
               </div>
             )}

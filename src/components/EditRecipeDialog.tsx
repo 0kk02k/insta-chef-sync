@@ -238,15 +238,16 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
+          size="icon"
           variant="ghost"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-10 w-10"
           style={{ 
             backgroundColor: 'hsl(var(--primary))', 
-            color: 'hsl(var(--primary-foreground))' 
+            color: 'hsl(var(--primary-foreground))',
+            borderColor: 'hsl(var(--primary))'
           }}
         >
-          <Edit className="h-4 w-4 mr-2" />
-          Bearbeiten
+          <Edit className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
