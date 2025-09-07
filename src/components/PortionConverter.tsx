@@ -86,29 +86,18 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
         </div>
 
         {targetServings !== originalServings && (
-          <div className="mt-4 p-4 bg-background/50 rounded-lg border border-border">
-            <div className="text-sm text-muted-foreground mb-2">
-              Umgerechnete Zutaten für {targetServings} Portionen:
+          <div className="mt-4 p-3 bg-background/30 rounded-lg border border-border/30">
+            <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+              <span>Umgerechnet für {targetServings} Portionen</span>
+              <Button
+                size="sm"
+                onClick={() => handlePortionChange(originalServings)}
+                variant="outline"
+                className="h-6 px-2 text-xs"
+              >
+                Zurücksetzen
+              </Button>
             </div>
-            <ul className="space-y-2">
-              {scaleIngredients(targetServings).map((ingredient, index) => (
-                <li key={index} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-foreground font-medium">
-                    {formatIngredient(ingredient)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            
-            <Button
-              size="sm"
-              onClick={() => handlePortionChange(originalServings)}
-              variant="outline"
-              className="mt-3"
-            >
-              Original wiederherstellen ({originalServings} Portionen)
-            </Button>
           </div>
         )}
       </div>
