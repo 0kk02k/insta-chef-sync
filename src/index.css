@@ -8,71 +8,71 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Core backgrounds */
-    --bg: 349 80% 98%; /* #fde6eb - Rosa mit 80% Sättigung */
-    --background: 349 80% 98%; /* #fde6eb - Rosa mit 80% Sättigung */
-    --surface: 0 0% 100%; /* #ffffff */
-    --foreground: 208 5% 39%; /* #5f6366 - ink-900 */
+    /* Core backgrounds - Elegant taupe/sand theme */
+    --bg: 38 15% 90%; /* #EAE6E1 - Light warm taupe background */
+    --background: 38 15% 90%; /* #EAE6E1 */
+    --surface: 30 33% 97%; /* #FBF9F6 - Very light cream for cards */
+    --foreground: 30 13% 32%; /* #5A4E46 - Dark warm brown text */
 
     /* Cards */
-    --card: 0 0% 100%; /* white surface */
-    --card-foreground: 208 5% 39%; /* ink-900 */
+    --card: 30 33% 97%; /* #FBF9F6 - light cream surface */
+    --card-foreground: 30 13% 32%; /* #5A4E46 - dark brown text */
 
     /* Popovers */
-    --popover: 0 0% 100%;
-    --popover-foreground: 208 5% 39%;
+    --popover: 30 33% 97%; /* #FBF9F6 */
+    --popover-foreground: 30 13% 32%; /* #5A4E46 */
 
-    /* Brand colors (Denim) */
-    --brand: 218 33% 45%; /* #4d6d9a */
-    --brand-600: 218 38% 38%; /* #3f5d86 - darker */
-    --brand-50: 218 44% 94%; /* #e7eef7 - very light */
-    --primary: 218 33% 45%; /* brand */
-    --primary-foreground: 0 0% 100%; /* white on brand */
-    --primary-hover: 218 38% 38%; /* brand-600 */
+    /* Brand colors - Navy and plum elegant tones */
+    --brand: 210 29% 22%; /* #2A3B49 - Deep navy */
+    --brand-600: 210 29% 18%; /* Darker navy */
+    --brand-50: 210 29% 95%; /* Very light navy */
+    --primary: 40 58% 59%; /* #D4A259 - Warm metallic gold */
+    --primary-foreground: 30 13% 32%; /* #5A4E46 - dark brown on gold */
+    --primary-hover: 40 58% 55%; /* Slightly darker gold */
 
     /* Accent colors */
-    --accent-1: 210 46% 68%; /* #86b3d1 - Lavender */
-    --accent-1-50: 210 60% 96%; /* #f0f6fb - very light lavender */
-    --accent-2: 186 35% 71%; /* #99ced3 - Mint */
-    --accent-3: 349 49% 82%; /* #edb5bf - Blush */
+    --accent-1: 40 58% 59%; /* #D4A259 - Gold accent */
+    --accent-1-50: 40 58% 95%; /* Very light gold */
+    --accent-2: 290 18% 28%; /* #4D3C52 - Dark plum */
+    --accent-3: 210 29% 22%; /* #2A3B49 - Navy */
 
-    /* Secondary uses mint */
-    --secondary: 186 35% 71%; /* accent-2/mint */
-    --secondary-foreground: 218 33% 45%; /* brand */
-    --secondary-hover: 186 35% 66%; /* darker mint */
+    /* Secondary uses plum */
+    --secondary: 210 29% 22%; /* #2A3B49 - Navy for secondary */
+    --secondary-foreground: 30 33% 97%; /* #FBF9F6 - cream on navy */
+    --secondary-hover: 210 29% 18%; /* Darker navy */
 
     /* Text colors */
-    --ink-900: 208 5% 39%; /* #5f6366 - main text */
-    --ink-700: 210 7% 31%; /* #4b4f52 - secondary text */
-    --muted: 218 44% 94%; /* brand-50 */
-    --muted-foreground: 210 7% 31%; /* ink-700 */
+    --ink-900: 30 13% 32%; /* #5A4E46 - main dark brown text */
+    --ink-700: 30 13% 50%; /* Lighter brown for secondary text */
+    --muted: 38 15% 88%; /* Light taupe for muted backgrounds */
+    --muted-foreground: 30 13% 50%; /* Brown for muted text */
 
-    /* Accent uses lavender */
-    --accent: 210 46% 68%; /* accent-1/lavender */
-    --accent-foreground: 218 33% 45%; /* brand */
+    /* Accent uses gold */
+    --accent: 40 58% 59%; /* #D4A259 - gold accent */
+    --accent-foreground: 30 13% 32%; /* #5A4E46 - dark brown */
 
     /* Destructive */
     --destructive: 0 50% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders and inputs */
-    --border: 204 30% 90%; /* #e4eef3 */
-    --input: 0 0% 100%; /* white surface */
-    --ring: 218 33% 45%; /* brand */
+    --border: 38 15% 85%; /* Light taupe border */
+    --input: 30 33% 97%; /* #FBF9F6 - cream surface */
+    --ring: 40 58% 59%; /* #D4A259 - gold ring */
 
     --radius: 0.75rem; /* 12px */
 
-    /* Design system gradients */
-    --gradient-header: linear-gradient(90deg, hsl(218 33% 45%), hsl(218 38% 38%)); /* brand/primary blau gradient */
+    /* Design system gradients - Elegant navy/gold theme */
+    --gradient-header: linear-gradient(90deg, hsl(210 29% 22%), hsl(210 29% 18%)); /* navy gradient */
     --gradient-card-placeholder: linear-gradient(180deg, 
-      color-mix(in oklch, hsl(210 46% 68%) 25%, transparent), 
-      color-mix(in oklch, hsl(186 35% 71%) 25%, transparent)); /* subtle lavender to mint */
-    --gradient-primary: linear-gradient(135deg, hsl(218 33% 45%), hsl(210 46% 68%)); /* brand to lavender */
-    --gradient-secondary: linear-gradient(135deg, hsl(186 35% 71%), hsl(210 46% 68%)); /* mint to lavender */
+      color-mix(in oklch, hsl(40 58% 59%) 15%, transparent), 
+      color-mix(in oklch, hsl(290 18% 28%) 15%, transparent)); /* subtle gold to plum */
+    --gradient-primary: linear-gradient(135deg, hsl(40 58% 59%), hsl(210 29% 22%)); /* gold to navy */
+    --gradient-secondary: linear-gradient(135deg, hsl(210 29% 22%), hsl(290 18% 28%)); /* navy to plum */
 
     /* Shadows */
-    --shadow-1: 0 1px 2px rgba(46,63,92,0.06);
-    --shadow-2: 0 6px 20px rgba(46,63,92,0.10);
+    --shadow-1: 0 1px 2px rgba(42,59,73,0.06);
+    --shadow-2: 0 6px 20px rgba(42,59,73,0.10);
 
     /* Spacing */
     --space-2: 0.5rem; /* 8px */
@@ -80,15 +80,15 @@ All colors MUST be HSL.
     --space-4: 1rem; /* 16px */
     --space-6: 1.5rem; /* 24px */
 
-    /* Sidebar */
-    --sidebar-background: 349 80% 98%; /* bg - Rosa mit 80% Sättigung */
-    --sidebar-foreground: 208 5% 39%; /* ink-900 */
-    --sidebar-primary: 218 33% 45%; /* brand */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 100%; /* surface */
-    --sidebar-accent-foreground: 208 5% 39%; /* ink-900 */
-    --sidebar-border: 204 30% 90%; /* border */
-    --sidebar-ring: 218 33% 45%; /* brand */
+    /* Sidebar - Elegant theme */
+    --sidebar-background: 38 15% 90%; /* bg - taupe background */
+    --sidebar-foreground: 30 13% 32%; /* dark brown text */
+    --sidebar-primary: 40 58% 59%; /* gold accent */
+    --sidebar-primary-foreground: 30 13% 32%;
+    --sidebar-accent: 30 33% 97%; /* cream surface */
+    --sidebar-accent-foreground: 30 13% 32%; /* dark brown */
+    --sidebar-border: 38 15% 85%; /* light taupe border */
+    --sidebar-ring: 40 58% 59%; /* gold ring */
   }
 
   .dark {
