@@ -145,9 +145,9 @@ const Auth = () => {
               <ChefHat className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">InstaChef</CardTitle>
+          <CardTitle className="text-2xl">CookingCompiler</CardTitle>
           <CardDescription>
-            Sammeln und organisieren Sie Ihre Instagram-Rezepte
+            Sammeln und organisieren Sie Ihre Rezepte
           </CardDescription>
         </CardHeader>
         <CardContent>
