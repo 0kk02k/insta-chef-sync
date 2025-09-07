@@ -237,32 +237,32 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       {/* Hero Header mit Pink Gradient */}
       <div className="header" style={{ background: 'var(--gradient-header)' }}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="p-2 sm:p-3 bg-slate-700 rounded-xl shadow-lg">
-                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: 'hsl(var(--primary))' }} />
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="p-3 sm:p-4 bg-slate-700 rounded-xl shadow-lg">
+                <ChefHat className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: 'hsl(var(--primary))' }} />
               </div>
               <div>
-                <h1 className="text-xl sm:text-3xl font-bold px-2 sm:px-4 py-2" style={{ color: 'hsl(var(--primary))' }}>
+                <h1 className="text-2xl sm:text-4xl font-bold px-2 sm:px-4 py-2" style={{ color: 'hsl(var(--primary))' }}>
                   CookingCompiler
                 </h1>
-                
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {user && <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />}
               {user ? (
                 <Button 
-                  size="icon"
+                  size="lg"
                   onClick={handleSignOut}
                   className="bg-slate-700 hover:bg-slate-600 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <LogOut className="h-4 w-4" style={{ color: 'hsl(var(--primary))' }} />
+                  <LogOut className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'hsl(var(--primary))' }} />
                 </Button>
               ) : (
                 <Button 
                   variant="outline"
+                  size="lg"
                   onClick={() => navigate('/auth')}
                   className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
                 >
