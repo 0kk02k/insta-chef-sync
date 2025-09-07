@@ -318,16 +318,26 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instagram_url">Instagram URL</Label>
+                <Label htmlFor="instagram_url">Quelle</Label>
                 <Input
                   id="instagram_url"
                   type="url"
                   value={formData.instagram_url}
                   onChange={(e) => handleInputChange('instagram_url', e.target.value)}
-                  placeholder="https://instagram.com/..."
+                  placeholder="https://..."
                   className="bg-card/50 border-border/50 focus:bg-card"
                   style={{ backgroundColor: 'hsl(var(--card) / 0.5)' }}
                 />
+                {formData.instagram_url && (
+                  <a
+                    href={formData.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:text-primary/80 underline block"
+                  >
+                    Original ansehen →
+                  </a>
+                )}
               </div>
 
               <div className="space-y-2">
