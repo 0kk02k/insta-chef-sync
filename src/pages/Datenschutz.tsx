@@ -4,8 +4,8 @@ import Footer from '@/components/Footer';
 
 const Datenschutz = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 pb-16">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
+      <div className="flex-1 container mx-auto px-4 py-8">
         <Card className="max-w-4xl mx-auto border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

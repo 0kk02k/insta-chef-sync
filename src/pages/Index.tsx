@@ -234,7 +234,7 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen flex flex-col">
       {/* Hero Header mit Pink Gradient */}
       <div className="header" style={{ background: 'var(--gradient-header)' }}>
         <div className="container mx-auto px-4 py-6">

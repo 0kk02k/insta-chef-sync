@@ -138,8 +138,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 pb-16">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background p-4 flex flex-col">
+      <div className="flex-1 flex items-center justify-center">
+        <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="bg-primary rounded-full p-3">
@@ -288,6 +289,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+      </div>
       <Footer />
     </div>
   );
