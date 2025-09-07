@@ -13,8 +13,15 @@ import CommentsSection from '@/components/CommentsSection';
 import InlineEditTitle from '@/components/InlineEditTitle';
 import InlineEditDescription from '@/components/InlineEditDescription';
 import InlineEditIngredients from '@/components/InlineEditIngredients';
+import PortionConverter from '@/components/PortionConverter';
 import InlineEditInstructions from '@/components/InlineEditInstructions';
 import InlineEditMetadata from '@/components/InlineEditMetadata';
+
+interface StructuredIngredient {
+  amount: number | null;
+  unit: string | null;
+  ingredient: string;
+}
 
 interface Recipe {
   id: string;
@@ -23,6 +30,7 @@ interface Recipe {
   instagram_url: string | null;
   image_url: string | null;
   ingredients: string[];
+  structured_ingredients?: StructuredIngredient[] | null;
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
@@ -42,6 +50,8 @@ const RecipeDetail = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
+  const [currentPortions, setCurrentPortions] = useState<number>(1);
 
   useEffect(() => {
     fetchRecipe();
@@ -90,13 +100,24 @@ const RecipeDetail = () => {
         .eq('id', recipeData.user_id)
         .single();
 
-      // Combine recipe with creator name
+      // Combine recipe with creator name and ensure structured_ingredients is properly typed
       const recipeWithCreator = {
         ...recipeData,
-        creator_name: profileData?.display_name || 'Unbekannt'
-      };
+        creator_name: profileData?.display_name || 'Unbekannt',
+        structured_ingredients: Array.isArray(recipeData.structured_ingredients) 
+          ? recipeData.structured_ingredients as unknown as StructuredIngredient[]
+          : null
+      } as Recipe;
 
       setRecipe(recipeWithCreator);
+      
+      // Initialize displayed ingredients and current portions
+      if (recipeWithCreator.ingredients) {
+        setDisplayedIngredients(recipeWithCreator.ingredients);
+      }
+      if (recipeWithCreator.servings) {
+        setCurrentPortions(recipeWithCreator.servings);
+      }
     } catch (error) {
       console.error('Error fetching recipe:', error);
       toast({
@@ -180,6 +201,21 @@ const RecipeDetail = () => {
     if (recipe) {
       setRecipe({ ...recipe, cooking_time: cookingTime, servings: servings });
     }
+  };
+
+  const handlePortionChange = (newPortions: number, scaledIngredients: StructuredIngredient[]) => {
+    setCurrentPortions(newPortions);
+    // Convert structured ingredients back to text format for display
+    const scaledTextIngredients = scaledIngredients.map(ingredient => {
+      if (ingredient.amount && ingredient.unit) {
+        return `${ingredient.amount} ${ingredient.unit} ${ingredient.ingredient}`;
+      } else if (ingredient.amount) {
+        return `${ingredient.amount} ${ingredient.ingredient}`;
+      } else {
+        return ingredient.ingredient;
+      }
+    });
+    setDisplayedIngredients(scaledTextIngredients);
   };
 
   const handleRatingChange = async (newRating: number) => {
@@ -338,12 +374,21 @@ const RecipeDetail = () => {
             </Card>
 
             {/* Ingredients - Moved above Instructions for mobile */}
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-6">
+              {/* Portion Converter */}
+              {recipe.structured_ingredients && recipe.servings && (
+                <PortionConverter
+                  originalServings={recipe.servings}
+                  structuredIngredients={recipe.structured_ingredients}
+                  onPortionChange={handlePortionChange}
+                />
+              )}
+              
               {recipe.ingredients.length > 0 && (
                 <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
                   <CardContent className="pt-6">
                     <InlineEditIngredients
-                      value={recipe.ingredients}
+                      value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
                       recipeId={recipe.id}
                       isOwner={user?.id === recipe.user_id}
                       onUpdate={handleIngredientsUpdate}
@@ -370,12 +415,21 @@ const RecipeDetail = () => {
 
           {/* Sidebar - Only visible on desktop */}
           <div className="hidden lg:block space-y-6">
+            {/* Portion Converter */}
+            {recipe.structured_ingredients && recipe.servings && (
+              <PortionConverter
+                originalServings={recipe.servings}
+                structuredIngredients={recipe.structured_ingredients}
+                onPortionChange={handlePortionChange}
+              />
+            )}
+            
             {/* Ingredients */}
             {recipe.ingredients.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
                 <CardContent className="pt-6">
                   <InlineEditIngredients
-                    value={recipe.ingredients}
+                    value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
                     recipeId={recipe.id}
                     isOwner={user?.id === recipe.user_id}
                     onUpdate={handleIngredientsUpdate}

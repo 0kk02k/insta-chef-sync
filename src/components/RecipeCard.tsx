@@ -11,6 +11,7 @@ interface Recipe {
   instagram_url: string | null;
   image_url: string | null;
   ingredients: string[];
+  structured_ingredients?: any[] | null;
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;

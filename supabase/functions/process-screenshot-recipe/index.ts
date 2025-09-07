@@ -7,10 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface StructuredIngredient {
+  amount: number | null;
+  unit: string | null;
+  ingredient: string;
+}
+
 interface RecipeData {
   title: string;
   description?: string;
   ingredients: string[];
+  structured_ingredients?: StructuredIngredient[];
   instructions: string[];
   cooking_time?: number;
   servings?: number;
@@ -121,7 +128,7 @@ serve(async (req) => {
           content: [
             {
               type: 'text',
-              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "instructions": [string], "cooking_time": number|null, "description": string|null, "tags": [string] }. 
+              text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "structured_ingredients": [{"amount": number|null, "unit": string|null, "ingredient": string}], "instructions": [string], "cooking_time": number|null, "description": string|null, "tags": [string] }. 
 
 ${languagePrompt} 
 ${unitPrompt}
@@ -139,6 +146,10 @@ WICHTIGE UMRECHNUNGSREGELN für Löffel:
 - tsp = TL (Teelöffel)
 
 Schreibe niemals "Tasse" sondern immer die korrekte metrische Angabe.
+
+STRUCTURED_INGREDIENTS: Analysiere jede Zutat und extrahiere Menge (als Zahl), Einheit (als Text) und Zutatename.
+- Wenn eine Zutat keine messbare Menge hat, setze amount und unit auf null
+- Beispiele: "200g Mehl" → {"amount": 200, "unit": "g", "ingredient": "Mehl"}, "1 Prise Salz" → {"amount": 1, "unit": "Prise", "ingredient": "Salz"}, "Salz nach Geschmack" → {"amount": null, "unit": null, "ingredient": "Salz nach Geschmack"}
 
 BESCHREIBUNG: Wenn keine Beschreibung im Bild vorhanden ist, erstelle eine appetitliche, kurze Beschreibung (1-2 Sätze) basierend auf den Zutaten und der Art des Gerichts. Beispiele:
 - "Ein saftiger Schokoladenkuchen mit intensivem Kakaogeschmack"

@@ -7,13 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface StructuredIngredient {
+  amount: number | null;
+  unit: string | null;
+  ingredient: string;
+}
+
 interface RecipeData {
   title: string;
   description?: string;
   ingredients: string[];
+  structured_ingredients?: StructuredIngredient[];
   instructions: string[];
   cooking_time?: number;
   servings?: number;
+  tags?: string[];
   image_url?: string;
 }
 
@@ -186,6 +194,13 @@ Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
   "title": "Rezeptname",
   "description": "Kurze Beschreibung",
   "ingredients": ["Zutat 1", "Zutat 2", ...],
+  "structured_ingredients": [
+    {
+      "amount": Zahl_oder_null,
+      "unit": "Einheit_als_Text_oder_null",
+      "ingredient": "Zutatname"
+    }
+  ],
   "instructions": ["Schritt 1", "Schritt 2", ...],
   "cooking_time": Minuten_als_Zahl_oder_null,
   "servings": Portionen_als_Zahl_oder_null,
@@ -195,6 +210,9 @@ Antworte NUR mit einem gültigen JSON-Objekt ohne zusätzlichen Text:
 WICHTIGE ANFORDERUNGEN:
 - ${languageInstructions}
 - ${measurementInstructions}
+- Für structured_ingredients: Analysiere jede Zutat und extrahiere Menge (als Zahl), Einheit (als Text) und Zutatename
+- Wenn eine Zutat keine messbare Menge hat, setze amount und unit auf null
+- Beispiele: "200g Mehl" → {"amount": 200, "unit": "g", "ingredient": "Mehl"}, "1 Prise Salz" → {"amount": 1, "unit": "Prise", "ingredient": "Salz"}, "Salz nach Geschmack" → {"amount": null, "unit": null, "ingredient": "Salz nach Geschmack"}
 - Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
 - Halte Kochanweisungen klar und detailliert
 - Erstelle mindestens 3-5 passende Tags für das Rezept basierend auf:

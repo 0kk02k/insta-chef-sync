@@ -17,6 +17,7 @@ interface Recipe {
   instagram_url: string | null;
   image_url: string | null;
   ingredients: string[];
+  structured_ingredients?: any[] | null;
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
@@ -105,7 +106,12 @@ const Index = () => {
         creator_name: profilesMap.get(recipe.user_id) || 'Unbekannt'
       }));
 
-      setRecipes(recipesWithCreators);
+        setRecipes(recipesWithCreators.map(recipe => ({
+          ...recipe,
+          structured_ingredients: Array.isArray(recipe.structured_ingredients) 
+            ? recipe.structured_ingredients as unknown as any[]
+            : null
+        })));
     } catch (error) {
       console.error('Error fetching recipes:', error);
       toast({
@@ -156,7 +162,12 @@ const Index = () => {
         creator_name: profilesMap.get(recipe.user_id) || 'Unbekannt'
       }));
 
-      setRecipes(recipesWithCreators);
+      setRecipes(recipesWithCreators.map(recipe => ({
+        ...recipe,
+        structured_ingredients: Array.isArray(recipe.structured_ingredients) 
+          ? recipe.structured_ingredients as unknown as any[]
+          : null
+      })));
     } catch (error) {
       console.error('Error fetching published recipes:', error);
       toast({

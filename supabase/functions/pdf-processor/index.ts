@@ -77,6 +77,13 @@ serve(async (req) => {
   "title": "Rezeptname",
   "description": "Kurze Beschreibung",
   "ingredients": ["Zutat 1", "Zutat 2", ...],
+  "structured_ingredients": [
+    {
+      "amount": Zahl_oder_null,
+      "unit": "Einheit_als_Text_oder_null",
+      "ingredient": "Zutatname"
+    }
+  ],
   "instructions": ["Schritt 1", "Schritt 2", ...],
   "cooking_time": Minuten_als_Zahl_oder_null,
   "servings": Portionen_als_Zahl_oder_null,
@@ -91,6 +98,9 @@ WICHTIGE ANFORDERUNGEN:
    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
    'Keep text in original language.'}
 - ${userPrefs.measurement_unit === 'metric' ? 'Convert all measurements to metric units (grams, kilograms, milliliters, liters, Celsius).' : 'Convert all measurements to imperial units (ounces, pounds, fluid ounces, cups, Fahrenheit).'}
+- Für structured_ingredients: Analysiere jede Zutat und extrahiere Menge (als Zahl), Einheit (als Text) und Zutatename
+- Wenn eine Zutat keine messbare Menge hat, setze amount und unit auf null
+- Beispiele: "200g Mehl" → {"amount": 200, "unit": "g", "ingredient": "Mehl"}, "1 Prise Salz" → {"amount": 1, "unit": "Prise", "ingredient": "Salz"}, "Salz nach Geschmack" → {"amount": null, "unit": null, "ingredient": "Salz nach Geschmack"}
 - Stelle sicher, dass alle Zutatenmengen das spezifizierte Maßsystem verwenden
 - Halte Kochanweisungen klar und detailliert
 - Erstelle mindestens 3-5 passende Tags für das Rezept basierend auf:
