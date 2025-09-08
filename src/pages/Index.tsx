@@ -250,7 +250,6 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3 sm:space-x-4">
-              {user && <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />}
               {user ? (
                 <Button 
                   size="lg"
@@ -384,6 +383,14 @@ const Index = () => {
           </div>
         )}
       </div>
+      
+      {/* Floating Add Recipe Button */}
+      {user && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
+        </div>
+      )}
+      
       <Footer />
     </div>
   );
