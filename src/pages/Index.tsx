@@ -264,7 +264,8 @@ const Index = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => navigate('/auth')}
-                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50 h-10 w-10 sm:h-11 sm:w-11"
+                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50 h-10 w-10 sm:h-11 sm:w-11 rounded-md"
+                  title="Anmelden"
                 >
                   <LogIn className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'hsl(var(--primary))' }} />
                 </Button>
