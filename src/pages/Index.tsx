@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, LogOut, Loader2, Plus, Search } from 'lucide-react';
+import { ChefHat, LogIn, LogOut, Loader2, Plus, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -262,11 +262,11 @@ const Index = () => {
               ) : (
                 <Button 
                   variant="outline"
-                  size="lg"
+                  size="icon"
                   onClick={() => navigate('/auth')}
-                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50"
+                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50 h-10 w-10 sm:h-11 sm:w-11"
                 >
-                  Anmelden
+                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'hsl(var(--primary))' }} />
                 </Button>
               )}
             </div>
