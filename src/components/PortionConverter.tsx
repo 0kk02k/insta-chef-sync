@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Users, Calculator } from 'lucide-react';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -51,55 +49,29 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
 
   return (
     <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
-      <div className="flex items-center gap-2 mb-4">
-        <Calculator className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">Portionen umrechnen</h3>
-      </div>
-      
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="portions" className="text-sm font-medium">
-              Portionen:
-            </Label>
-          </div>
-          <div className="flex items-center gap-4 flex-1">
-            <Slider
-              value={[targetServings]}
-              onValueChange={(values) => handlePortionChange(values[0])}
-              min={1}
-              max={Math.max(originalServings * 3, 12)}
-              step={1}
-              className="flex-1"
-            />
-            <Input
-              id="portions"
-              type="number"
-              value={targetServings}
-              onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
-              min={1}
-              max={99}
-              className="w-16 text-center"
-            />
-          </div>
+      <div className="flex items-center gap-4">
+        <Label htmlFor="portions" className="text-sm font-medium">
+          Portionen:
+        </Label>
+        <div className="flex items-center gap-4 flex-1">
+          <Slider
+            value={[targetServings]}
+            onValueChange={(values) => handlePortionChange(values[0])}
+            min={1}
+            max={Math.max(originalServings * 3, 12)}
+            step={1}
+            className="flex-1"
+          />
+          <Input
+            id="portions"
+            type="number"
+            value={targetServings}
+            onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
+            min={1}
+            max={99}
+            className="w-16 text-center"
+          />
         </div>
-
-        {targetServings !== originalServings && (
-          <div className="mt-4 p-3 bg-background/30 rounded-lg border border-border/30">
-            <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-              <span>Umgerechnet für {targetServings} Portionen</span>
-              <Button
-                size="sm"
-                onClick={() => handlePortionChange(originalServings)}
-                variant="outline"
-                className="h-6 px-2 text-xs"
-              >
-                Zurücksetzen
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
