@@ -542,7 +542,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
               </Label>
             </div>
             <p className="text-xs text-muted-foreground">
-              Veröffentlichte Rezepte sind für alle Benutzer sichtbar und können kommentiert werden.
+              Mit dem Setzen des Hakens erkläre ich mich einverstanden, dass dieses Rezept öffentlich einsehbar ist.
             </p>
           </div>
 
