@@ -24,6 +24,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
   const [uploadedContent, setUploadedContent] = useState<UploadedContent | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -165,6 +166,68 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
     fileInputRef.current?.click();
   };
 
+  const triggerPaste = useCallback(async () => {
+    if (!navigator.clipboard) {
+      toast({
+        title: "Einfügen nicht unterstützt",
+        description: "Ihr Browser unterstützt das automatische Einfügen nicht. Verwenden Sie Strg+V.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.trim()) {
+        if (isValidUrl(text)) {
+          handleContent({
+            type: 'url',
+            content: text,
+            name: `URL: ${text}`,
+          });
+        } else {
+          handleContent({
+            type: 'text',
+            content: text,
+            name: `Text (${text.substring(0, 30)}...)`,
+          });
+        }
+        toast({
+          title: "Eingefügt",
+          description: "Inhalt aus der Zwischenablage eingefügt.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Einfügen fehlgeschlagen", 
+        description: "Verwenden Sie Strg+V oder Cmd+V zum Einfügen.",
+        variant: "destructive",
+      });
+    }
+  }, [handleContent, toast]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!disabled && !uploadedContent) {
+      triggerPaste();
+    }
+  }, [disabled, uploadedContent, triggerPaste]);
+
+  const handleTouchStart = useCallback(() => {
+    if (!disabled && !uploadedContent) {
+      longPressTimerRef.current = setTimeout(() => {
+        triggerPaste();
+      }, 500); // 500ms long press
+    }
+  }, [disabled, uploadedContent, triggerPaste]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
   const getContentIcon = () => {
     if (!uploadedContent) return <Upload className="w-12 h-12 text-muted-foreground" />;
     
@@ -235,6 +298,9 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onPaste={handlePaste}
+        onContextMenu={handleContextMenu}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         onClick={!disabled && !uploadedContent ? openFileDialog : undefined}
         tabIndex={0}
         onKeyDown={(e) => {
@@ -312,6 +378,9 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
                 <p>Text</p>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground/80 mt-2">
+              💡 Rechtsklick oder langes Drücken zum Einfügen aus der Zwischenablage
+            </p>
           </div>
         )}
       </div>
