@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, LogIn, LogOut, Loader2, Plus, Search } from 'lucide-react';
+import { ChefHat, LogIn, LogOut, Loader2, Plus, Search, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -38,6 +37,23 @@ const Index = () => {
   const [recipesLoading, setRecipesLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<string>('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -203,6 +219,23 @@ const Index = () => {
     new Map(recipes.map(recipe => [recipe.user_id, recipe.creator_name])).entries()
   ).map(([userId, creatorName]) => ({ userId, creatorName }));
 
+  // Filter users based on search term
+  const filteredUsers = uniqueCreators.filter(({ creatorName }) =>
+    creatorName.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
+
+  const handleUserSelect = (userId: string, creatorName: string) => {
+    setSelectedUser(userId);
+    setUserSearchTerm(creatorName);
+    setShowUserDropdown(false);
+  };
+
+  const clearUserFilter = () => {
+    setSelectedUser('');
+    setUserSearchTerm('');
+    setShowUserDropdown(false);
+  };
+
   // Filter recipes based on search term and user filter
   const filteredRecipes = recipes.filter(recipe => {
     const matchesSearch = !searchTerm.trim() || (() => {
@@ -290,20 +323,55 @@ const Index = () => {
                   className="pl-10 bg-surface border-border/50 focus:border-primary"
                 />
               </div>
-              <div className="sm:w-48">
-                <Select value={selectedUser} onValueChange={setSelectedUser}>
-                  <SelectTrigger className="bg-accent-2 text-white border-accent-2 hover:bg-accent-2/90" style={{ backgroundColor: 'hsl(var(--accent-2))' }}>
-                    <SelectValue placeholder="Alle Benutzer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle Benutzer</SelectItem>
-                    {uniqueCreators.map(({ userId, creatorName }) => (
-                      <SelectItem key={userId} value={userId}>
+              <div className="sm:w-48 relative" ref={userDropdownRef}>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Nach Benutzer suchen..."
+                    value={userSearchTerm}
+                    onChange={(e) => {
+                      setUserSearchTerm(e.target.value);
+                      setShowUserDropdown(true);
+                      if (e.target.value === '') {
+                        clearUserFilter();
+                      }
+                    }}
+                    onFocus={() => setShowUserDropdown(true)}
+                    className="pl-10 bg-surface border-border/50 focus:border-primary"
+                  />
+                  {userSearchTerm && (
+                    <button
+                      onClick={clearUserFilter}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                {showUserDropdown && filteredUsers.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                      onClick={() => {
+                        setSelectedUser('');
+                        setUserSearchTerm('');
+                        setShowUserDropdown(false);
+                      }}
+                    >
+                      Alle Benutzer
+                    </div>
+                    {filteredUsers.map(({ userId, creatorName }) => (
+                      <div
+                        key={userId}
+                        className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                        onClick={() => handleUserSelect(userId, creatorName)}
+                      >
                         {creatorName}
-                      </SelectItem>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -360,7 +428,10 @@ const Index = () => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    onClick={() => setSelectedUser('')}
+                    onClick={() => {
+                      setSelectedUser('');
+                      setUserSearchTerm('');
+                    }}
                   >
                     Filter zurücksetzen
                   </Button>
