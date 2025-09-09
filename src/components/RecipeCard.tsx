@@ -51,19 +51,12 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           </div>
         )}
         
-        {/* Creator name in top right */}
-        {recipe.creator_name && (
-          <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md z-10">
-            {recipe.creator_name}
-          </div>
-        )}
-        
         {recipe.instagram_url && (
           <a
             href={recipe.instagram_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute top-2 right-2 text-white hover:text-primary transition-colors bg-black/50 p-1 rounded z-10 mt-8"
+            className="absolute top-2 right-2 text-white hover:text-primary transition-colors bg-black/50 p-1 rounded z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-4 w-4" />
