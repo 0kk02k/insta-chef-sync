@@ -457,7 +457,7 @@ const Index = () => {
       
       {/* Floating Add Recipe Button */}
       {user && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 md:right-[calc((100vw-1024px)/2+1.5rem)] lg:right-[calc((100vw-1280px)/2+1.5rem)] xl:right-[calc((100vw-1536px)/2+1.5rem)] z-50">
           <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
         </div>
       )}
