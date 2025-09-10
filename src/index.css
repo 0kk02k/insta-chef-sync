@@ -2,73 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Denim-Lavender-Mint Design System
+/* Carrot-Pea Fresh Design System
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Core backgrounds - Elegant taupe/sand theme */
-    --bg: 38 15% 90%; /* #EAE6E1 - Light warm taupe background */
-    --background: 38 15% 90%; /* #EAE6E1 */
-    --surface: 30 33% 97%; /* #FBF9F6 - Very light cream for cards */
-    --foreground: 30 13% 32%; /* #5A4E46 - Dark warm brown text */
+    /* Core backgrounds - Warm neutral clean theme */
+    --bg: 42 36% 96%; /* #F9F7F2 - Warm neutral background */
+    --background: 42 36% 96%; /* #F9F7F2 */
+    --surface: 0 0% 100%; /* #FFFFFF - Pure white for cards */
+    --foreground: 210 9% 18%; /* #2A2E32 - Cool dark gray text */
 
     /* Cards */
-    --card: 30 33% 97%; /* #FBF9F6 - light cream surface */
-    --card-foreground: 30 13% 32%; /* #5A4E46 - dark brown text */
+    --card: 0 0% 100%; /* #FFFFFF - white surface */
+    --card-foreground: 210 9% 18%; /* #2A2E32 - cool dark gray text */
 
     /* Popovers */
-    --popover: 30 33% 97%; /* #FBF9F6 */
-    --popover-foreground: 30 13% 32%; /* #5A4E46 */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 210 9% 18%; /* #2A2E32 */
 
-    /* Brand colors - Navy and plum elegant tones */
-    --brand: 210 29% 22%; /* #2A3B49 - Deep navy */
-    --brand-600: 210 29% 18%; /* Darker navy */
-    --brand-50: 210 29% 95%; /* Very light navy */
-    --primary: 40 58% 59%; /* #D4A259 - Warm metallic gold */
-    --primary-foreground: 30 13% 32%; /* #5A4E46 - dark brown on gold */
-    --primary-hover: 40 58% 55%; /* Slightly darker gold */
+    /* Brand colors - Carrot and Pea fresh tones */
+    --brand: 21 100% 81%; /* #FFC6A1 - Carrot pastel */
+    --brand-600: 18 100% 61%; /* #FF7A3D - Carrot neon */
+    --brand-50: 21 100% 95%; /* Very light carrot */
+    --primary: 21 100% 81%; /* #FFC6A1 - Carrot pastel */
+    --primary-foreground: 210 9% 18%; /* #2A2E32 - dark gray on carrot */
+    --primary-hover: 18 100% 61%; /* #FF7A3D - Carrot neon */
 
     /* Accent colors */
-    --accent-1: 40 58% 59%; /* #D4A259 - Gold accent */
-    --accent-1-50: 40 58% 95%; /* Very light gold */
-    --accent-2: 290 18% 28%; /* #4D3C52 - Dark plum */
-    --accent-3: 210 29% 22%; /* #2A3B49 - Navy */
+    --accent-1: 21 100% 81%; /* #FFC6A1 - Carrot pastel */
+    --accent-1-50: 21 100% 95%; /* Very light carrot */
+    --accent-2: 127 53% 79%; /* #AEE5B2 - Pea pastel */
+    --accent-3: 210 9% 25%; /* #3A4046 - Accent dark */
 
-    /* Secondary uses plum */
-    --secondary: 210 29% 22%; /* #2A3B49 - Navy for secondary */
-    --secondary-foreground: 30 33% 97%; /* #FBF9F6 - cream on navy */
-    --secondary-hover: 210 29% 18%; /* Darker navy */
+    /* Secondary uses pea */
+    --secondary: 127 53% 79%; /* #AEE5B2 - Pea pastel */
+    --secondary-foreground: 210 9% 18%; /* #2A2E32 - dark gray on pea */
+    --secondary-hover: 156 74% 60%; /* #4EE39D - Pea neon */
 
     /* Text colors */
-    --ink-900: 30 13% 32%; /* #5A4E46 - main dark brown text */
-    --ink-700: 30 13% 50%; /* Lighter brown for secondary text */
-    --muted: 38 15% 88%; /* Light taupe for muted backgrounds */
-    --muted-foreground: 30 13% 50%; /* Brown for muted text */
+    --ink-900: 210 9% 18%; /* #2A2E32 - main dark gray text */
+    --ink-700: 208 10% 40%; /* #5A646C - muted cool gray for secondary text */
+    --muted: 240 4% 95%; /* Light neutral for muted backgrounds */
+    --muted-foreground: 208 10% 40%; /* Cool gray for muted text */
 
-    /* Accent uses gold */
-    --accent: 40 58% 59%; /* #D4A259 - gold accent */
-    --accent-foreground: 30 13% 32%; /* #5A4E46 - dark brown */
+    /* Accent uses carrot */
+    --accent: 21 100% 81%; /* #FFC6A1 - carrot pastel */
+    --accent-foreground: 210 9% 18%; /* #2A2E32 - dark gray */
 
     /* Destructive */
-    --destructive: 0 50% 60%;
+    --destructive: 2 100% 66%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders and inputs */
-    --border: 38 15% 85%; /* Light taupe border */
-    --input: 30 33% 97%; /* #FBF9F6 - cream surface */
-    --ring: 40 58% 59%; /* #D4A259 - gold ring */
+    --border: 240 4% 90%; /* #E6E6E8 - Light border */
+    --input: 0 0% 100%; /* #FFFFFF - white surface */
+    --ring: 156 74% 60%; /* #4EE39D - Pea neon ring */
 
     --radius: 0.75rem; /* 12px */
 
-    /* Design system gradients - Elegant navy/gold theme */
-    --gradient-header: linear-gradient(90deg, hsl(210 29% 22%), hsl(210 29% 18%)); /* navy gradient */
-    --gradient-card-placeholder: linear-gradient(180deg, 
-      color-mix(in oklch, hsl(40 58% 59%) 15%, transparent), 
-      color-mix(in oklch, hsl(290 18% 28%) 15%, transparent)); /* subtle gold to plum */
-    --gradient-primary: linear-gradient(135deg, hsl(40 58% 59%), hsl(210 29% 22%)); /* gold to navy */
-    --gradient-secondary: linear-gradient(135deg, hsl(210 29% 22%), hsl(290 18% 28%)); /* navy to plum */
+    /* Design system gradients - Fresh carrot/pea theme */
+    --gradient-header: linear-gradient(90deg, hsl(127 53% 79%), hsl(21 100% 81%)); /* pea to carrot pastel */
+    --gradient-card-placeholder: linear-gradient(135deg, hsl(127 53% 79%), hsl(21 100% 81%)); /* pea to carrot pastel */
+    --gradient-primary: linear-gradient(135deg, hsl(21 100% 81%), hsl(18 100% 61%)); /* carrot pastel to neon */
+    --gradient-secondary: linear-gradient(135deg, hsl(127 53% 79%), hsl(156 74% 60%)); /* pea pastel to neon */
 
     /* Shadows */
     --shadow-1: 0 1px 2px rgba(42,59,73,0.06);
@@ -80,82 +78,80 @@ All colors MUST be HSL.
     --space-4: 1rem; /* 16px */
     --space-6: 1.5rem; /* 24px */
 
-    /* Sidebar - Elegant theme */
-    --sidebar-background: 38 15% 90%; /* bg - taupe background */
-    --sidebar-foreground: 30 13% 32%; /* dark brown text */
-    --sidebar-primary: 40 58% 59%; /* gold accent */
-    --sidebar-primary-foreground: 30 13% 32%;
-    --sidebar-accent: 30 33% 97%; /* cream surface */
-    --sidebar-accent-foreground: 30 13% 32%; /* dark brown */
-    --sidebar-border: 38 15% 85%; /* light taupe border */
-    --sidebar-ring: 40 58% 59%; /* gold ring */
+    /* Sidebar - Fresh theme */
+    --sidebar-background: 42 36% 96%; /* bg - warm neutral background */
+    --sidebar-foreground: 210 9% 18%; /* dark gray text */
+    --sidebar-primary: 21 100% 81%; /* carrot pastel */
+    --sidebar-primary-foreground: 210 9% 18%;
+    --sidebar-accent: 0 0% 100%; /* white surface */
+    --sidebar-accent-foreground: 210 9% 18%; /* dark gray */
+    --sidebar-border: 240 4% 90%; /* light border */
+    --sidebar-ring: 156 74% 60%; /* pea neon ring */
   }
 
   .dark {
-    /* Dark Mode - Denim Schema */
-    --bg: 214 20% 8%; /* #0f1418 */
-    --background: 214 20% 8%; /* #0f1418 */
-    --surface: 214 20% 12%; /* #141a20 */
-    --foreground: 210 25% 90%; /* #e8edf2 */
+    /* Dark Mode - Carrot-Pea Schema */
+    --bg: 0 0% 7%; /* #121416 */
+    --background: 0 0% 7%; /* #121416 */
+    --surface: 0 0% 9%; /* #141A20 */
+    --foreground: 0 0% 93%; /* #EDEFF1 */
 
-    --card: 214 20% 12%; /* surface */
-    --card-foreground: 210 25% 90%;
+    --card: 0 0% 9%; /* surface */
+    --card-foreground: 0 0% 93%;
 
-    --popover: 214 20% 12%;
-    --popover-foreground: 210 25% 90%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 93%;
 
-    /* Brand lighter in dark */
-    --brand: 210 46% 68%; /* #86b3d1 - lavender becomes brand in dark */
-    --brand-600: 210 46% 73%; /* #9cc2db - lighter for hover */
-    --primary: 210 46% 68%; /* brand */
-    --primary-foreground: 214 20% 8%; /* dark bg */
-    --primary-hover: 210 46% 73%; /* brand-600 */
+    /* Brand enhanced in dark */
+    --brand: 21 100% 83%; /* #FFB891 - Carrot pastel enhanced */
+    --brand-600: 18 100% 61%; /* #FF7A3D - Carrot neon same */
+    --primary: 21 100% 83%; /* enhanced carrot pastel */
+    --primary-foreground: 0 0% 7%; /* dark bg */
+    --primary-hover: 18 100% 61%; /* carrot neon */
 
-    /* Secondary uses mint */
-    --secondary: 186 35% 71%; /* mint stays */
-    --secondary-foreground: 214 20% 8%;
-    --secondary-hover: 186 35% 76%;
+    /* Secondary uses enhanced pea */
+    --secondary: 127 53% 82%; /* #B9F2C0 - Pea pastel enhanced */
+    --secondary-foreground: 0 0% 7%;
+    --secondary-hover: 156 74% 60%; /* #4EE39D - Pea neon same */
 
     /* Text colors adjusted */
-    --ink-900: 210 25% 90%; /* #e8edf2 */
-    --ink-700: 210 15% 75%; /* #b9c3cc */
-    --muted: 214 20% 20%; /* darker surface */
-    --muted-foreground: 210 15% 75%; /* ink-700 */
+    --ink-900: 0 0% 93%; /* #EDEFF1 */
+    --ink-700: 208 10% 70%; /* lighter cool gray */
+    --muted: 210 9% 16%; /* #26303A - darker surface */
+    --muted-foreground: 208 10% 70%; /* lighter gray */
 
-    /* Accent uses mint in dark */
-    --accent: 186 35% 71%; /* mint */
-    --accent-foreground: 214 20% 8%;
+    /* Accent uses enhanced pea in dark */
+    --accent: 127 53% 82%; /* enhanced pea pastel */
+    --accent-foreground: 0 0% 7%;
 
     /* Accent colors adjusted */
-    --accent-1: 210 46% 68%; /* lavender */
-    --accent-1-50: 214 20% 15%;
-    --accent-2: 186 35% 71%; /* mint */
-    --accent-3: 349 35% 70%; /* blush darker */
+    --accent-1: 21 100% 83%; /* enhanced carrot pastel */
+    --accent-1-50: 0 0% 12%;
+    --accent-2: 127 53% 82%; /* enhanced pea pastel */
+    --accent-3: 210 9% 25%; /* accent dark same */
 
-    --destructive: 0 35% 55%;
+    --destructive: 2 100% 66%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 20%; /* #25303a */
-    --input: 214 20% 12%; /* surface */
-    --ring: 210 46% 68%; /* brand */
+    --border: 210 9% 16%; /* #26303A */
+    --input: 0 0% 9%; /* surface */
+    --ring: 156 74% 60%; /* pea neon */
 
     /* Dark Mode Gradients */
-    --gradient-header: linear-gradient(90deg, hsl(210 46% 68%), hsl(210 46% 73%)); /* lavender blau für dark mode */
-    --gradient-card-placeholder: linear-gradient(180deg, 
-      color-mix(in oklch, hsl(210 46% 68%) 15%, transparent), 
-      color-mix(in oklch, hsl(186 35% 71%) 15%, transparent));
-    --gradient-primary: linear-gradient(135deg, hsl(210 46% 68%), hsl(186 35% 71%));
-    --gradient-secondary: linear-gradient(135deg, hsl(186 35% 71%), hsl(210 46% 68%));
+    --gradient-header: linear-gradient(90deg, hsl(127 53% 82%), hsl(21 100% 83%)); /* enhanced pea to carrot */
+    --gradient-card-placeholder: linear-gradient(135deg, hsl(127 53% 82%), hsl(21 100% 83%)); /* enhanced pea to carrot */
+    --gradient-primary: linear-gradient(135deg, hsl(21 100% 83%), hsl(18 100% 61%)); /* enhanced carrot to neon */
+    --gradient-secondary: linear-gradient(135deg, hsl(127 53% 82%), hsl(156 74% 60%)); /* enhanced pea to neon */
 
     /* Sidebar Dark Mode */
-    --sidebar-background: 214 20% 8%;
-    --sidebar-foreground: 210 25% 90%;
-    --sidebar-primary: 210 46% 68%;
-    --sidebar-primary-foreground: 214 20% 8%;
-    --sidebar-accent: 214 20% 12%;
-    --sidebar-accent-foreground: 210 25% 90%;
-    --sidebar-border: 214 20% 20%;
-    --sidebar-ring: 210 46% 68%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 93%;
+    --sidebar-primary: 21 100% 83%;
+    --sidebar-primary-foreground: 0 0% 7%;
+    --sidebar-accent: 0 0% 9%;
+    --sidebar-accent-foreground: 0 0% 93%;
+    --sidebar-border: 210 9% 16%;
+    --sidebar-ring: 156 74% 60%;
   }
 }
 
