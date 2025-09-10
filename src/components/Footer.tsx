@@ -9,15 +9,15 @@ const Footer = () => {
           <Link 
             to="/impressum" 
             className="transition-colors text-sm hover:opacity-80"
-            style={{ color: 'hsl(var(--primary))' }}
+            style={{ color: 'hsl(var(--ink-900))' }}
           >
             Impressum
           </Link>
-          <div className="w-px h-4" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
+          <div className="w-px h-4" style={{ backgroundColor: 'hsl(var(--ink-900))' }}></div>
           <Link 
             to="/datenschutz" 
             className="transition-colors text-sm hover:opacity-80"
-            style={{ color: 'hsl(var(--primary))' }}
+            style={{ color: 'hsl(var(--ink-900))' }}
           >
             Datenschutz
           </Link>
