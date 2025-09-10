@@ -268,16 +268,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Hero Header mit Pink Gradient */}
-      <div className="header" style={{ background: 'var(--gradient-header)' }}>
+      {/* Hero Header */}
+      <div className="header">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className="p-3 sm:p-4 bg-slate-700 rounded-xl shadow-lg">
-                <ChefHat className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: 'hsl(var(--primary))' }} />
+              <div className="p-3 sm:p-4 bg-white rounded-xl shadow-lg border border-black/5" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+                <ChefHat className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: '#FF7A3D' }} />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold px-2 sm:px-4 py-2" style={{ color: 'hsl(var(--primary))' }}>
+                <h1 className="brand text-2xl sm:text-4xl font-bold px-2 sm:px-4 py-2">
                   CookingCompiler
                 </h1>
               </div>
@@ -287,19 +287,21 @@ const Index = () => {
                 <Button 
                   size="lg"
                   onClick={handleSignOut}
-                  className="bg-slate-700 hover:bg-slate-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-black/5"
+                  style={{ borderColor: 'rgba(0,0,0,0.06)' }}
                 >
-                  <LogOut className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'hsl(var(--primary))' }} />
+                  <LogOut className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#FF7A3D' }} />
                 </Button>
               ) : (
                 <Button 
                   variant="outline"
                   size="icon"
                   onClick={() => navigate('/auth')}
-                  className="border-coral/30 hover:bg-coral/5 hover:border-coral/50 h-10 w-10 sm:h-11 sm:w-11 rounded-md"
+                  className="bg-white border h-10 w-10 sm:h-11 sm:w-11 rounded-md"
+                  style={{ borderColor: 'rgba(0,0,0,0.06)' }}
                   title="Anmelden"
                 >
-                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'hsl(var(--primary))' }} />
+                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#FF7A3D' }} />
                 </Button>
               )}
             </div>

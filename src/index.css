@@ -177,13 +177,15 @@ All colors MUST be HSL.
 
   /* Header styling */
   .header {
-    background: var(--gradient-header);
+    background: #FFB991;
     color: hsl(var(--ink-900));
     border-bottom: 1px solid hsl(var(--border));
   }
   .header .brand { 
-    color: hsl(var(--ink-900)); 
-    font-weight: 700; 
+    color: #FFFFFF;
+    font-weight: 800; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    letter-spacing: -0.3px;
   }
   .header .greeting { 
     opacity: 0.8; 
