@@ -364,7 +364,7 @@ const RecipeDetail = () => {
                     {recipe.tags.map((tag, index) => (
                       <span 
                         key={index} 
-                        className="inline-flex items-center text-sm py-2 px-4 bg-purple-600 text-white rounded-md"
+                        className="inline-flex items-center text-sm py-2 px-4 bg-hot-pink text-white rounded-md"
                       >
                         <Hash className="h-4 w-4 mr-2" />
                         {tag}
