@@ -92,7 +92,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         const base64Data = await convertImageToBase64(uploadedContent.file);
         
         response = await supabase.functions.invoke('process-screenshot-recipe', {
-          body: { imageBase64: base64Data, userId: user?.id }
+          body: { imageBase64: base64Data, imageMime: uploadedContent.file.type, userId: user?.id }
         });
       } else if (uploadedContent.type === 'pdf' && uploadedContent.file) {
         // Upload PDF to storage first
@@ -304,15 +304,16 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         setOpen(false);
       } else if (uploadedContent.every((c) => c.type === 'screenshot')) {
         // Multiple screenshots -> combine into a single recipe via edge function
-        const imagesBase64 = await Promise.all(
+        const imagesPayload = await Promise.all(
           uploadedContent.map(async (c) => {
             if (!c.file) throw new Error('Fehlende Bilddatei');
-            return await convertImageToBase64(c.file);
+            const base64 = await convertImageToBase64(c.file);
+            return { base64, mime: c.file.type || 'image/jpeg' };
           })
         );
 
         const { data, error } = await supabase.functions.invoke('process-screenshot-recipe', {
-          body: { images: imagesBase64, userId: user.id },
+          body: { images: imagesPayload, userId: user.id },
         });
 
         if (error) throw error;

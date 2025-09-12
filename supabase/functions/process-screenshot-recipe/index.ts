@@ -79,12 +79,24 @@ serve(async (req) => {
       return new Response(raw, { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } });
     }
 
-    const { imageBase64, images, fileName, userId } = await req.json();
+    const { imageBase64, imageMime, images, fileName, userId } = await req.json();
 
-    // Handle both single image and multiple images
-    const imagesToProcess = images && Array.isArray(images) ? images : [imageBase64];
+    // Normalize images input to array of { base64, mime }
+    const normalizedImages: Array<{ base64: string; mime: string }> = (() => {
+      if (Array.isArray(images)) {
+        return images.map((img: any) =>
+          typeof img === 'string'
+            ? { base64: img, mime: 'image/jpeg' }
+            : { base64: img.base64, mime: img.mime || 'image/jpeg' }
+        );
+      }
+      if (imageBase64) {
+        return [{ base64: imageBase64, mime: imageMime || 'image/jpeg' }];
+      }
+      return [];
+    })();
     
-    if (!imagesToProcess || imagesToProcess.length === 0 || !imagesToProcess[0]) {
+    if (normalizedImages.length === 0 || !normalizedImages[0].base64) {
       throw new Error('No image data provided');
     }
 
@@ -100,10 +112,10 @@ serve(async (req) => {
     }
 
     // If multiple images, validate they belong to the same recipe
-    if (imagesToProcess.length > 1) {
-      console.log(`🔍 Processing ${imagesToProcess.length} screenshots - validating coherence`);
+    if (normalizedImages.length > 1) {
+      console.log(`🔍 Processing ${normalizedImages.length} screenshots - validating coherence`);
       
-      const validationResult = await validateMultipleScreenshots(imagesToProcess, openAIApiKey, userPrefs);
+      const validationResult = await validateMultipleScreenshots(normalizedImages, openAIApiKey, userPrefs);
       
       if (!validationResult.isValidRecipe) {
         throw new Error(`Ungültige Rezept-Screenshots: ${validationResult.reason}`);
@@ -134,7 +146,7 @@ serve(async (req) => {
           validation: {
             coherent: true,
             confidence: validationResult.confidence,
-            imageCount: imagesToProcess.length
+            imageCount: normalizedImages.length
           }
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -143,13 +155,13 @@ serve(async (req) => {
     }
 
     // Process single image (original logic)
-    const imageBase64ToProcess = imagesToProcess[0];
+    const imageInfo = normalizedImages[0];
 
-    // Extract MIME type and analyze data URL structure
-    const dataUrlMatch = imageBase64ToProcess.match(/^data:([^;]+);base64,(.+)$/);
-    const mimeType = dataUrlMatch ? dataUrlMatch[1] : 'unknown';
-    const base64Data = dataUrlMatch ? dataUrlMatch[2] : imageBase64ToProcess;
-    const dataUrlHeader = imageBase64ToProcess.substring(0, 80);
+    // Build Data URL and analyze
+    const dataUrl = `data:${imageInfo.mime};base64,${imageInfo.base64}`;
+    const mimeType = imageInfo.mime;
+    const base64Data = imageInfo.base64;
+    const dataUrlHeader = dataUrl.substring(0, 80);
     
     console.log('🔍 Data-URL Header (first 80 chars):', dataUrlHeader);
     console.log('📋 MIME Type detected:', mimeType);
@@ -415,7 +427,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
 
 // Helper function to validate multiple screenshots
 async function validateMultipleScreenshots(
-  images: string[], 
+  images: Array<{ base64: string; mime: string }>, 
   openAIApiKey: string, 
   userPrefs: { language: string; measurement_unit: string }
 ): Promise<ValidationResult> {
@@ -424,7 +436,7 @@ async function validateMultipleScreenshots(
   // Create image content array for all images
   const imageContent = images.map(img => ({
     type: 'image_url',
-    image_url: { url: `data:image/jpeg;base64,${img}` }
+    image_url: { url: `data:${img.mime};base64,${img.base64}` }
   }));
 
   const payload = {
@@ -492,6 +504,8 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
   });
 
   if (!response.ok) {
+    const errText = await response.text();
+    console.error('❌ Validation API error body:', errText);
     throw new Error(`Validation API error: ${response.status}`);
   }
 
