@@ -7,6 +7,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Fallback prompt generation function
+function generateFallbackPrompt(title: string, description: string, ingredients: any[]): string {
+  const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 6).join(', ') : '';
+  
+  // Detect dish category for better styling
+  const isGerman = title.includes('deutsch') || ingredients.some(i => i.includes('Sauerkraut') || i.includes('Bratwurst'));
+  const isDrink = ingredients.some(i => i.toLowerCase().includes('ml') && (i.includes('vodka') || i.includes('gin') || i.includes('prosecco'))) || title.toLowerCase().includes('cocktail') || title.toLowerCase().includes('drink');
+  const isDessert = title.toLowerCase().includes('pudding') || title.toLowerCase().includes('kuchen') || title.toLowerCase().includes('torte') || ingredients.some(i => i.includes('Zucker') && i.includes('Ei'));
+  
+  let stylePrompt = '';
+  if (isDrink) {
+    stylePrompt = 'Professional cocktail photography, elegant glassware, garnished beautifully, condensation on glass, bar setting with ambient lighting';
+  } else if (isDessert) {
+    stylePrompt = 'Elegant dessert photography, artfully plated on fine china, dusted with powdered sugar, soft natural lighting, restaurant-quality presentation';
+  } else if (isGerman) {
+    stylePrompt = 'Traditional German cuisine photography, rustic wooden table, authentic ceramic plates, warm cozy lighting, hearty comfort food presentation';
+  } else {
+    stylePrompt = 'Professional food photography, modern plating, clean presentation on white plates, natural daylight, restaurant-quality styling';
+  }
+  
+  return `${stylePrompt}. The dish is "${title}" - ${description || 'a delicious recipe'}. Key ingredients visible: ${ingredientsList}. Shot with a macro lens, shallow depth of field, appetizing colors, Instagram-worthy food styling, 4K quality, no text or watermarks, perfectly focused on the food.`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,32 +48,84 @@ serve(async (req) => {
     console.log('Generating image for recipe:', recipeId);
 
     const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+    
     if (!togetherApiKey) {
       throw new Error('Together API key not configured');
     }
 
-    // Create detailed prompt for food photography with better specificity
-    const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 6).join(', ') : '';
+    let prompt = '';
     
-    // Detect dish category for better styling
-    const isGerman = title.includes('deutsch') || ingredients.some(i => i.includes('Sauerkraut') || i.includes('Bratwurst'));
-    const isDrink = ingredients.some(i => i.toLowerCase().includes('ml') && (i.includes('vodka') || i.includes('gin') || i.includes('prosecco'))) || title.toLowerCase().includes('cocktail') || title.toLowerCase().includes('drink');
-    const isDessert = title.toLowerCase().includes('pudding') || title.toLowerCase().includes('kuchen') || title.toLowerCase().includes('torte') || ingredients.some(i => i.includes('Zucker') && i.includes('Ei'));
-    
-    let stylePrompt = '';
-    if (isDrink) {
-      stylePrompt = 'Professional cocktail photography, elegant glassware, garnished beautifully, condensation on glass, bar setting with ambient lighting';
-    } else if (isDessert) {
-      stylePrompt = 'Elegant dessert photography, artfully plated on fine china, dusted with powdered sugar, soft natural lighting, restaurant-quality presentation';
-    } else if (isGerman) {
-      stylePrompt = 'Traditional German cuisine photography, rustic wooden table, authentic ceramic plates, warm cozy lighting, hearty comfort food presentation';
-    } else {
-      stylePrompt = 'Professional food photography, modern plating, clean presentation on white plates, natural daylight, restaurant-quality styling';
-    }
-    
-    const prompt = `${stylePrompt}. The dish is "${title}" - ${description || 'a delicious recipe'}. Key ingredients visible: ${ingredientsList}. Shot with a macro lens, shallow depth of field, appetizing colors, Instagram-worthy food styling, 4K quality, no text or watermarks, perfectly focused on the food.`;
+    // Try to generate enhanced prompt with DeepSeek first
+    if (deepseekApiKey) {
+      try {
+        console.log('Using DeepSeek to generate enhanced prompt...');
+        
+        const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 8).join(', ') : '';
+        
+        const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${deepseekApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              {
+                role: 'system',
+                content: `You are a professional food photography expert specializing in creating prompts for AI image generation using FLUX.schnell. Your task is to create highly detailed, visually appealing prompts that will generate stunning food photography.
 
-    console.log('Generated prompt:', prompt);
+GUIDELINES:
+- Focus on professional food styling and photography techniques
+- Include specific lighting, composition, and plating details
+- Consider cultural context (German cuisine vs international)
+- Specify camera settings and angles when relevant
+- Include appetizing visual elements (steam, garnishes, textures)
+- Avoid any text, watermarks, or labels in the image
+- Keep prompts under 200 words but make them vivid and detailed
+
+DISH CATEGORIES TO CONSIDER:
+- German traditional dishes: rustic, hearty, warm lighting, wooden tables
+- Desserts: elegant plating, fine china, soft lighting, artistic presentation  
+- Drinks/Cocktails: glassware focus, condensation, garnishes, bar setting
+- International cuisine: modern plating, clean presentation, natural daylight
+
+Return ONLY the prompt text, no explanations or additional text.`
+              },
+              {
+                role: 'user',
+                content: `Create a professional food photography prompt for this recipe:
+
+Title: "${title}"
+Description: ${description || 'No description provided'}
+Key Ingredients: ${ingredientsList}
+
+Generate a detailed FLUX.schnell prompt that will create an appetizing, professional photograph of this dish.`
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 300
+          }),
+        });
+
+        if (deepseekResponse.ok) {
+          const deepseekData = await deepseekResponse.json();
+          prompt = deepseekData.choices[0].message.content.trim();
+          console.log('DeepSeek generated prompt:', prompt);
+        } else {
+          throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
+        }
+      } catch (deepseekError) {
+        console.warn('DeepSeek prompt generation failed, falling back to template:', deepseekError.message);
+        prompt = generateFallbackPrompt(title, description, ingredients);
+      }
+    } else {
+      console.log('DeepSeek API key not available, using fallback prompt');
+      prompt = generateFallbackPrompt(title, description, ingredients);
+    }
+
+    console.log('Final prompt for FLUX:', prompt);
 
     // Generate image with Together AI FLUX.schnell
     const imageResponse = await fetch('https://api.together.xyz/v1/images/generations', {
