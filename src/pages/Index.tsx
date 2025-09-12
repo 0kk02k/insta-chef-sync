@@ -286,7 +286,7 @@ const Index = () => {
               {user ? (
                 <Button 
                   onClick={handleSignOut}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-4 flex items-center gap-2"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
                   style={{ 
                     backgroundColor: 'hsl(var(--primary))', 
                     color: 'hsl(var(--primary-foreground))',
@@ -294,12 +294,12 @@ const Index = () => {
                   }}
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Logout</span>
+                  <span className="font-medium hidden sm:inline">Logout</span>
                 </Button>
               ) : (
                 <Button 
                   onClick={() => navigate('/auth')}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-4 flex items-center gap-2"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
                   style={{ 
                     backgroundColor: 'hsl(var(--primary))', 
                     color: 'hsl(var(--primary-foreground))',
@@ -307,7 +307,7 @@ const Index = () => {
                   }}
                 >
                   <LogIn className="h-5 w-5" />
-                  <span className="font-medium">Login</span>
+                  <span className="font-medium hidden sm:inline">Login</span>
                 </Button>
               )}
             </div>
