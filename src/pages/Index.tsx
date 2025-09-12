@@ -273,11 +273,11 @@ const Index = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className="p-3 sm:p-4 bg-white rounded-xl shadow-lg border border-black/5" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
-                <ChefHat className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: '#FF7A3D' }} />
+              <div className="p-2 sm:p-3 bg-white rounded-xl shadow-lg border border-black/5" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: '#FF7A3D' }} />
               </div>
               <div>
-                <h1 className="brand text-2xl sm:text-4xl font-bold px-2 sm:px-4 py-2">
+                <h1 className="brand text-3xl sm:text-5xl font-bold px-2 sm:px-4 py-2">
                   CookingCompiler
                 </h1>
               </div>
