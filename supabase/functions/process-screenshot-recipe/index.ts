@@ -24,6 +24,14 @@ interface RecipeData {
   image_url?: string;
 }
 
+interface ValidationResult {
+  isValidRecipe: boolean;
+  isCohesive: boolean;
+  confidence: number;
+  reason?: string;
+  combinedRecipe?: RecipeData;
+}
+
 serve(async (req) => {
   console.log('🚀 process-screenshot-recipe function called');
 
@@ -70,17 +78,66 @@ serve(async (req) => {
       return new Response(raw, { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } });
     }
 
-    const { imageBase64, fileName, userId } = await req.json();
+    const { imageBase64, images, fileName, userId } = await req.json();
 
-    if (!imageBase64) {
+    // Handle both single image and multiple images
+    const imagesToProcess = images && Array.isArray(images) ? images : [imageBase64];
+    
+    if (!imagesToProcess || imagesToProcess.length === 0 || !imagesToProcess[0]) {
       throw new Error('No image data provided');
     }
 
+    // If multiple images, validate they belong to the same recipe
+    if (imagesToProcess.length > 1) {
+      console.log(`🔍 Processing ${imagesToProcess.length} screenshots - validating coherence`);
+      
+      const validationResult = await validateMultipleScreenshots(imagesToProcess, openAIApiKey, userPrefs);
+      
+      if (!validationResult.isValidRecipe) {
+        throw new Error(`Ungültige Rezept-Screenshots: ${validationResult.reason}`);
+      }
+      
+      if (!validationResult.isCohesive) {
+        throw new Error(`Die Screenshots gehören nicht zu einem zusammenhängenden Rezept: ${validationResult.reason}`);
+      }
+      
+      if (validationResult.combinedRecipe) {
+        console.log('✅ Multiple screenshots successfully combined into single recipe');
+        
+        // Generate AI image for the combined recipe
+        let generatedImageUrl = null;
+        try {
+          generatedImageUrl = await generateRecipeImage(validationResult.combinedRecipe, openAIApiKey, supabase);
+        } catch (imageError) {
+          console.warn('⚠️ Image generation failed, continuing without image:', imageError);
+        }
+        
+        if (generatedImageUrl) {
+          validationResult.combinedRecipe.image_url = generatedImageUrl;
+        }
+        
+        return new Response(JSON.stringify({
+          success: true,
+          data: validationResult.combinedRecipe,
+          validation: {
+            coherent: true,
+            confidence: validationResult.confidence,
+            imageCount: imagesToProcess.length
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // Process single image (original logic)
+    const imageBase64ToProcess = imagesToProcess[0];
+
     // Extract MIME type and analyze data URL structure
-    const dataUrlMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+    const dataUrlMatch = imageBase64ToProcess.match(/^data:([^;]+);base64,(.+)$/);
     const mimeType = dataUrlMatch ? dataUrlMatch[1] : 'unknown';
-    const base64Data = dataUrlMatch ? dataUrlMatch[2] : imageBase64;
-    const dataUrlHeader = imageBase64.substring(0, 80);
+    const base64Data = dataUrlMatch ? dataUrlMatch[2] : imageBase64ToProcess;
+    const dataUrlHeader = imageBase64ToProcess.substring(0, 80);
     
     console.log('🔍 Data-URL Header (first 80 chars):', dataUrlHeader);
     console.log('📋 MIME Type detected:', mimeType);
@@ -174,7 +231,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             {
               type: 'image_url',
               image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
+                url: `data:image/jpeg;base64,${imageBase64ToProcess}`
               }
             }
           ]
@@ -323,64 +380,13 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     console.log('✅ Recipe data extracted:', recipeData.title);
 
     // Step 2: Generate an AI image based on the recipe
-    console.log('🎨 Generating AI image for recipe');
-    
-    const imagePrompt = `A beautiful, professional food photography image of ${recipeData.title}. 
-    ${recipeData.description ? recipeData.description + '. ' : ''}
-    High quality, appetizing, well-lit, restaurant-style presentation. Ultra high resolution.`;
-
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: imagePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'high',
-        output_format: 'png',
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error('❌ Image generation failed:', await imageResponse.text());
-      // Continue without image if generation fails
-    }
-
     let generatedImageUrl = null;
-    
-    if (imageResponse.ok) {
-      const imageData = await imageResponse.json();
-      const imageBase64Data = imageData.data[0].b64_json;
-      
-      if (imageBase64Data) {
-        // Upload the generated image to Supabase Storage
-        const imageBuffer = Uint8Array.from(atob(imageBase64Data), c => c.charCodeAt(0));
-        const imageFileName = `generated-${Date.now()}-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('recipe-images')
-          .upload(imageFileName, imageBuffer, {
-            contentType: 'image/png'
-          });
-
-        if (uploadError) {
-          console.error('❌ Image upload error:', uploadError);
-        } else {
-          const { data: { publicUrl } } = supabase.storage
-            .from('recipe-images')
-            .getPublicUrl(imageFileName);
-          
-          generatedImageUrl = publicUrl;
-          console.log('✅ AI image generated and uploaded');
-        }
-      }
+    try {
+      generatedImageUrl = await generateRecipeImage(recipeData, openAIApiKey, supabase);
+    } catch (imageError) {
+      console.warn('⚠️ Image generation failed, continuing without image:', imageError);
     }
 
-    // Add the generated image URL to recipe data
     if (generatedImageUrl) {
       recipeData.image_url = generatedImageUrl;
     }
@@ -406,3 +412,176 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     });
   }
 });
+
+// Helper function to validate multiple screenshots
+async function validateMultipleScreenshots(
+  images: string[], 
+  openAIApiKey: string, 
+  userPrefs: { language: string; measurement_unit: string }
+): Promise<ValidationResult> {
+  const languagePrompt = userPrefs.language === 'de' ? 'Antworte auf Deutsch.' : 'Answer in English.';
+  
+  // Create image content array for all images
+  const imageContent = images.map(img => ({
+    type: 'image_url',
+    image_url: { url: `data:image/jpeg;base64,${img}` }
+  }));
+
+  const payload = {
+    model: 'gpt-4o-mini',
+    max_tokens: 3000,
+    stream: false,
+    messages: [
+      {
+        role: 'system',
+        content: `Du bist ein Experte für Rezept-Analyse. Analysiere mehrere Screenshots und bestimme:
+1. Gehören alle Screenshots zu EIN zusammenhängendes Rezept?
+2. Enthalten sie gültige Rezept-Informationen?
+3. Können sie zu einem vollständigen Rezept kombiniert werden?
+
+${languagePrompt}
+
+Antworte NUR mit gültigem JSON in diesem Format:
+{
+  "isValidRecipe": boolean,
+  "isCohesive": boolean,
+  "confidence": number (0-100),
+  "reason": string,
+  "combinedRecipe": {
+    "title": string,
+    "description": string,
+    "ingredients": [string],
+    "structured_ingredients": [{"amount": number|null, "unit": string|null, "ingredient": string}],
+    "instructions": [string],
+    "cooking_time": number|null,
+    "servings": number|null,
+    "tags": [string]
+  } | null
+}`
+      },
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `Analysiere diese ${images.length} Screenshots. Gehören sie zu einem zusammenhängenden Rezept? Falls ja, kombiniere sie zu einem vollständigen Rezept.
+
+WICHTIGE REGELN:
+- Screenshots von VERSCHIEDENEN Rezepten → isCohesive: false
+- Screenshots vom GLEICHEN Rezept (z.B. mehrseitig) → isCohesive: true, erstelle combinedRecipe
+- Unvollständige oder unlesbare Screenshots → isValidRecipe: false
+- Confidence: 90-100% = sehr sicher, 70-89% = wahrscheinlich, <70% = unsicher
+
+${userPrefs.measurement_unit === 'metric' ? 'Umrechnungen: 1 cup Mehl=125g, 1 cup Zucker=200g, 1 cup Milch=240ml, tbsp=EL, tsp=TL' : 'Keep imperial measurements'}
+
+Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "italienisch", "pasta", "vegetarisch").`
+          },
+          ...imageContent
+        ]
+      }
+    ]
+  };
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Validation API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  
+  if (!content) {
+    throw new Error('No validation response received');
+  }
+
+  try {
+    const result = JSON.parse(content);
+    console.log('🔍 Validation result:', {
+      isValid: result.isValidRecipe,
+      isCohesive: result.isCohesive,
+      confidence: result.confidence,
+      reason: result.reason
+    });
+    
+    return result;
+  } catch (parseError) {
+    console.error('❌ Failed to parse validation response:', parseError);
+    return {
+      isValidRecipe: false,
+      isCohesive: false,
+      confidence: 0,
+      reason: 'Validation response parsing failed'
+    };
+  }
+}
+
+// Helper function to generate recipe image
+async function generateRecipeImage(
+  recipeData: RecipeData, 
+  openAIApiKey: string, 
+  supabase: any
+): Promise<string | null> {
+  console.log('🎨 Generating AI image for recipe');
+  
+  const imagePrompt = `A beautiful, professional food photography image of ${recipeData.title}. 
+  ${recipeData.description ? recipeData.description + '. ' : ''}
+  High quality, appetizing, well-lit, restaurant-style presentation. Ultra high resolution.`;
+
+  const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-image-1',
+      prompt: imagePrompt,
+      n: 1,
+      size: '1024x1024',
+      quality: 'high',
+      output_format: 'png',
+    }),
+  });
+
+  if (!imageResponse.ok) {
+    console.error('❌ Image generation failed:', await imageResponse.text());
+    return null;
+  }
+
+  const imageData = await imageResponse.json();
+  const imageBase64Data = imageData.data[0].b64_json;
+  
+  if (!imageBase64Data) {
+    return null;
+  }
+
+  // Upload the generated image to Supabase Storage
+  const imageBuffer = Uint8Array.from(atob(imageBase64Data), c => c.charCodeAt(0));
+  const imageFileName = `generated-${Date.now()}-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+  
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('recipe-images')
+    .upload(imageFileName, imageBuffer, {
+      contentType: 'image/png'
+    });
+
+  if (uploadError) {
+    console.error('❌ Image upload error:', uploadError);
+    return null;
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('recipe-images')
+    .getPublicUrl(imageFileName);
+  
+  console.log('✅ AI image generated and uploaded');
+  return publicUrl;
+}
