@@ -285,22 +285,29 @@ const Index = () => {
             <div className="flex items-center space-x-3 sm:space-x-4">
               {user ? (
                 <Button 
-                  size="lg"
                   onClick={handleSignOut}
-                  className="bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-black/5"
-                  style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-4 flex items-center gap-2"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
                 >
-                  <LogOut className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#FF7A3D' }} />
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Logout</span>
                 </Button>
               ) : (
                 <Button 
-                  variant="outline"
                   onClick={() => navigate('/auth')}
-                  className="bg-white border rounded-md px-4 py-2 flex items-center gap-2"
-                  style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-4 flex items-center gap-2"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
                 >
-                  <LogIn className="h-4 w-4" style={{ color: '#FF7A3D' }} />
-                  <span className="text-foreground font-medium">Login</span>
+                  <LogIn className="h-5 w-5" />
+                  <span className="font-medium">Login</span>
                 </Button>
               )}
             </div>
