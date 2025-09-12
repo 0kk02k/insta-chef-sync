@@ -48,6 +48,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     rating: recipe.rating || null,
     tags: [...(recipe.tags || [])],
     published: recipe.published,
+    deleteImage: false,
   });
   const [newTag, setNewTag] = useState('');
 
@@ -182,8 +183,15 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     setLoading(true);
 
     try {
-      // Upload new image if provided
+      // Handle image changes
       let imageUrl = recipe.image_url;
+      
+      // Delete image if requested
+      if (formData.deleteImage) {
+        imageUrl = null;
+      }
+      
+      // Upload new image if provided
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
@@ -394,6 +402,22 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                     </>
                   )}
                 </label>
+                {(recipe.image_url || imagePreview) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                      handleInputChange('deleteImage', true);
+                    }}
+                    className="mt-2 text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Bild löschen
+                  </Button>
+                )}
               </div>
             </div>
           </div>
