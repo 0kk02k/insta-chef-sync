@@ -151,6 +151,27 @@ serve(async (req) => {
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      } else {
+        console.log('ℹ️ Validation returned no combinedRecipe, extracting from all images...');
+        const extracted = await extractRecipeFromImages(normalizedImages, openAIApiKey, userPrefs);
+
+        let generatedImageUrl = null;
+        try {
+          generatedImageUrl = await generateRecipeImage(extracted, openAIApiKey, supabase);
+        } catch (imageError) {
+          console.warn('⚠️ Image generation failed, continuing without image:', imageError);
+        }
+        if (generatedImageUrl) extracted.image_url = generatedImageUrl;
+
+        return new Response(JSON.stringify({
+          success: true,
+          data: extracted,
+          validation: {
+            coherent: true,
+            confidence: validationResult.confidence,
+            imageCount: normalizedImages.length
+          }
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -243,7 +264,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
             {
               type: 'image_url',
               image_url: {
-                url: `data:image/jpeg;base64,${imageBase64ToProcess}`
+                url: dataUrl
               }
             }
           ]
@@ -535,6 +556,73 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
       reason: 'Validation response parsing failed'
     };
   }
+}
+
+// Extract combined recipe from multiple images
+async function extractRecipeFromImages(
+  images: Array<{ base64: string; mime: string }>,
+  openAIApiKey: string,
+  userPrefs: { language: string; measurement_unit: string }
+): Promise<RecipeData> {
+  const languagePrompt = userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' :
+    userPrefs.language === 'en' ? 'Translate all text to English.' :
+    userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
+    userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
+    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+    'Keep text in original language.';
+
+  const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+
+  const imageContent = images.map(img => ({
+    type: 'image_url',
+    image_url: { url: `data:${img.mime};base64,${img.base64}` }
+  }));
+
+  const payload = {
+    model: 'gpt-4o-mini',
+    max_tokens: 2000,
+    stream: false,
+    messages: [
+      { role: 'system', content: `Du bist ein zuverlässiger Parser. Antworte ausschließlich mit valider JSON. ${languagePrompt} ${unitPrompt}` },
+      { role: 'user', content: [
+        { type: 'text', text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "structured_ingredients": [{"amount": number|null, "unit": string|null, "ingredient": string}], "instructions": [string], "cooking_time": number|null, "description": string|null, "tags": [string] }.` },
+        ...imageContent
+      ]}
+    ]
+  };
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST', headers: { 'Authorization': `Bearer ${openAIApiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('❌ Extract API error body:', errText);
+    throw new Error(`Extract API error: ${response.status}`);
+  }
+  const raw = await response.text();
+  let data: any;
+  try { data = JSON.parse(raw); } catch { throw new Error('Extract API JSON parse failed'); }
+  const content = data?.choices?.[0]?.message?.content as string | undefined;
+
+  function safeParseJson(s: string | undefined) {
+    if (!s) return null; 
+    try { return JSON.parse(s); } catch {
+      const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (m) { try { return JSON.parse(m[1]); } catch {} }
+      const start = s.indexOf('{');
+      const end = s.lastIndexOf('}');
+      if (start >= 0 && end > start) { try { return JSON.parse(s.slice(start, end + 1)); } catch {} }
+      return null;
+    }
+  }
+
+  const recipe = safeParseJson(content);
+  if (!recipe) throw new Error('Konnte kombiniertes Rezept nicht parsen');
+  if (!recipe.title) throw new Error('Kein Rezepttitel gefunden');
+  if (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) throw new Error('Keine Zutaten gefunden');
+  if (!Array.isArray(recipe.instructions) || recipe.instructions.length === 0) throw new Error('Keine Zubereitungsschritte gefunden');
+
+  return recipe as RecipeData;
 }
 
 // Helper function to generate recipe image
