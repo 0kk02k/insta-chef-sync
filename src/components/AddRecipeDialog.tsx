@@ -334,7 +334,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           <Plus className="h-6 w-6 text-white" strokeWidth={4} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" style={{backgroundColor: 'hsl(266 73% 61%)', borderColor: 'hsl(266 73% 61%)'}}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" style={{backgroundColor: '#ae83e6', borderColor: '#ae83e6'}}>
         <DialogHeader>
           <DialogTitle>Rezept hinzufügen - copy&paste, drag&drop</DialogTitle>
         </DialogHeader>
