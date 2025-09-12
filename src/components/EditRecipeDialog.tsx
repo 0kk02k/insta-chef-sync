@@ -55,6 +55,26 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Reset form data when recipe changes
+  useEffect(() => {
+    setFormData({
+      title: recipe.title,
+      description: recipe.description || '',
+      instagram_url: recipe.instagram_url || '',
+      ingredients: [...recipe.ingredients],
+      instructions: [...recipe.instructions],
+      cooking_time: recipe.cooking_time || '',
+      servings: recipe.servings || '',
+      rating: recipe.rating || null,
+      tags: [...(recipe.tags || [])],
+      published: recipe.published,
+      deleteImage: false,
+    });
+    // Reset image-related state
+    setImageFile(null);
+    setImagePreview(null);
+  }, [recipe]);
+
   // Auto-resize function for textareas
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
