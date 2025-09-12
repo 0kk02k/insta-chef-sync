@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, LogIn, LogOut, Loader2, Plus, Search, Users } from 'lucide-react';
+import { ChefHat, User, LogOut, Loader2, Plus, Search, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -306,7 +306,7 @@ const Index = () => {
                     borderColor: 'hsl(var(--foreground))'
                   }}
                 >
-                  <LogIn className="h-5 w-5" />
+                  <User className="h-5 w-5" />
                   <span className="font-medium hidden sm:inline">Login</span>
                 </Button>
               )}
