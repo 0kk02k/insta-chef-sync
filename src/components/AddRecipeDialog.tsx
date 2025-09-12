@@ -330,7 +330,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="w-12 h-12 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full border-0 hover:opacity-90 bg-hot-pink">
+        <Button size="lg" className="w-12 h-12 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full border-0 hover:opacity-90" style={{ backgroundColor: '#ae83e6' }}>
           <Plus className="h-6 w-6 text-white" strokeWidth={4} />
         </Button>
       </DialogTrigger>
