@@ -271,7 +271,7 @@ const RecipeDetail = () => {
               size="icon"
               variant="ghost" 
               onClick={() => navigate('/')}
-              className="text-primary border border-primary h-10 w-10 bg-white"
+              className="text-primary border border-primary h-10 w-10 bg-white hover:bg-white"
               style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
             >
               <ArrowLeft className="h-6 w-6" />
