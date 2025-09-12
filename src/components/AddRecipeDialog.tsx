@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import UnifiedUploadZone from './UnifiedUploadZone';
+import { Progress } from '@/components/ui/progress';
 
 interface UploadedContent {
   type: 'text' | 'url' | 'pdf' | 'image' | 'screenshot';
@@ -13,6 +14,21 @@ interface UploadedContent {
   file?: File;
   preview?: string;
   name: string;
+  id?: string;
+}
+
+interface BatchProgress {
+  total: number;
+  completed: number;
+  currentFile?: string;
+  status: 'idle' | 'processing' | 'completed' | 'error';
+}
+
+interface ProcessedRecipe {
+  id?: string;
+  name: string;
+  success: boolean;
+  error?: string;
 }
 
 interface AddRecipeDialogProps {
@@ -22,14 +38,18 @@ interface AddRecipeDialogProps {
 const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [uploadedContent, setUploadedContent] = useState<UploadedContent | null>(null);
+  const [uploadedContent, setUploadedContent] = useState<UploadedContent[] | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<BatchProgress>({ total: 0, completed: 0, status: 'idle' });
+  const [processedRecipes, setProcessedRecipes] = useState<ProcessedRecipe[]>([]);
   
   const { toast } = useToast();
   const { user } = useAuth();
 
   const resetForm = () => {
     setUploadedContent(null);
+    setBatchProgress({ total: 0, completed: 0, status: 'idle' });
+    setProcessedRecipes([]);
   };
 
   const convertImageToBase64 = (file: File): Promise<string> => {
@@ -124,6 +144,107 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     }
   };
 
+  const processBatch = async (contentArray: UploadedContent[]) => {
+    setBatchProgress({ total: contentArray.length, completed: 0, status: 'processing' });
+    setProcessedRecipes([]);
+    setProcessing(true);
+
+    const results: ProcessedRecipe[] = [];
+
+    for (let i = 0; i < contentArray.length; i++) {
+      const item = contentArray[i];
+      
+      setBatchProgress({
+        total: contentArray.length,
+        completed: i,
+        currentFile: item.name,
+        status: 'processing'
+      });
+
+      try {
+        const processedData = await processContent(item);
+        
+        if (!processedData || !processedData.title) {
+          throw new Error('Konnte das Rezept nicht verarbeiten');
+        }
+
+        // Save processed recipe to database
+        const { error } = await supabase
+          .from('recipes')
+          .insert({
+            user_id: user!.id,
+            title: processedData.title,
+            description: processedData.description || null,
+            image_url: processedData.image_url,
+            ingredients: processedData.ingredients || [],
+            structured_ingredients: processedData.structured_ingredients || null,
+            instructions: processedData.instructions || [],
+            cooking_time: processedData.cooking_time || null,
+            servings: processedData.servings || null,
+            tags: processedData.tags || [],
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        results.push({
+          id: item.id,
+          name: item.name,
+          success: true
+        });
+
+        toast({
+          title: "Rezept hinzugefügt",
+          description: `"${processedData.title}" wurde erfolgreich verarbeitet.`,
+        });
+
+      } catch (error) {
+        console.error(`Error processing ${item.name}:`, error);
+        const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        
+        results.push({
+          id: item.id,
+          name: item.name,
+          success: false,
+          error: errorMessage
+        });
+
+        toast({
+          title: `Fehler bei ${item.name}`,
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+
+      setBatchProgress({
+        total: contentArray.length,
+        completed: i + 1,
+        status: 'processing'
+      });
+    }
+
+    setBatchProgress({
+      total: contentArray.length,
+      completed: contentArray.length,
+      status: 'completed'
+    });
+    setProcessedRecipes(results);
+    setProcessing(false);
+
+    const successCount = results.filter(r => r.success).length;
+    const failureCount = results.filter(r => !r.success).length;
+
+    toast({
+      title: "Batch-Verarbeitung abgeschlossen",
+      description: `${successCount} erfolgreich, ${failureCount} fehlgeschlagen`,
+    });
+
+    if (successCount > 0) {
+      onRecipeAdded?.();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -136,7 +257,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       return;
     }
 
-    if (!uploadedContent) {
+    if (!uploadedContent || uploadedContent.length === 0) {
       toast({
         title: "Fehler",
         description: "Bitte fügen Sie Inhalt hinzu, um ein Rezept zu erstellen.",
@@ -148,40 +269,51 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     setLoading(true);
 
     try {
-      // Process content with appropriate AI service
-      const processedData = await processContent(uploadedContent);
-      
-      if (!processedData || !processedData.title) {
-        throw new Error('Konnte das Rezept nicht verarbeiten');
-      }
+      if (uploadedContent.length === 1) {
+        // Single file processing
+        const processedData = await processContent(uploadedContent[0]);
+        
+        if (!processedData || !processedData.title) {
+          throw new Error('Konnte das Rezept nicht verarbeiten');
+        }
 
-      // Use AI-generated image from edge function
-      let imageUrl = processedData.image_url;
+        // Save processed recipe to database
+        const { error } = await supabase
+          .from('recipes')
+          .insert({
+            user_id: user.id,
+            title: processedData.title,
+            description: processedData.description || null,
+            image_url: processedData.image_url,
+            ingredients: processedData.ingredients || [],
+            structured_ingredients: processedData.structured_ingredients || null,
+            instructions: processedData.instructions || [],
+            cooking_time: processedData.cooking_time || null,
+            servings: processedData.servings || null,
+            tags: processedData.tags || [],
+          });
 
-      // Save processed recipe to database
-      const { error } = await supabase
-        .from('recipes')
-        .insert({
-          user_id: user.id,
-          title: processedData.title,
-          description: processedData.description || null,
-          image_url: imageUrl,
-          ingredients: processedData.ingredients || [],
-          structured_ingredients: processedData.structured_ingredients || null,
-          instructions: processedData.instructions || [],
-          cooking_time: processedData.cooking_time || null,
-          servings: processedData.servings || null,
-          tags: processedData.tags || [],
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "Rezept hinzugefügt",
+          description: `"${processedData.title}" wurde erfolgreich erstellt.`,
         });
 
-      if (error) {
-        throw error;
+        resetForm();
+        setOpen(false);
+      } else {
+        // Batch processing
+        await processBatch(uploadedContent);
+        
+        // Close dialog after batch completion
+        setTimeout(() => {
+          resetForm();
+          setOpen(false);
+        }, 2000);
       }
-
-
-      resetForm();
-      setOpen(false);
-      onRecipeAdded?.();
 
     } catch (error) {
       console.error('Error adding recipe:', error);
@@ -213,7 +345,27 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             onContentChange={setUploadedContent}
             disabled={loading || processing}
             isProcessing={processing}
+            batchProgress={batchProgress}
           />
+
+          {/* Batch Results */}
+          {processedRecipes.length > 0 && (
+            <div className="bg-muted/30 rounded-lg p-4">
+              <h4 className="font-medium mb-3">Verarbeitungsergebnisse:</h4>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {processedRecipes.map((result) => (
+                  <div key={result.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate flex-1">{result.name}</span>
+                    {result.success ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 ml-2" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-500 ml-2" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button
@@ -224,9 +376,17 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading || processing || !uploadedContent}>
+            <Button type="submit" disabled={loading || processing || !uploadedContent || uploadedContent.length === 0}>
               {(loading || processing) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {processing ? 'KI verarbeitet...' : 'Rezept hinzufügen'}
+              {processing ? (
+                batchProgress.status === 'processing' ? 
+                  `Verarbeite ${batchProgress.completed + 1}/${batchProgress.total}...` : 
+                  'KI verarbeitet...'
+              ) : (
+                uploadedContent && uploadedContent.length > 1 ? 
+                  `${uploadedContent.length} Rezepte hinzufügen` : 
+                  'Rezept hinzufügen'
+              )}
             </Button>
           </div>
         </form>

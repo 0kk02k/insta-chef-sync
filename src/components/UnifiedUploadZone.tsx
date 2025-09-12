@@ -12,16 +12,25 @@ interface UploadedContent {
   file?: File;
   preview?: string;
   name: string;
+  id?: string;
+}
+
+interface BatchProgress {
+  total: number;
+  completed: number;
+  currentFile?: string;
+  status: 'idle' | 'processing' | 'completed' | 'error';
 }
 
 interface UnifiedUploadZoneProps {
-  onContentChange: (content: UploadedContent | null) => void;
+  onContentChange: (content: UploadedContent[] | null) => void;
   disabled?: boolean;
   isProcessing?: boolean;
+  batchProgress?: BatchProgress;
 }
 
-const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedUploadZoneProps) => {
-  const [uploadedContent, setUploadedContent] = useState<UploadedContent | null>(null);
+const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgress }: UnifiedUploadZoneProps) => {
+  const [uploadedContent, setUploadedContent] = useState<UploadedContent[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,52 +53,70 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
   };
 
   const handleContent = useCallback((content: UploadedContent) => {
-    setUploadedContent(content);
-    onContentChange(content);
-  }, [onContentChange]);
+    const newContent = [...uploadedContent, { ...content, id: Date.now().toString() }];
+    setUploadedContent(newContent);
+    onContentChange(newContent);
+  }, [uploadedContent, onContentChange]);
 
   const clearContent = useCallback(() => {
-    setUploadedContent(null);
+    setUploadedContent([]);
     onContentChange(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }, [onContentChange]);
 
-  const handleFileSelection = useCallback((file: File) => {
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+  const removeContent = useCallback((id: string) => {
+    const newContent = uploadedContent.filter(item => item.id !== id);
+    setUploadedContent(newContent);
+    onContentChange(newContent.length > 0 ? newContent : null);
+  }, [uploadedContent, onContentChange]);
+
+  const handleFileSelection = useCallback((files: File[]) => {
+    // Validate total content limit
+    if (uploadedContent.length + files.length > 10) {
       toast({
-        title: "Datei zu groß",
-        description: "Maximale Dateigröße: 10MB",
+        title: "Zu viele Dateien",
+        description: "Maximal 10 Dateien gleichzeitig möglich",
         variant: "destructive",
       });
       return;
     }
 
-    const contentType = detectContentType(file);
-    
-    if (contentType === 'pdf') {
-      handleContent({
-        type: 'pdf',
-        file,
-        name: file.name,
-      });
-    } else if (contentType === 'screenshot' || contentType === 'image') {
-      // Create preview for images
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    files.forEach(file => {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: `Datei zu groß: ${file.name}`,
+          description: "Maximale Dateigröße: 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const contentType = detectContentType(file);
+      
+      if (contentType === 'pdf') {
         handleContent({
-          type: 'screenshot',
+          type: 'pdf',
           file,
           name: file.name,
-          preview: e.target?.result as string,
         });
-      };
-      reader.readAsDataURL(file);
-      
-    }
-  }, [handleContent, toast]);
+      } else if (contentType === 'screenshot' || contentType === 'image') {
+        // Create preview for images
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          handleContent({
+            type: 'screenshot',
+            file,
+            name: file.name,
+            preview: e.target?.result as string,
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }, [handleContent, toast, uploadedContent.length]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -97,7 +124,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileSelection(files[0]);
+      handleFileSelection(files);
     }
 
     // Handle URLs dropped from browser
@@ -122,9 +149,9 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
   }, []);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelection(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      handleFileSelection(files);
     }
   }, [handleFileSelection]);
 
@@ -155,10 +182,10 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
     const imageItem = items.find(item => item.type.startsWith('image/'));
     
     if (imageItem) {
-      const file = imageItem.getAsFile();
-      if (file) {
-        handleFileSelection(file);
-      }
+        const file = imageItem.getAsFile();
+        if (file) {
+          handleFileSelection([file]);
+        }
     }
   }, [handleContent, handleFileSelection]);
 
@@ -208,18 +235,18 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    if (!disabled && !uploadedContent) {
+    if (!disabled && uploadedContent.length === 0) {
       triggerPaste();
     }
-  }, [disabled, uploadedContent, triggerPaste]);
+  }, [disabled, uploadedContent.length, triggerPaste]);
 
   const handleTouchStart = useCallback(() => {
-    if (!disabled && !uploadedContent) {
+    if (!disabled && uploadedContent.length === 0) {
       longPressTimerRef.current = setTimeout(() => {
         triggerPaste();
       }, 500); // 500ms long press
     }
-  }, [disabled, uploadedContent, triggerPaste]);
+  }, [disabled, uploadedContent.length, triggerPaste]);
 
   const handleTouchEnd = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -228,59 +255,22 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
     }
   }, []);
 
-  const getContentIcon = () => {
-    if (!uploadedContent) return <Upload className="w-12 h-12 text-muted-foreground" />;
-    
-    switch (uploadedContent.type) {
+  const getContentIcon = (type: string) => {
+    switch (type) {
       case 'pdf':
-        return <FileText className="w-12 h-12 text-red-500" />;
+        return <FileText className="w-8 h-8 text-red-500" />;
       case 'url':
-        return <Globe className="w-12 h-12 text-blue-500" />;
+        return <Globe className="w-8 h-8 text-blue-500" />;
       case 'screenshot':
       case 'image':
-        return <ImageIcon className="w-12 h-12 text-green-500" />;
+        return <ImageIcon className="w-8 h-8 text-green-500" />;
       case 'text':
-        return <Copy className="w-12 h-12 text-purple-500" />;
+        return <Copy className="w-8 h-8 text-purple-500" />;
       default:
-        return <Upload className="w-12 h-12 text-muted-foreground" />;
+        return <Upload className="w-8 h-8 text-muted-foreground" />;
     }
   };
 
-  const getContentPreview = () => {
-    if (!uploadedContent) return null;
-
-    if (uploadedContent.preview) {
-      return (
-        <img 
-          src={uploadedContent.preview} 
-          alt="Vorschau" 
-          className="w-32 h-32 object-cover rounded-lg mt-4"
-        />
-      );
-    }
-
-    if (uploadedContent.type === 'text' && uploadedContent.content) {
-      return (
-        <div className="mt-4 p-3 bg-muted rounded-lg max-w-md">
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {uploadedContent.content}
-          </p>
-        </div>
-      );
-    }
-
-    if (uploadedContent.type === 'url' && uploadedContent.content) {
-      return (
-        <div className="mt-4 p-3 bg-muted rounded-lg max-w-md">
-          <p className="text-sm text-blue-600 break-all">
-            {uploadedContent.content}
-          </p>
-        </div>
-      );
-    }
-
-    return null;
-  };
 
   return (
     <div className="space-y-4">      
@@ -289,7 +279,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          ${uploadedContent ? 'bg-muted/30' : ''}
+          ${uploadedContent.length > 0 ? 'bg-muted/30' : ''}
         `}
         style={{ 
           borderColor: isDragOver ? undefined : 'hsl(290 18% 28% / 0.8)'
@@ -301,12 +291,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={!disabled && !uploadedContent ? openFileDialog : undefined}
+        onClick={!disabled && uploadedContent.length === 0 ? openFileDialog : undefined}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            if (!disabled && !uploadedContent) openFileDialog();
+            if (!disabled && uploadedContent.length === 0) openFileDialog();
           }
         }}
       >
@@ -323,40 +313,80 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing }: UnifiedU
           ref={fileInputRef}
           type="file"
           accept=".pdf,image/*"
+          multiple
           onChange={handleFileInput}
           className="hidden"
           disabled={disabled}
         />
 
-        {uploadedContent ? (
+        {uploadedContent.length > 0 ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-center space-x-3">
-              {getContentIcon()}
-              <div className="text-left">
-                <p className="font-medium text-foreground">{uploadedContent.name}</p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {uploadedContent.type === 'screenshot' ? 'Screenshot für OCR' : uploadedContent.type}
-                </p>
+            {/* Batch Progress */}
+            {batchProgress && batchProgress.status === 'processing' && (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium">
+                    Verarbeitet {batchProgress.completed} von {batchProgress.total} PDFs
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {Math.round((batchProgress.completed / batchProgress.total) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(batchProgress.completed / batchProgress.total) * 100}%` }}
+                  />
+                </div>
+                {batchProgress.currentFile && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Aktuell: {batchProgress.currentFile}
+                  </p>
+                )}
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  clearContent();
-                }}
-                disabled={disabled}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+            )}
+            
+            {/* File List */}
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {uploadedContent.map((item) => (
+                <div key={item.id} className="flex items-center space-x-3 bg-muted/30 rounded-lg p-3">
+                  {getContentIcon(item.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">{item.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {item.type === 'screenshot' ? 'Screenshot für OCR' : item.type}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeContent(item.id!);
+                    }}
+                    disabled={disabled}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
             
-            {getContentPreview()}
-            
-            <p className="text-xs text-muted-foreground">
-              Bereit für KI-Verarbeitung. Klicken Sie auf "Rezept hinzufügen" um fortzufahren.
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {uploadedContent.length} {uploadedContent.length === 1 ? 'Datei' : 'Dateien'} bereit
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearContent}
+                disabled={disabled}
+              >
+                Alle entfernen
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">            
