@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,6 +51,7 @@ const RecipeDetail = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
   const [currentPortions, setCurrentPortions] = useState<number>(1);
 
@@ -167,6 +168,46 @@ const RecipeDetail = () => {
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!recipe || !user) return;
+
+    setGeneratingImage(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-recipe-image', {
+        body: {
+          recipeId: recipe.id,
+          title: recipe.title,
+          description: recipe.description,
+          ingredients: recipe.ingredients
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success) {
+        setRecipe({ ...recipe, image_url: data.imageUrl });
+        toast({
+          title: "Bild generiert!",
+          description: "KI-Bild wurde erfolgreich erstellt und gespeichert.",
+        });
+      } else {
+        throw new Error(data.details || 'Failed to generate image');
+      }
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast({
+        title: "Fehler",
+        description: "KI-Bild konnte nicht generiert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingImage(false);
     }
   };
 
@@ -313,13 +354,40 @@ const RecipeDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Recipe Image & Title */}
             <Card className="overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
-              {recipe.image_url && (
+              {recipe.image_url ? (
                 <div className="aspect-video w-full overflow-hidden">
                   <img
                     src={recipe.image_url}
                     alt={recipe.title}
                     className="w-full h-full object-cover"
                   />
+                </div>
+              ) : user?.id === recipe.user_id && (
+                <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <div className="text-muted-foreground mb-4">
+                      <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-60" />
+                      <p className="text-lg font-medium">Noch kein Bild vorhanden</p>
+                      <p className="text-sm">Generiere ein appetitliches Bild mit KI</p>
+                    </div>
+                    <Button
+                      onClick={handleGenerateImage}
+                      disabled={generatingImage}
+                      className="bg-gradient-to-r from-purple-soft to-hot-pink text-white hover:from-purple-soft/90 hover:to-hot-pink/90"
+                    >
+                      {generatingImage ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generiere Bild...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          KI-Bild generieren
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
               

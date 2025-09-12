@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.process-screenshot-recipe]
 verify_jwt = true
+
+[functions.generate-recipe-image]
+verify_jwt = true
