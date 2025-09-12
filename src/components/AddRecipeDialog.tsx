@@ -193,11 +193,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           success: true
         });
 
-        toast({
-          title: "Rezept hinzugefügt",
-          description: `"${processedData.title}" wurde erfolgreich verarbeitet.`,
-        });
-
       } catch (error) {
         console.error(`Error processing ${item.name}:`, error);
         const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
@@ -207,12 +202,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           name: item.name,
           success: false,
           error: errorMessage
-        });
-
-        toast({
-          title: `Fehler bei ${item.name}`,
-          description: errorMessage,
-          variant: "destructive",
         });
       }
 
@@ -233,10 +222,20 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
+    const errors = results.filter(r => !r.success);
+
+    let description = `${successCount} erfolgreich verarbeitet`;
+    if (failureCount > 0) {
+      description += `, ${failureCount} fehlgeschlagen`;
+      if (errors.length > 0) {
+        description += `:\n${errors.map(e => `• ${e.name}: ${e.error}`).join('\n')}`;
+      }
+    }
 
     toast({
-      title: "Batch-Verarbeitung abgeschlossen",
-      description: `${successCount} erfolgreich, ${failureCount} fehlgeschlagen`,
+      title: "Stapelverarbeitung abgeschlossen",
+      description,
+      variant: failureCount > 0 ? "destructive" : "default",
     });
 
     if (successCount > 0) {
