@@ -302,6 +302,49 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
         resetForm();
         setOpen(false);
+      } else if (uploadedContent.every((c) => c.type === 'screenshot')) {
+        // Multiple screenshots -> combine into a single recipe via edge function
+        const imagesBase64 = await Promise.all(
+          uploadedContent.map(async (c) => {
+            if (!c.file) throw new Error('Fehlende Bilddatei');
+            return await convertImageToBase64(c.file);
+          })
+        );
+
+        const { data, error } = await supabase.functions.invoke('process-screenshot-recipe', {
+          body: { images: imagesBase64, userId: user.id },
+        });
+
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'Verarbeitung fehlgeschlagen');
+
+        const processedData = data.data;
+
+        const { error: insertError } = await supabase
+          .from('recipes')
+          .insert({
+            user_id: user.id,
+            title: processedData.title,
+            description: processedData.description || null,
+            image_url: processedData.image_url,
+            ingredients: processedData.ingredients || [],
+            structured_ingredients: processedData.structured_ingredients || null,
+            instructions: processedData.instructions || [],
+            cooking_time: processedData.cooking_time || null,
+            servings: processedData.servings || null,
+            tags: processedData.tags || [],
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: 'Rezept aus Screenshots erstellt',
+          description: `"${processedData.title}" wurde aus ${uploadedContent.length} Screenshots kombiniert.`,
+        });
+
+        onRecipeAdded?.();
+        resetForm();
+        setOpen(false);
       } else {
         // Batch processing
         await processBatch(uploadedContent);

@@ -87,6 +87,17 @@ serve(async (req) => {
       throw new Error('No image data provided');
     }
 
+    // Get user preferences for language and measurement units BEFORE multi-image validation
+    let userPrefs = { language: 'de', measurement_unit: 'metric' } as { language: string; measurement_unit: string };
+    if (userId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('language, measurement_unit')
+        .eq('id', userId)
+        .single();
+      if (profile) userPrefs = profile as any;
+    }
+
     // If multiple images, validate they belong to the same recipe
     if (imagesToProcess.length > 1) {
       console.log(`🔍 Processing ${imagesToProcess.length} screenshots - validating coherence`);
@@ -143,18 +154,7 @@ serve(async (req) => {
     console.log('📋 MIME Type detected:', mimeType);
     console.log('📏 Base64 Data Length:', base64Data.length, 'characters');
 
-    // Get user preferences for language and measurement units
-    let userPrefs = { language: 'de', measurement_unit: 'metric' };
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('language, measurement_unit')
-        .eq('id', userId)
-        .single();
-      
-      if (profile) {
-        userPrefs = profile;
-      }
+    // userPrefs bereits oben geladen
     }
 
     const languagePrompt = userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
