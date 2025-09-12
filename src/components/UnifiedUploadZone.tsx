@@ -52,6 +52,29 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
   };
 
+  const shortenUrl = (url: string, maxLength: number = 50): string => {
+    if (url.length <= maxLength) return url;
+    
+    try {
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname.replace('www.', '');
+      const path = urlObj.pathname + urlObj.search;
+      
+      if (domain.length + path.length <= maxLength - 3) {
+        return `${domain}${path}`;
+      }
+      
+      if (domain.length <= maxLength - 6) {
+        const availableLength = maxLength - domain.length - 6;
+        return `${domain}${path.substring(0, availableLength)}...`;
+      }
+      
+      return `${domain.substring(0, maxLength - 3)}...`;
+    } catch {
+      return url.substring(0, maxLength - 3) + '...';
+    }
+  };
+
   const handleContent = useCallback((content: UploadedContent) => {
     setUploadedContent((prev) => {
       const newContent = [...prev, { ...content, id: Date.now().toString() }];
@@ -135,7 +158,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
       handleContent({
         type: 'url',
         content: urlData,
-        name: `URL: ${urlData}`,
+        name: shortenUrl(urlData),
       });
     }
   }, [handleFileSelection, handleContent]);
@@ -167,7 +190,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         handleContent({
           type: 'url',
           content: text,
-          name: `URL: ${text}`,
+          name: shortenUrl(text),
         });
       } else {
         handleContent({
@@ -212,7 +235,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           handleContent({
             type: 'url',
             content: text,
-            name: `URL: ${text}`,
+            name: shortenUrl(text),
           });
         } else {
           handleContent({
@@ -354,9 +377,14 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
                 <div key={item.id} className="flex items-center space-x-3 bg-muted/30 rounded-lg p-3">
                   {getContentIcon(item.type)}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{item.name}</p>
+                    <p className={`font-medium text-foreground truncate ${item.type === 'url' ? 'opacity-70' : ''}`}>{item.name}</p>
                     <p className="text-xs text-muted-foreground capitalize">
                       {item.type === 'screenshot' ? 'Screenshot für OCR' : item.type}
+                      {item.type === 'url' && item.content && (
+                        <span className="ml-1 text-xs text-muted-foreground/60">
+                          • {new URL(item.content).hostname.replace('www.', '')}
+                        </span>
+                      )}
                     </p>
                   </div>
                   <Button
