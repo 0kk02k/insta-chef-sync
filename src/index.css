@@ -33,7 +33,7 @@ All colors MUST be HSL.
     /* Accent colors */
     --accent-1: 21 100% 81%; /* #FFC6A1 - Carrot pastel */
     --accent-1-50: 21 100% 95%; /* Very light carrot */
-    --accent-2: 127 53% 79%; /* #AEE5B2 - Pea pastel */
+    --accent-2: 180 60% 65%; /* #52C5B8 - Turquoise pastel */
     --accent-3: 210 9% 25%; /* #3A4046 - Accent dark */
 
     /* Secondary uses pea */
@@ -131,7 +131,7 @@ All colors MUST be HSL.
     /* Accent colors adjusted */
     --accent-1: 21 100% 83%; /* enhanced carrot pastel */
     --accent-1-50: 0 0% 12%;
-    --accent-2: 127 53% 82%; /* enhanced pea pastel */
+    --accent-2: 180 60% 68%; /* enhanced turquoise pastel */
     --accent-3: 210 9% 25%; /* accent dark same */
 
     --destructive: 2 100% 66%;
