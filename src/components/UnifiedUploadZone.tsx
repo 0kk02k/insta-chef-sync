@@ -53,10 +53,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   };
 
   const handleContent = useCallback((content: UploadedContent) => {
-    const newContent = [...uploadedContent, { ...content, id: Date.now().toString() }];
-    setUploadedContent(newContent);
-    onContentChange(newContent);
-  }, [uploadedContent, onContentChange]);
+    setUploadedContent((prev) => {
+      const newContent = [...prev, { ...content, id: Date.now().toString() }];
+      onContentChange(newContent);
+      return newContent;
+    });
+  }, [onContentChange]);
 
   const clearContent = useCallback(() => {
     setUploadedContent([]);
@@ -291,12 +293,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={!disabled && uploadedContent.length === 0 ? openFileDialog : undefined}
+        onClick={!disabled ? openFileDialog : undefined}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            if (!disabled && uploadedContent.length === 0) openFileDialog();
+            if (!disabled) openFileDialog();
           }
         }}
       >

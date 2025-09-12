@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import UnifiedUploadZone from './UnifiedUploadZone';
-import { Progress } from '@/components/ui/progress';
 
 interface UploadedContent {
   type: 'text' | 'url' | 'pdf' | 'image' | 'screenshot';
