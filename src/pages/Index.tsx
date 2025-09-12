@@ -211,7 +211,7 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   // Get unique creators for filter dropdown
