@@ -279,7 +279,7 @@ const RecipeDetail = () => {
             
             {user && user.id === recipe.user_id && (
               <div className="flex items-center space-x-2">
-                <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:border-0">
+                <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:border [&>button]:border-primary">
                   <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
                 </div>
                 <Button 
@@ -287,11 +287,11 @@ const RecipeDetail = () => {
                   variant="ghost" 
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-10 w-10"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-destructive h-10 w-10"
                   style={{ 
                     backgroundColor: 'hsl(var(--primary))', 
                     color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--primary))'
+                    borderColor: 'hsl(var(--destructive))'
                   }}
                 >
                   {deleting ? (
