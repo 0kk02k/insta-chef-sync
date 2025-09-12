@@ -295,13 +295,12 @@ const Index = () => {
               ) : (
                 <Button 
                   variant="outline"
-                  size="icon"
                   onClick={() => navigate('/auth')}
-                  className="bg-white border h-10 w-10 sm:h-11 sm:w-11 rounded-md"
+                  className="bg-white border rounded-md px-4 py-2 flex items-center gap-2"
                   style={{ borderColor: 'rgba(0,0,0,0.06)' }}
-                  title="Anmelden"
                 >
-                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#FF7A3D' }} />
+                  <LogIn className="h-4 w-4" style={{ color: '#FF7A3D' }} />
+                  <span className="text-foreground font-medium">Login</span>
                 </Button>
               )}
             </div>
