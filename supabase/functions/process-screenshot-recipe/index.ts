@@ -436,11 +436,12 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
   } catch (error) {
     console.error('❌ Error in process-screenshot-recipe function:', error);
     
+    // Always return 200 with success:false so the client can show a friendly error instead of a non-200
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
@@ -537,8 +538,36 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
     throw new Error('No validation response received');
   }
 
+  // Robust JSON parse (handles ```json fences and partial snippets)
+  function safeParseJsonLocal(s: string) {
+    try {
+      return JSON.parse(s);
+    } catch {
+      const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (m) {
+        try { return JSON.parse(m[1]); } catch {}
+      }
+      const start = s.indexOf('{');
+      const end = s.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        try { return JSON.parse(s.slice(start, end + 1)); } catch {}
+      }
+      return null;
+    }
+  }
+
   try {
-    const result = JSON.parse(content);
+    const result = safeParseJsonLocal(content);
+    if (!result) {
+      console.error('❌ Failed to parse validation JSON. Raw content:', content);
+      return {
+        isValidRecipe: false,
+        isCohesive: false,
+        confidence: 0,
+        reason: 'Validation response parsing failed',
+      };
+    }
+
     console.log('🔍 Validation result:', {
       isValid: result.isValidRecipe,
       isCohesive: result.isCohesive,
