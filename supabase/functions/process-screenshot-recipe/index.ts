@@ -22,6 +22,7 @@ interface RecipeData {
   cooking_time?: number;
   servings?: number;
   image_url?: string;
+  tags?: string[];
 }
 
 interface ValidationResult {
@@ -155,7 +156,6 @@ serve(async (req) => {
     console.log('📏 Base64 Data Length:', base64Data.length, 'characters');
 
     // userPrefs bereits oben geladen
-    }
 
     const languagePrompt = userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' : 
        userPrefs.language === 'en' ? 'Translate all text to English.' :
