@@ -240,11 +240,11 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
         <Button 
           size="icon"
           variant="ghost"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-10 w-10"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
           style={{ 
             backgroundColor: 'hsl(var(--primary))', 
             color: 'hsl(var(--primary-foreground))',
-            borderColor: 'hsl(var(--primary))'
+            borderColor: 'hsl(var(--foreground))'
           }}
         >
           <Edit className="h-6 w-6" />
