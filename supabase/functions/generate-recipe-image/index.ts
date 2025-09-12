@@ -29,9 +29,26 @@ serve(async (req) => {
       throw new Error('Together API key not configured');
     }
 
-    // Create detailed prompt for food photography
-    const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 5).join(', ') : '';
-    const prompt = `Professional food photography of ${title}. ${description || ''} A beautifully plated dish featuring ${ingredientsList}. High-quality, appetizing, restaurant-style presentation. Natural lighting, shallow depth of field, food styling. Ultra-realistic, mouth-watering appearance.`;
+    // Create detailed prompt for food photography with better specificity
+    const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 6).join(', ') : '';
+    
+    // Detect dish category for better styling
+    const isGerman = title.includes('deutsch') || ingredients.some(i => i.includes('Sauerkraut') || i.includes('Bratwurst'));
+    const isDrink = ingredients.some(i => i.toLowerCase().includes('ml') && (i.includes('vodka') || i.includes('gin') || i.includes('prosecco'))) || title.toLowerCase().includes('cocktail') || title.toLowerCase().includes('drink');
+    const isDessert = title.toLowerCase().includes('pudding') || title.toLowerCase().includes('kuchen') || title.toLowerCase().includes('torte') || ingredients.some(i => i.includes('Zucker') && i.includes('Ei'));
+    
+    let stylePrompt = '';
+    if (isDrink) {
+      stylePrompt = 'Professional cocktail photography, elegant glassware, garnished beautifully, condensation on glass, bar setting with ambient lighting';
+    } else if (isDessert) {
+      stylePrompt = 'Elegant dessert photography, artfully plated on fine china, dusted with powdered sugar, soft natural lighting, restaurant-quality presentation';
+    } else if (isGerman) {
+      stylePrompt = 'Traditional German cuisine photography, rustic wooden table, authentic ceramic plates, warm cozy lighting, hearty comfort food presentation';
+    } else {
+      stylePrompt = 'Professional food photography, modern plating, clean presentation on white plates, natural daylight, restaurant-quality styling';
+    }
+    
+    const prompt = `${stylePrompt}. The dish is "${title}" - ${description || 'a delicious recipe'}. Key ingredients visible: ${ingredientsList}. Shot with a macro lens, shallow depth of field, appetizing colors, Instagram-worthy food styling, 4K quality, no text or watermarks, perfectly focused on the food.`;
 
     console.log('Generated prompt:', prompt);
 
