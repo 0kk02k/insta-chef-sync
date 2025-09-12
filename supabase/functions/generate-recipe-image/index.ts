@@ -24,9 +24,9 @@ serve(async (req) => {
 
     console.log('Generating image for recipe:', recipeId);
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+    if (!togetherApiKey) {
+      throw new Error('Together API key not configured');
     }
 
     // Create detailed prompt for food photography
@@ -35,27 +35,28 @@ serve(async (req) => {
 
     console.log('Generated prompt:', prompt);
 
-    // Generate image with OpenAI
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    // Generate image with Together AI FLUX.schnell
+    const imageResponse = await fetch('https://api.together.xyz/v1/images/generations', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${togetherApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'black-forest-labs/FLUX.1-schnell',
         prompt: prompt,
-        size: '1024x1024',
-        quality: 'high',
-        output_format: 'png',
-        n: 1
+        width: 1024,
+        height: 1024,
+        steps: 4,
+        n: 1,
+        response_format: 'b64_json'
       }),
     });
 
     if (!imageResponse.ok) {
       const error = await imageResponse.text();
-      console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API error: ${imageResponse.status}`);
+      console.error('Together AI API error:', error);
+      throw new Error(`Together AI API error: ${imageResponse.status}`);
     }
 
     const imageData = await imageResponse.json();
