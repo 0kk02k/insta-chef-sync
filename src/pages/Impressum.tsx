@@ -18,7 +18,7 @@ const Impressum = () => {
               size="icon"
               variant="ghost" 
               onClick={() => navigate('/')}
-              className="text-primary hover:bg-primary/10 hover:text-primary border border-primary h-10 w-10"
+              className="bg-white text-primary border border-primary h-10 w-10 hover:bg-white hover:text-primary"
               style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
             >
               <ArrowLeft className="h-6 w-6" />

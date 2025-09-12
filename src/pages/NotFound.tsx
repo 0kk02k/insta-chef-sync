@@ -19,7 +19,7 @@ const NotFound = () => {
         <div className="text-center">
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">404</h1>
           <p className="text-xl text-muted-foreground mb-6">Oops! Diese Seite wurde nicht gefunden</p>
-          <Button asChild>
+          <Button asChild className="bg-white text-primary border border-primary hover:bg-white hover:text-primary">
             <Link to="/">
               Zurück zur Startseite
             </Link>
