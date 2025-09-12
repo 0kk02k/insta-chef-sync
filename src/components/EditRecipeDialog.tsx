@@ -87,6 +87,9 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(selectedFile);
+
+      // If a new image is selected, cancel a pending delete
+      handleInputChange('deleteImage', false);
     } else if (selectedFile) {
       toast({
         title: "Fehler",
@@ -381,6 +384,12 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                       />
                       <span className="text-sm font-medium">Neues Bild gewählt</span>
                     </>
+                  ) : formData.deleteImage ? (
+                    <>
+                      <X className="h-8 w-8 text-destructive" />
+                      <span className="text-sm font-medium">Bild wird gelöscht</span>
+                      <span className="text-xs text-muted-foreground">Beim Speichern endgültig entfernt</span>
+                    </>
                   ) : recipe.image_url ? (
                     <>
                       <img 
@@ -402,7 +411,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                     </>
                   )}
                 </label>
-                {(recipe.image_url || imagePreview) && (
+                {!formData.deleteImage && (recipe.image_url || imagePreview) && (
                   <Button
                     type="button"
                     variant="outline"
@@ -417,6 +426,22 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
                     <X className="h-4 w-4 mr-1" />
                     Bild löschen
                   </Button>
+                )}
+                {formData.deleteImage && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleInputChange('deleteImage', false)}
+                      className="mt-2"
+                    >
+                      Löschung zurücknehmen
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Das Bild wird beim Speichern entfernt.
+                    </p>
+                  </>
                 )}
               </div>
             </div>
