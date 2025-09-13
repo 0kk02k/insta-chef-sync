@@ -96,7 +96,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
         });
       } else if (uploadedContent.type === 'pdf' && uploadedContent.file) {
         // Upload PDF to storage first
-        const fileName = `${Date.now()}-${uploadedContent.file.name}`;
+        const fileName = `${Date.now()}-${uploadedContent.file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-uploads')
