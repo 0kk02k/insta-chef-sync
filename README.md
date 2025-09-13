@@ -5,7 +5,10 @@ A modern recipe management application built with React and Supabase.
 ## Features
 
 - Create, edit, and manage recipes
-- Upload recipe images and PDFs
+- Upload recipe images and PDFs with automatic text extraction
+- Process Instagram recipe links to extract recipe data
+- Screenshot-to-recipe conversion using AI
+- Generate recipe images using AI
 - Search and filter recipes
 - Rate and comment on recipes
 - User authentication
@@ -65,7 +68,24 @@ src/
 ├── lib/                # Utility functions
 ├── integrations/       # External service integrations
 └── main.tsx           # Application entry point
+
+supabase/
+├── functions/          # Edge Functions for AI processing
+│   ├── pdf-processor/          # PDF text extraction
+│   ├── process-instagram-recipe/   # Instagram recipe scraping
+│   ├── process-screenshot-recipe/  # Screenshot-to-recipe AI
+│   └── generate-recipe-image/      # AI image generation
+└── config.toml        # Supabase configuration
 ```
+
+## AI Processing Features
+
+This app includes several AI-powered features through Supabase Edge Functions:
+
+- **PDF Processing**: Extracts text from uploaded recipe PDFs
+- **Instagram Integration**: Scrapes recipe data from Instagram posts
+- **Screenshot Processing**: Converts recipe screenshots to structured data using AI
+- **Image Generation**: Creates recipe images using AI models
 
 ## Deployment
 
