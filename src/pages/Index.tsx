@@ -40,6 +40,20 @@ const Index = () => {
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [rightOffset, setRightOffset] = useState(16);
+  const updateRightOffset = () => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const offset = Math.max(0, Math.round(window.innerWidth - rect.right));
+    setRightOffset(offset);
+  };
+
+  useEffect(() => {
+    updateRightOffset();
+    window.addEventListener('resize', updateRightOffset);
+    return () => window.removeEventListener('resize', updateRightOffset);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -257,6 +271,10 @@ const Index = () => {
     return matchesSearch && matchesUser;
   });
 
+  useEffect(() => {
+    updateRightOffset();
+  }, [filteredRecipes.length]);
+
   if (loading || recipesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -316,7 +334,7 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6" ref={containerRef}>
         {/* Search Bar and User Filter */}
         {recipes.length > 0 && (
           <div className="mb-6">
@@ -465,7 +483,7 @@ const Index = () => {
       
       {/* Floating Add Recipe Button */}
       {user && (
-        <div className="fixed bottom-6 z-50" style={{ right: `max(1rem, calc((100vw - 1280px) / 2))` }}>
+        <div className="fixed bottom-6 z-50" style={{ right: rightOffset }}>
           <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
         </div>
       )}
