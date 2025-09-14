@@ -316,7 +316,7 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 relative">
+      <div className="container mx-auto px-4 py-6">
         {/* Search Bar and User Filter */}
         {recipes.length > 0 && (
           <div className="mb-6">
@@ -461,14 +461,14 @@ const Index = () => {
             </div>
           </div>
         )}
-        
-        {/* Floating Add Recipe Button */}
-        {user && (
-          <div className="absolute bottom-6 right-0 z-50">
-            <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
-          </div>
-        )}
       </div>
+      
+      {/* Floating Add Recipe Button */}
+      {user && (
+        <div className="fixed bottom-6 z-50" style={{ right: `max(1rem, calc((100vw - 1280px) / 2 + 1rem))` }}>
+          <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
+        </div>
+      )}
       
       <Footer />
     </div>
