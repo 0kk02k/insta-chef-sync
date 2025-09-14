@@ -465,7 +465,7 @@ const Index = () => {
       
       {/* Floating Add Recipe Button */}
       {user && (
-        <div className="fixed bottom-6 z-50" style={{ right: `max(1rem, calc((100vw - 1280px) / 2 + 1rem))` }}>
+        <div className="fixed bottom-6 z-50" style={{ right: `max(1rem, calc((100vw - 1280px) / 2))` }}>
           <AddRecipeDialog onRecipeAdded={handleRecipeAdded} />
         </div>
       )}
