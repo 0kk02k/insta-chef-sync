@@ -78,9 +78,9 @@ All colors MUST be HSL.
     --space-4: 1rem; /* 16px */
     --space-6: 1.5rem; /* 24px */
 
-    /* Hot pink for special buttons */
-    --hot-pink: 330 100% 71%; /* #FF69B4 */
-    --hot-pink-foreground: 0 0% 100%; /* white */
+    /* Light pink for special buttons */
+    --hot-pink: 351 100% 86%; /* #ffb6c1 */
+    --hot-pink-foreground: 0 0% 0%; /* black */
 
     /* Sidebar - Fresh theme */
     --sidebar-background: 42 36% 96%; /* bg - warm neutral background */
@@ -147,9 +147,9 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(21 100% 83%), hsl(18 100% 61%)); /* enhanced carrot to neon */
     --gradient-secondary: linear-gradient(135deg, hsl(127 53% 82%), hsl(156 74% 60%)); /* enhanced pea to neon */
 
-    /* Hot pink same in dark mode */
-    --hot-pink: 330 100% 71%; /* #FF69B4 */
-    --hot-pink-foreground: 0 0% 100%; /* white */
+    /* Light pink same in dark mode */
+    --hot-pink: 351 100% 86%; /* #ffb6c1 */
+    --hot-pink-foreground: 0 0% 0%; /* black */
 
     /* Sidebar Dark Mode */
     --sidebar-background: 0 0% 7%;
