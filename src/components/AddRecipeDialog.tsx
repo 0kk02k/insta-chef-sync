@@ -425,9 +425,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
                   `Verarbeite ${batchProgress.completed + 1}/${batchProgress.total}...` : 
                   'KI verarbeitet...'
               ) : (
-                uploadedContent && uploadedContent.length > 1 ? 
-                  `${uploadedContent.length} Rezepte hinzufügen` : 
-                  'Rezept hinzufügen'
+                'Hinzufügen'
               )}
             </Button>
           </div>
