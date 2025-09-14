@@ -244,10 +244,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
             name: `Text (${text.substring(0, 30)}...)`,
           });
         }
-        toast({
-          title: "Eingefügt",
-          description: "Inhalt aus der Zwischenablage eingefügt.",
-        });
       }
     } catch (error) {
       toast({

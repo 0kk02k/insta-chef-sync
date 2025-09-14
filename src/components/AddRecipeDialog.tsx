@@ -232,12 +232,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
       }
     }
 
-    toast({
-      title: "Stapelverarbeitung abgeschlossen",
-      description,
-      variant: failureCount > 0 ? "destructive" : "default",
-    });
-
     if (successCount > 0) {
       onRecipeAdded?.();
     }
@@ -295,12 +289,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           throw error;
         }
 
-        toast({
-          title: "Rezept hinzugefügt",
-          description: `"${processedData.title}" wurde erfolgreich erstellt.`,
-        });
-
-        resetForm();
         setOpen(false);
       } else if (uploadedContent.every((c) => c.type === 'screenshot')) {
         // Multiple screenshots -> combine into a single recipe via edge function

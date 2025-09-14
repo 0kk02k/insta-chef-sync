@@ -63,10 +63,6 @@ const Auth = () => {
         });
       }
     } else {
-      toast({
-        title: "Registrierung erfolgreich",
-        description: "Überprüfen Sie Ihre E-Mails für die Bestätigung.",
-      });
     }
     setIsLoading(false);
   };

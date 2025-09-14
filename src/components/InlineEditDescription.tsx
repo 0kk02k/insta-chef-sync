@@ -31,10 +31,6 @@ const InlineEditDescription = ({ value, recipeId, isOwner, onUpdate }: InlineEdi
 
       onUpdate(newValue);
       setIsEditing(false);
-      toast({
-        title: "Gespeichert!",
-        description: "Beschreibung wurde aktualisiert.",
-      });
     } catch (error) {
       console.error('Error updating description:', error);
       toast({

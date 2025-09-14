@@ -245,11 +245,6 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
         throw error;
       }
 
-      toast({
-        title: "Erfolgreich!",
-        description: "Rezept wurde aktualisiert.",
-      });
-
       setOpen(false);
       onRecipeUpdated?.();
 

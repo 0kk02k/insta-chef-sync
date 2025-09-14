@@ -39,10 +39,6 @@ const InlineEditTitle = ({ value, recipeId, isOwner, onUpdate }: InlineEditTitle
 
       onUpdate(tempValue);
       setIsEditing(false);
-      toast({
-        title: "Gespeichert!",
-        description: "Titel wurde aktualisiert.",
-      });
     } catch (error) {
       console.error('Error updating title:', error);
       toast({

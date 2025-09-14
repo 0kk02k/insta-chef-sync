@@ -153,11 +153,6 @@ const RecipeDetail = () => {
         throw error;
       }
 
-      toast({
-        title: "Erfolgreich!",
-        description: "Rezept wurde gelöscht.",
-      });
-
       navigate('/');
     } catch (error) {
       console.error('Error deleting recipe:', error);
@@ -192,10 +187,6 @@ const RecipeDetail = () => {
 
       if (data.success) {
         setRecipe({ ...recipe, image_url: data.imageUrl });
-        toast({
-          title: "Bild generiert!",
-          description: "KI-Bild wurde erfolgreich erstellt und gespeichert.",
-        });
       } else {
         throw new Error(data.details || 'Failed to generate image');
       }

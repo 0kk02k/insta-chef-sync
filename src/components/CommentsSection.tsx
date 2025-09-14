@@ -103,11 +103,6 @@ const CommentsSection = ({ recipeId, isPublished }: CommentsSectionProps) => {
 
       setNewComment('');
       await fetchComments();
-      
-      toast({
-        title: "Erfolg",
-        description: "Kommentar wurde hinzugefügt.",
-      });
     } catch (error) {
       console.error('Error submitting comment:', error);
       toast({
@@ -130,11 +125,6 @@ const CommentsSection = ({ recipeId, isPublished }: CommentsSectionProps) => {
       if (error) throw error;
 
       await fetchComments();
-      
-      toast({
-        title: "Erfolg",
-        description: "Kommentar wurde gelöscht.",
-      });
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast({

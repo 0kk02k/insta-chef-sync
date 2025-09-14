@@ -41,10 +41,6 @@ const InlineEditInstructions = ({ value, recipeId, isOwner, onUpdate }: InlineEd
 
       onUpdate(filteredInstructions);
       setIsEditing(false);
-      toast({
-        title: "Gespeichert!",
-        description: "Anleitung wurde aktualisiert.",
-      });
     } catch (error) {
       console.error('Error updating instructions:', error);
       toast({

@@ -57,10 +57,6 @@ const InlineEditMetadata = ({ cookingTime, servings, recipeId, isOwner, onUpdate
 
       onUpdate(newCookingTime, newServings);
       setIsEditing(false);
-      toast({
-        title: "Gespeichert!",
-        description: "Rezept-Details wurden aktualisiert.",
-      });
     } catch (error) {
       console.error('Error updating metadata:', error);
       toast({

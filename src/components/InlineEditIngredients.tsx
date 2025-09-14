@@ -41,10 +41,6 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate }: InlineEdi
 
       onUpdate(filteredIngredients);
       setIsEditing(false);
-      toast({
-        title: "Gespeichert!",
-        description: "Zutaten wurden aktualisiert.",
-      });
     } catch (error) {
       console.error('Error updating ingredients:', error);
       toast({
