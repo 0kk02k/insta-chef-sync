@@ -80,6 +80,14 @@ const Index = () => {
     if (!user) return;
     
     try {
+      // First, get the list of ignored recipes for this user
+      const { data: ignoredRecipesData } = await supabase
+        .from('ignored_recipes')
+        .select('recipe_id')
+        .eq('user_id', user.id);
+      
+      const ignoredRecipeIds = (ignoredRecipesData || []).map(item => item.recipe_id);
+
       // Fetch user's own recipes (all) and published recipes from others
       const [ownRecipesResponse, publishedRecipesResponse] = await Promise.all([
         // User's own recipes (published and unpublished)
@@ -89,13 +97,21 @@ const Index = () => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         
-        // Published recipes from other users
-        supabase
-          .from('recipes')
-          .select('*')
-          .eq('published', true)
-          .neq('user_id', user.id)
-          .order('created_at', { ascending: false })
+        // Published recipes from other users, excluding ignored ones
+        ignoredRecipeIds.length > 0 
+          ? supabase
+              .from('recipes')
+              .select('*')
+              .eq('published', true)
+              .neq('user_id', user.id)
+              .not('id', 'in', `(${ignoredRecipeIds.join(',')})`)
+              .order('created_at', { ascending: false })
+          : supabase
+              .from('recipes')
+              .select('*')
+              .eq('published', true)
+              .neq('user_id', user.id)
+              .order('created_at', { ascending: false })
       ]);
 
       if (ownRecipesResponse.error) {

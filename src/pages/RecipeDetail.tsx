@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,6 +52,7 @@ const RecipeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [ignoring, setIgnoring] = useState(false);
   const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
   const [currentPortions, setCurrentPortions] = useState<number>(1);
 
@@ -281,6 +282,45 @@ const RecipeDetail = () => {
     }
   };
 
+  const handleIgnoreRecipe = async () => {
+    if (!recipe || !user) return;
+
+    if (!confirm('Möchten Sie dieses Rezept ignorieren? Es wird dann nicht mehr in Ihrer Rezeptliste angezeigt.')) {
+      return;
+    }
+
+    setIgnoring(true);
+
+    try {
+      const { error } = await supabase
+        .from('ignored_recipes')
+        .insert({
+          user_id: user.id,
+          recipe_id: recipe.id
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Rezept ignoriert",
+        description: "Das Rezept wird nicht mehr in Ihrer Liste angezeigt.",
+      });
+
+      navigate('/');
+    } catch (error) {
+      console.error('Error ignoring recipe:', error);
+      toast({
+        title: "Fehler",
+        description: "Rezept konnte nicht ignoriert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setIgnoring(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -309,7 +349,7 @@ const RecipeDetail = () => {
               <ArrowLeft className="h-6 w-6" />
             </Button>
             
-            {user && user.id === recipe.user_id && (
+            {user && user.id === recipe.user_id ? (
               <div className="flex items-center space-x-2">
                 <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:border [&>button]:border-foreground">
                   <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
@@ -333,6 +373,26 @@ const RecipeDetail = () => {
                   )}
                 </Button>
               </div>
+            ) : user && user.id !== recipe.user_id && (
+              <Button 
+                size="icon"
+                variant="ghost" 
+                onClick={handleIgnoreRecipe}
+                disabled={ignoring}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                style={{ 
+                  backgroundColor: 'hsl(var(--primary))', 
+                  color: 'hsl(var(--primary-foreground))',
+                  borderColor: 'hsl(var(--foreground))'
+                }}
+                title="Rezept ignorieren"
+              >
+                {ignoring ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <EyeOff className="h-6 w-6" />
+                )}
+              </Button>
             )}
           </div>
         </div>
