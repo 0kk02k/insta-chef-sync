@@ -18,16 +18,16 @@ function generateFallbackPrompt(title: string, description: string, ingredients:
   
   let stylePrompt = '';
   if (isDrink) {
-    stylePrompt = 'Professional cocktail photography, elegant glassware, garnished beautifully, condensation on glass, bar setting with ambient lighting';
+    stylePrompt = 'Professional cocktail photography, elegant glassware, garnished beautifully, condensation on glass, bright white background or light marble surface, natural daylight, fresh and airy presentation';
   } else if (isDessert) {
-    stylePrompt = 'Elegant dessert photography, artfully plated on fine china, dusted with powdered sugar, soft natural lighting, restaurant-quality presentation';
+    stylePrompt = 'Elegant dessert photography, artfully plated on white fine china, dusted with powdered sugar, bright soft natural lighting, clean white background, restaurant-quality presentation';
   } else if (isGerman) {
-    stylePrompt = 'Traditional German cuisine photography, rustic wooden table, authentic ceramic plates, warm cozy lighting, hearty comfort food presentation';
+    stylePrompt = 'Traditional German cuisine photography, light wooden surface, white ceramic plates, bright natural lighting, hearty comfort food presentation, fresh and airy atmosphere';
   } else {
-    stylePrompt = 'Professional food photography, modern plating, clean presentation on white plates, natural daylight, restaurant-quality styling';
+    stylePrompt = 'Professional food photography, modern plating, clean presentation on white plates, bright natural daylight, white or light background, restaurant-quality styling';
   }
   
-  return `${stylePrompt}. The dish is "${title}" - ${description || 'a delicious recipe'}. Key ingredients visible: ${ingredientsList}. Shot with a macro lens, shallow depth of field, appetizing colors, Instagram-worthy food styling, 4K quality, no text or watermarks, perfectly focused on the food.`;
+  return `${stylePrompt}. The dish is "${title}" - ${description || 'a delicious recipe'}. Key ingredients visible: ${ingredientsList}. Shot with a macro lens, shallow depth of field, appetizing colors, Instagram-worthy food styling, 4K quality, no text or watermarks, perfectly focused on the food, bright and fresh aesthetic with light backgrounds.`;
 }
 
 serve(async (req) => {
@@ -78,18 +78,28 @@ serve(async (req) => {
 
 GUIDELINES:
 - Focus on professional food styling and photography techniques
+- ALWAYS use bright, fresh, light backgrounds - avoid dark or moody settings
+- Use clean white backgrounds, light wood surfaces, or bright marble countertops
+- Emphasize natural daylight, bright lighting, and fresh aesthetic
 - Include specific lighting, composition, and plating details
-- Consider cultural context (German cuisine vs international)
+- Consider cultural context but maintain bright, fresh presentation
 - Specify camera settings and angles when relevant
 - Include appetizing visual elements (steam, garnishes, textures)
 - Avoid any text, watermarks, or labels in the image
 - Keep prompts under 200 words but make them vivid and detailed
 
+AESTHETIC REQUIREMENTS:
+- Bright, airy, and fresh feeling
+- Light backgrounds (white, light wood, bright marble)
+- Natural daylight or bright soft lighting
+- Clean, modern presentation
+- Avoid dark wooden tables, dim lighting, or moody atmospheres
+
 DISH CATEGORIES TO CONSIDER:
-- German traditional dishes: rustic, hearty, warm lighting, wooden tables
-- Desserts: elegant plating, fine china, soft lighting, artistic presentation  
-- Drinks/Cocktails: glassware focus, condensation, garnishes, bar setting
-- International cuisine: modern plating, clean presentation, natural daylight
+- German traditional dishes: rustic but bright, light wooden surfaces, natural daylight
+- Desserts: elegant plating, white plates, bright soft lighting, clean presentation
+- Drinks/Cocktails: bright backgrounds, clean glassware, fresh garnishes, well-lit setting
+- International cuisine: modern plating, white surfaces, bright natural daylight
 
 Return ONLY the prompt text, no explanations or additional text.`
               },
