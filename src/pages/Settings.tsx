@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, User, ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { CookieSettings } from '@/components/CookieSettings';
 
 interface Profile {
   display_name: string;
@@ -183,6 +185,12 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Separator />
+          
+          <CookieSettings />
+          
+          <Separator />
 
           {/* Delete Account Section */}
           <Card className="border-destructive/20">

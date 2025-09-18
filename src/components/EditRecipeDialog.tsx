@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Loader2, Plus, X, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { useAuth } from '@/hooks/useAuth';
 import StarRating from '@/components/StarRating';
 

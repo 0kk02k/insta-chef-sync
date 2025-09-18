@@ -108,20 +108,67 @@ const Datenschutz = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-foreground mb-3">5. Cookies</h2>
-                <p className="text-muted-foreground">
-                  Diese Website verwendet Cookies, um die Funktionalität zu gewährleisten und Ihre Nutzererfahrung zu 
-                  verbessern. Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden. Wir verwenden:
+                <h2 className="text-xl font-semibold text-foreground mb-3">5. Cookies und lokale Speicherung</h2>
+                <p className="text-muted-foreground mb-4">
+                  Diese Website verwendet Cookies und lokale Speichertechnologien gemäß Art. 6 Abs. 1 lit. a DSGVO 
+                  (Einwilligung) und Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen). Wir holen vor der Verwendung 
+                  nicht-notwendiger Cookies Ihre ausdrückliche Einwilligung ein.
                 </p>
-                <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
-                  <li><strong>Technisch notwendige Cookies:</strong> Für die Benutzeranmeldung und Session-Management</li>
-                  <li><strong>Funktionale Cookies:</strong> Für die Speicherung Ihrer Präferenzen (z.B. Sprache, Maßeinheiten)</li>
+                
+                <h3 className="text-lg font-medium text-foreground mb-2">5.1 Kategorien von Cookies</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-foreground">Notwendige Cookies</h4>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Zweck:</strong> Ermöglichen grundlegende Webseitenfunktionen und Sicherheit<br/>
+                      <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen)<br/>
+                      <strong>Speicherdauer:</strong> Session oder bis zu 7 Tage<br/>
+                      <strong>Beispiele:</strong> Authentifizierung, Sicherheits-Token, Session-Management
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-foreground">Funktionale Cookies</h4>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Zweck:</strong> Speicherung von Benutzereinstellungen und -präferenzen<br/>
+                      <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung)<br/>
+                      <strong>Speicherdauer:</strong> Bis zu 1 Jahr<br/>
+                      <strong>Beispiele:</strong> Sidebar-Status, Theme-Präferenzen, Sprache, Maßeinheiten<br/>
+                      <strong>Deaktivierung:</strong> Können in den Cookie-Einstellungen deaktiviert werden
+                    </p>
+                  </div>
+                </div>
+                
+                <h3 className="text-lg font-medium text-foreground mb-2 mt-4">5.2 Ihre Wahlmöglichkeiten</h3>
+                <p className="text-muted-foreground mb-2">
+                  Sie haben folgende Optionen bezüglich Cookies:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Alle Cookies akzeptieren</li>
+                  <li>Nur notwendige Cookies akzeptieren</li>
+                  <li>Individuelle Einstellungen in den Cookie-Präferenzen vornehmen</li>
+                  <li>Alle Cookies und gespeicherten Daten löschen</li>
                 </ul>
-                <p className="text-muted-foreground mt-2">
-                  Sie können Ihren Browser so einstellen, dass Sie über das Setzen von Cookies informiert werden und 
-                  Cookies nur im Einzelfall erlauben. Bei der Deaktivierung von Cookies kann die Funktionalität dieser 
-                  Website eingeschränkt sein.
+                
+                <h3 className="text-lg font-medium text-foreground mb-2 mt-4">5.3 Einwilligung widerrufen</h3>
+                <p className="text-muted-foreground">
+                  Sie können Ihre Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. 
+                  Besuchen Sie dazu die <a href="/settings" className="underline hover:no-underline">Einstellungen</a> 
+                  oder löschen Sie die Cookies in Ihrem Browser. Die Rechtmäßigkeit der aufgrund der Einwilligung 
+                  bis zum Widerruf erfolgten Verarbeitung wird dadurch nicht berührt.
                 </p>
+                
+                <h3 className="text-lg font-medium text-foreground mb-2 mt-4">5.4 Auswirkungen bei Ablehnung</h3>
+                <p className="text-muted-foreground">
+                  Bei Ablehnung funktionaler Cookies sind folgende Einschränkungen möglich:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Benutzereinstellungen werden nicht gespeichert</li>
+                  <li>Theme-Präferenzen gehen nach Browserschließung verloren</li>
+                  <li>Sprach- und Maßeinheiteneinstellungen müssen bei jedem Besuch neu gewählt werden</li>
+                  <li>UI-Präferenzen (z.B. Sidebar-Status) werden nicht persistent gespeichert</li>
+                </ul>
               </section>
 
               <section>
