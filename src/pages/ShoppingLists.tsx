@@ -62,9 +62,6 @@ const ShoppingLists = () => {
                 <h1 className="text-3xl font-bold text-white">
                   Einkaufslisten
                 </h1>
-                <p className="text-white/80 mt-1">
-                  Verwalten Sie Ihre Einkaufslisten und fügen Sie Rezeptzutaten hinzu.
-                </p>
               </div>
             </div>
           </div>
@@ -101,9 +98,6 @@ const ShoppingLists = () => {
               <h1 className="text-3xl font-bold text-white">
                 Einkaufslisten
               </h1>
-              <p className="text-white/80 mt-1">
-                Verwalten Sie Ihre Einkaufslisten und fügen Sie Rezeptzutaten hinzu.
-              </p>
             </div>
           </div>
         </div>
@@ -111,12 +105,6 @@ const ShoppingLists = () => {
       
       <div className="flex-1 p-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="flex justify-end mb-8">
-            <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Neue Liste
-            </Button>
-          </div>
 
         {shoppingLists.length === 0 ? (
           <Card className="text-center py-12">
