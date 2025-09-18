@@ -208,7 +208,7 @@ export const useShoppingListItems = (shoppingListId: string) => {
     }
   };
 
-  const deleteItem = async (itemId: string) => {
+  const deleteItem = async (itemId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('shopping_list_items')
@@ -218,10 +218,7 @@ export const useShoppingListItems = (shoppingListId: string) => {
       if (error) throw error;
       
       setItems(items.filter(item => item.id !== itemId));
-      toast({
-        title: 'Erfolg',
-        description: 'Element wurde gelöscht.',
-      });
+      return true;
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
@@ -229,6 +226,41 @@ export const useShoppingListItems = (shoppingListId: string) => {
         description: 'Element konnte nicht gelöscht werden.',
         variant: 'destructive',
       });
+      return false;
+    }
+  };
+
+  const addItem = async (itemData: {
+    ingredient_name: string;
+    amount?: number | null;
+    unit?: string | null;
+    portion_multiplier: number;
+    recipe_id?: string | null;
+    is_checked?: boolean;
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .insert([{
+          shopping_list_id: shoppingListId,
+          ...itemData,
+          is_checked: itemData.is_checked || false
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setItems([...items, data]);
+      return true;
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Element konnte nicht hinzugefügt werden.',
+        variant: 'destructive',
+      });
+      return false;
     }
   };
 
@@ -268,6 +300,7 @@ export const useShoppingListItems = (shoppingListId: string) => {
     isLoading,
     toggleItem,
     deleteItem,
+    addItem,
     clearCheckedItems,
     fetchItems,
   };

@@ -13,13 +13,14 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ArrowLeft, MoreVertical, Trash2, CheckCheck, X } from 'lucide-react';
 import { useShoppingLists, useShoppingListItems } from '@/hooks/useShoppingLists';
+import { useToast } from '@/hooks/use-toast';
 
 const ShoppingListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { shoppingLists, deleteShoppingList } = useShoppingLists();
-  const { items, isLoading, toggleItem, deleteItem, clearCheckedItems } = useShoppingListItems(id || '');
-  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const { items, isLoading, toggleItem, deleteItem, clearCheckedItems, addItem } = useShoppingListItems(id || '');
   const [showClearDialog, setShowClearDialog] = useState(false);
 
   const currentList = shoppingLists.find(list => list.id === id);
@@ -31,11 +32,42 @@ const ShoppingListDetail = () => {
     }
   };
 
-  const handleDeleteItem = async () => {
-    if (deleteItemId) {
-      await deleteItem(deleteItemId);
-      setDeleteItemId(null);
+  const handleDeleteItem = async (itemId: string) => {
+    const itemToDelete = items.find(item => item.id === itemId);
+    if (!itemToDelete) return;
+
+    const success = await deleteItem(itemId);
+    if (success) {
+      toast({
+        title: "Artikel entfernt",
+        description: `${formatItemDisplay(itemToDelete)} wurde entfernt.`,
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleUndoDelete(itemToDelete)}
+          >
+            Rückgängig
+          </Button>
+        ),
+      });
     }
+  };
+
+  const handleUndoDelete = async (deletedItem: any) => {
+    await addItem({
+      ingredient_name: deletedItem.ingredient_name,
+      amount: deletedItem.amount,
+      unit: deletedItem.unit,
+      portion_multiplier: deletedItem.portion_multiplier,
+      recipe_id: deletedItem.recipe_id,
+      is_checked: deletedItem.is_checked
+    });
+    
+    toast({
+      title: "Wiederhergestellt",
+      description: `${formatItemDisplay(deletedItem)} wurde wiederhergestellt.`,
+    });
   };
 
   const handleClearCheckedItems = async () => {
@@ -164,7 +196,7 @@ const ShoppingListDetail = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setDeleteItemId(item.id)}
+                        onClick={() => handleDeleteItem(item.id)}
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
@@ -197,7 +229,7 @@ const ShoppingListDetail = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setDeleteItemId(item.id)}
+                        onClick={() => handleDeleteItem(item.id)}
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
@@ -209,24 +241,6 @@ const ShoppingListDetail = () => {
             )}
           </div>
         )}
-
-        {/* Delete Item Confirmation */}
-        <AlertDialog open={!!deleteItemId} onOpenChange={() => setDeleteItemId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Artikel löschen</AlertDialogTitle>
-              <AlertDialogDescription>
-                Möchten Sie diesen Artikel aus der Einkaufsliste entfernen?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteItem}>
-                Löschen
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
 
         {/* Clear Checked Items Confirmation */}
         <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
