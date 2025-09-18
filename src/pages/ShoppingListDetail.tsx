@@ -127,6 +127,27 @@ const ShoppingListDetail = () => {
     }
   };
 
+  const getCategoryBackgroundColor = (category: string) => {
+    switch (category) {
+      case 'Obst & Gemüse':
+        return 'bg-green-50 dark:bg-green-950/30';
+      case 'Fleisch & Fisch':
+        return 'bg-red-50 dark:bg-red-950/30';
+      case 'Milchprodukte & Eier':
+        return 'bg-blue-50 dark:bg-blue-950/30';
+      case 'Gewürze & Würzmittel':
+        return 'bg-purple-50 dark:bg-purple-950/30';
+      case 'Öle & Essig':
+        return 'bg-yellow-50 dark:bg-yellow-950/30';
+      case 'Saucen & Dressings':
+        return 'bg-orange-50 dark:bg-orange-950/30';
+      case 'Backzutaten & Haltbares':
+        return 'bg-amber-50 dark:bg-amber-950/30';
+      default:
+        return 'bg-muted/30';
+    }
+  };
+
   const groupItemsByCategory = (items: any[]) => {
     const grouped = items.reduce((acc, item) => {
       const category = item.category || 'Sonstiges';
@@ -171,10 +192,11 @@ const ShoppingListDetail = () => {
 
     const IconComponent = getCategoryIcon(category);
     const iconColor = getCategoryColor(category);
+    const backgroundColor = getCategoryBackgroundColor(category);
 
     return (
       <div key={category} className="space-y-1">
-        <div className="flex items-center gap-2 px-2">
+        <div className={`flex items-center gap-2 px-3 py-2 -mx-6 ${backgroundColor} rounded-md`}>
           <IconComponent className={`h-4 w-4 ${iconColor}`} />
           <h4 className={`text-sm font-medium ${iconColor}`}>{category}</h4>
           <Badge variant="outline" className="text-xs">{categoryItems.length}</Badge>
