@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChefHat } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import Footer from '@/components/Footer';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { validatePassword } from '@/utils/passwordValidation';
+import { authRateLimiter, passwordResetRateLimiter } from '@/utils/rateLimiter';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +44,30 @@ const Auth = () => {
       return;
     }
 
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "Passwort zu schwach",
+        description: "Bitte wählen Sie ein stärkeres Passwort.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check rate limit
+    const rateLimitKey = `signup_${email}`;
+    if (!authRateLimiter.isAllowed(rateLimitKey)) {
+      const resetTime = authRateLimiter.getResetTime(rateLimitKey);
+      const resetDate = resetTime ? new Date(resetTime) : new Date();
+      toast({
+        title: "Zu viele Versuche",
+        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     const { error } = await signUp(email, password, {
       display_name: displayName,
@@ -63,6 +90,8 @@ const Auth = () => {
         });
       }
     } else {
+      // Reset rate limit on successful signup
+      authRateLimiter.reset(rateLimitKey);
     }
     setIsLoading(false);
   };
@@ -73,6 +102,19 @@ const Auth = () => {
       toast({
         title: "Fehler",
         description: "Bitte E-Mail und Passwort eingeben.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check rate limit
+    const rateLimitKey = `signin_${email}`;
+    if (!authRateLimiter.isAllowed(rateLimitKey)) {
+      const resetTime = authRateLimiter.getResetTime(rateLimitKey);
+      const resetDate = resetTime ? new Date(resetTime) : new Date();
+      toast({
+        title: "Zu viele Versuche",
+        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
         variant: "destructive",
       });
       return;
@@ -100,6 +142,9 @@ const Auth = () => {
           variant: "destructive",
         });
       }
+    } else {
+      // Reset rate limit on successful signin
+      authRateLimiter.reset(rateLimitKey);
     }
     setIsLoading(false);
   };
@@ -110,6 +155,19 @@ const Auth = () => {
       toast({
         title: "Fehler",
         description: "Bitte E-Mail-Adresse eingeben.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check rate limit for password reset
+    const rateLimitKey = `reset_${email}`;
+    if (!passwordResetRateLimiter.isAllowed(rateLimitKey)) {
+      const resetTime = passwordResetRateLimiter.getResetTime(rateLimitKey);
+      const resetDate = resetTime ? new Date(resetTime) : new Date();
+      toast({
+        title: "Zu viele Versuche",
+        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
         variant: "destructive",
       });
       return;
@@ -130,6 +188,8 @@ const Auth = () => {
         description: "Überprüfen Sie Ihre E-Mails für den Passwort-Reset-Link.",
       });
       setShowResetPassword(false);
+      // Reset rate limit on successful password reset request
+      passwordResetRateLimiter.reset(rateLimitKey);
     }
     setIsLoading(false);
   };
@@ -300,8 +360,9 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                   />
+                  <PasswordStrengthIndicator password={password} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-language">Sprache</Label>
