@@ -117,23 +117,23 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background/95 to-accent-2/20">
-      <header className="bg-white/10 backdrop-blur-sm border-b border-border/20 sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
+      {/* Header with dark blue background */}
+      <div className="header" style={{ background: 'var(--gradient-header)' }}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
+            <Button 
+              size="icon"
+              variant="ghost" 
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-ink-900 hover:bg-accent-2/20"
+              className="text-primary border border-primary h-10 w-10 bg-white hover:bg-white"
+              style={{ color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' }}
             >
-              <ArrowLeft className="h-4 w-4" />
-              Zurück
+              <ArrowLeft className="h-6 w-6" />
             </Button>
-            <h1 className="text-2xl font-bold text-ink-900">Einstellungen</h1>
-            <div className="w-20"></div>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
         <div className="space-y-6">
