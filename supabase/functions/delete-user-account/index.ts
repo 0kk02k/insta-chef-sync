@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     // Delete user data in the correct order to respect foreign key constraints
     
-    // 1. Delete comments
+    // 1. Delete comments (including any orphaned ones)
     const { error: commentsError } = await supabaseAdmin
       .from('comments')
       .delete()
@@ -120,7 +120,30 @@ Deno.serve(async (req) => {
     }
     console.log('Deleted profile for user:', userId);
 
-    // 5. Finally, delete the auth user
+    // 5. Delete any storage objects in user folders
+    try {
+      const { data: userFiles } = await supabaseAdmin.storage
+        .from('recipe-images')
+        .list(userId);
+      
+      if (userFiles && userFiles.length > 0) {
+        const filePaths = userFiles.map(file => `${userId}/${file.name}`);
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('recipe-images')
+          .remove(filePaths);
+        
+        if (storageError) {
+          console.error('Error deleting storage files:', storageError);
+        } else {
+          console.log('Deleted storage files for user:', userId);
+        }
+      }
+    } catch (storageError) {
+      console.error('Error checking/deleting storage:', storageError);
+      // Continue with user deletion even if storage cleanup fails
+    }
+
+    // 6. Finally, delete the auth user
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     
     if (authError) {
