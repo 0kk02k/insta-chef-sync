@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, MoreVertical, Trash2, CheckCheck, X } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Trash2, CheckCheck, X, Apple, Fish, Milk, Sparkles, Droplets, ChefHat, ShoppingBasket, Package } from 'lucide-react';
 import { useShoppingLists, useShoppingListItems } from '@/hooks/useShoppingLists';
 import { useToast } from '@/hooks/use-toast';
 
@@ -83,6 +83,125 @@ const ShoppingListDetail = () => {
     } else {
       return item.ingredient_name;
     }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Obst & Gemüse':
+        return Apple;
+      case 'Fleisch & Fisch':
+        return Fish;
+      case 'Milchprodukte & Eier':
+        return Milk;
+      case 'Gewürze & Würzmittel':
+        return Sparkles;
+      case 'Öle & Essig':
+        return Droplets;
+      case 'Saucen & Dressings':
+        return ChefHat;
+      case 'Backzutaten & Haltbares':
+        return Package;
+      default:
+        return ShoppingBasket;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'Obst & Gemüse':
+        return 'text-green-600';
+      case 'Fleisch & Fisch':
+        return 'text-red-600';
+      case 'Milchprodukte & Eier':
+        return 'text-blue-600';
+      case 'Gewürze & Würzmittel':
+        return 'text-purple-600';
+      case 'Öle & Essig':
+        return 'text-yellow-600';
+      case 'Saucen & Dressings':
+        return 'text-orange-600';
+      case 'Backzutaten & Haltbares':
+        return 'text-amber-600';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
+  const groupItemsByCategory = (items: any[]) => {
+    const grouped = items.reduce((acc, item) => {
+      const category = item.category || 'Sonstiges';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Sort categories by predefined order
+    const categoryOrder = [
+      'Obst & Gemüse',
+      'Fleisch & Fisch',
+      'Milchprodukte & Eier',
+      'Backzutaten & Haltbares',
+      'Gewürze & Würzmittel',
+      'Öle & Essig',
+      'Saucen & Dressings',
+      'Sonstiges'
+    ];
+
+    const sortedCategories: Record<string, any[]> = {};
+    categoryOrder.forEach(category => {
+      if (grouped[category] && grouped[category].length > 0) {
+        sortedCategories[category] = grouped[category];
+      }
+    });
+
+    // Add any remaining categories not in the predefined order
+    Object.keys(grouped).forEach(category => {
+      if (!categoryOrder.includes(category)) {
+        sortedCategories[category] = grouped[category];
+      }
+    });
+
+    return sortedCategories;
+  };
+
+  const renderCategorySection = (category: string, categoryItems: any[], isChecked: boolean) => {
+    if (categoryItems.length === 0) return null;
+
+    const IconComponent = getCategoryIcon(category);
+    const iconColor = getCategoryColor(category);
+
+    return (
+      <div key={category} className="space-y-2">
+        <div className="flex items-center gap-2 px-2">
+          <IconComponent className={`h-4 w-4 ${iconColor}`} />
+          <h4 className={`text-sm font-medium ${iconColor}`}>{category}</h4>
+          <Badge variant="outline" className="text-xs">{categoryItems.length}</Badge>
+        </div>
+        <div className="space-y-1">
+          {categoryItems.map((item) => (
+            <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
+              <Checkbox
+                checked={item.is_checked}
+                onCheckedChange={(checked) => toggleItem(item.id, checked as boolean)}
+              />
+              <span className={`flex-1 text-sm ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
+                {formatItemDisplay(item)}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeleteItem(item.id)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const checkedItems = items.filter(item => item.is_checked);
@@ -174,7 +293,7 @@ const ShoppingListDetail = () => {
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* Unchecked Items */}
+            {/* Unchecked Items by Category */}
             {uncheckedItems.length > 0 && (
               <Card>
                 <CardHeader>
@@ -183,31 +302,15 @@ const ShoppingListDetail = () => {
                     <Badge variant="secondary">{uncheckedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1">
-                  {uncheckedItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox
-                        checked={item.is_checked}
-                        onCheckedChange={(checked) => toggleItem(item.id, checked as boolean)}
-                      />
-                      <span className="flex-1 text-sm">
-                        {formatItemDisplay(item)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteItem(item.id)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                <CardContent className="space-y-4">
+                  {Object.entries(groupItemsByCategory(uncheckedItems)).map(([category, categoryItems]) =>
+                    renderCategorySection(category, categoryItems, false)
+                  )}
                 </CardContent>
               </Card>
             )}
 
-            {/* Checked Items */}
+            {/* Checked Items by Category */}
             {checkedItems.length > 0 && (
               <Card>
                 <CardHeader>
@@ -216,26 +319,10 @@ const ShoppingListDetail = () => {
                     <Badge variant="outline">{checkedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1">
-                  {checkedItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg opacity-60">
-                      <Checkbox
-                        checked={item.is_checked}
-                        onCheckedChange={(checked) => toggleItem(item.id, checked as boolean)}
-                      />
-                      <span className="flex-1 text-sm line-through text-muted-foreground">
-                        {formatItemDisplay(item)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteItem(item.id)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                <CardContent className="space-y-4">
+                  {Object.entries(groupItemsByCategory(checkedItems)).map(([category, categoryItems]) =>
+                    renderCategorySection(category, categoryItems, true)
+                  )}
                 </CardContent>
               </Card>
             )}
