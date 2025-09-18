@@ -183,7 +183,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="secondary">{uncheckedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-1">
                   {uncheckedItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox
@@ -216,7 +216,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="outline">{checkedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-1">
                   {checkedItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg opacity-60">
                       <Checkbox
