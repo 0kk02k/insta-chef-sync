@@ -490,11 +490,11 @@ const RecipeDetail = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-3">
             {/* Recipe Image & Title */}
             <Card className="overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
               {recipe.image_url ? (
@@ -571,7 +571,7 @@ const RecipeDetail = () => {
                 />
                 
                 {recipe.tags && recipe.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-3 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {recipe.tags.map((tag, index) => (
                       <span 
                         key={index} 
@@ -585,8 +585,8 @@ const RecipeDetail = () => {
                 )}
 
                 {/* Rating Section */}
-                <div className="pt-4 border-t border-border/50">
-                  <div className="flex flex-col gap-2">
+                <div className="pt-2 border-t border-border/50">
+                  <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium text-muted-foreground">Bewertung:</span>
                     <StarRating 
                       rating={recipe.rating} 
@@ -599,7 +599,7 @@ const RecipeDetail = () => {
             </Card>
 
             {/* Ingredients - Moved above Instructions for mobile */}
-            <div className="lg:hidden space-y-6">
+            <div className="lg:hidden space-y-3">
               {/* Portion Converter */}
               {recipe.structured_ingredients && recipe.servings && (
                 <PortionConverter
@@ -639,7 +639,7 @@ const RecipeDetail = () => {
           </div>
 
           {/* Sidebar - Only visible on desktop */}
-          <div className="hidden lg:block space-y-6">
+          <div className="hidden lg:block space-y-3">
             {/* Portion Converter */}
             {recipe.structured_ingredients && recipe.servings && (
               <PortionConverter
@@ -668,7 +668,7 @@ const RecipeDetail = () => {
               <CardHeader>
                 <CardTitle className="text-xl text-coral">Rezept Info</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2">
                 <div className="text-sm">
                   <span className="text-muted-foreground">
                     {recipe.is_forked ? 'Geändert von:' : 'Erstellt von:'}
