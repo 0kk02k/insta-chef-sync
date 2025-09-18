@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -51,13 +50,7 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
 
   return (
     <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg text-coral flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Portionen anpassen
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pt-6">
         <div className="flex items-center gap-4">
           <Label htmlFor="portions" className="text-sm font-medium text-muted-foreground min-w-fit">
             Portionen:
@@ -81,9 +74,6 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
               className="w-16 text-center border-border/50 bg-background/50"
             />
           </div>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          Original: {originalServings} Portionen
         </div>
       </CardContent>
     </Card>
