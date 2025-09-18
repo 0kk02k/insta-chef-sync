@@ -606,6 +606,7 @@ const RecipeDetail = () => {
                   originalServings={recipe.servings}
                   structuredIngredients={recipe.structured_ingredients}
                   onPortionChange={handlePortionChange}
+                  recipeId={recipe.id}
                 />
               )}
               
@@ -646,6 +647,7 @@ const RecipeDetail = () => {
                 originalServings={recipe.servings}
                 structuredIngredients={recipe.structured_ingredients}
                 onPortionChange={handlePortionChange}
+                recipeId={recipe.id}
               />
             )}
             

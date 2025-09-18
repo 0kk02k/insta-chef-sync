@@ -14,6 +14,8 @@ import RecipeDetail from "./pages/RecipeDetail";
 import Settings from "./pages/Settings";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
+import ShoppingLists from "./pages/ShoppingLists";
+import ShoppingListDetail from "./pages/ShoppingListDetail";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -33,6 +35,8 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/recipe/:id" element={<RecipeDetail />} />
+                <Route path="/shopping-lists" element={<ShoppingLists />} />
+                <Route path="/shopping-lists/:id" element={<ShoppingListDetail />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/impressum" element={<Impressum />} />
                 <Route path="/datenschutz" element={<Datenschutz />} />

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, User, LogOut, Loader2, Plus, Search, Users } from 'lucide-react';
+import { ChefHat, User, LogOut, Loader2, Plus, Search, Users, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -318,18 +318,28 @@ const Index = () => {
             </div>
             <div className="flex items-center space-x-3 sm:space-x-4">
               {user ? (
-                <Button 
-                  onClick={handleSignOut}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium hidden sm:inline">Logout</span>
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => navigate('/shopping-lists')}
+                    variant="outline"
+                    className="h-10 px-2 sm:px-4 flex items-center gap-2 border-border"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    <span className="font-medium hidden sm:inline">Listen</span>
+                  </Button>
+                  <Button 
+                    onClick={handleSignOut}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
+                    style={{ 
+                      backgroundColor: 'hsl(var(--primary))', 
+                      color: 'hsl(var(--primary-foreground))',
+                      borderColor: 'hsl(var(--foreground))'
+                    }}
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-medium hidden sm:inline">Logout</span>
+                  </Button>
+                </>
               ) : (
                 <Button 
                   onClick={() => navigate('/auth')}

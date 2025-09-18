@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ShoppingCart } from 'lucide-react';
+import AddToShoppingListDialog from './AddToShoppingListDialog';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -14,10 +17,12 @@ interface PortionConverterProps {
   originalServings: number;
   structuredIngredients: StructuredIngredient[];
   onPortionChange: (newPortions: number, scaledIngredients: StructuredIngredient[]) => void;
+  recipeId?: string;
 }
 
-const PortionConverter = ({ originalServings, structuredIngredients, onPortionChange }: PortionConverterProps) => {
+const PortionConverter = ({ originalServings, structuredIngredients, onPortionChange, recipeId }: PortionConverterProps) => {
   const [targetServings, setTargetServings] = useState(originalServings);
+  const [showShoppingListDialog, setShowShoppingListDialog] = useState(false);
 
   const scaleIngredients = (newServings: number): StructuredIngredient[] => {
     const scaleFactor = newServings / originalServings;
@@ -49,34 +54,59 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
   }
 
   return (
-    <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-4">
-          <Label htmlFor="portions" className="text-sm font-medium text-muted-foreground min-w-fit">
-            Portionen:
-          </Label>
-          <div className="flex items-center gap-4 flex-1">
-            <Slider
-              value={[targetServings]}
-              onValueChange={(values) => handlePortionChange(values[0])}
-              min={1}
-              max={Math.max(originalServings * 3, 12)}
-              step={1}
-              className="flex-1"
-            />
-            <Input
-              id="portions"
-              type="number"
-              value={targetServings}
-              onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
-              min={1}
-              max={99}
-              className="w-16 text-center border-border/50 bg-background/50"
-            />
+    <>
+      <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Label htmlFor="portions" className="text-sm font-medium text-muted-foreground min-w-fit">
+                Portionen:
+              </Label>
+              <div className="flex items-center gap-4 flex-1">
+                <Slider
+                  value={[targetServings]}
+                  onValueChange={(values) => handlePortionChange(values[0])}
+                  min={1}
+                  max={Math.max(originalServings * 3, 12)}
+                  step={1}
+                  className="flex-1"
+                />
+                <Input
+                  id="portions"
+                  type="number"
+                  value={targetServings}
+                  onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
+                  min={1}
+                  max={99}
+                  className="w-16 text-center border-border/50 bg-background/50"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowShoppingListDialog(true)}
+                className="gap-2"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Zur Einkaufsliste
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <AddToShoppingListDialog
+        isOpen={showShoppingListDialog}
+        onClose={() => setShowShoppingListDialog(false)}
+        ingredients={structuredIngredients}
+        currentPortions={targetServings}
+        originalPortions={originalServings}
+        recipeId={recipeId}
+      />
+    </>
   );
 };
 
