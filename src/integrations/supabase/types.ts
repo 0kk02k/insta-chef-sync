@@ -113,6 +113,9 @@ export type Database = {
           ingredients: string[] | null
           instagram_url: string | null
           instructions: string[] | null
+          is_forked: boolean
+          original_creator_id: string | null
+          original_recipe_id: string | null
           published: boolean
           rating: number | null
           servings: number | null
@@ -131,6 +134,9 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          is_forked?: boolean
+          original_creator_id?: string | null
+          original_recipe_id?: string | null
           published?: boolean
           rating?: number | null
           servings?: number | null
@@ -149,6 +155,9 @@ export type Database = {
           ingredients?: string[] | null
           instagram_url?: string | null
           instructions?: string[] | null
+          is_forked?: boolean
+          original_creator_id?: string | null
+          original_recipe_id?: string | null
           published?: boolean
           rating?: number | null
           servings?: number | null

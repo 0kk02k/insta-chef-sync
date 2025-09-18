@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles, EyeOff } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,6 +41,10 @@ interface Recipe {
   user_id: string;
   creator_name?: string;
   published: boolean;
+  original_recipe_id?: string | null;
+  is_forked?: boolean;
+  original_creator_id?: string | null;
+  original_creator_name?: string;
 }
 
 const RecipeDetail = () => {
@@ -53,6 +57,7 @@ const RecipeDetail = () => {
   const [deleting, setDeleting] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [ignoring, setIgnoring] = useState(false);
+  const [forking, setForking] = useState(false);
   const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
   const [currentPortions, setCurrentPortions] = useState<number>(1);
 
@@ -103,10 +108,22 @@ const RecipeDetail = () => {
         .eq('id', recipeData.user_id)
         .single();
 
+      // If this is a forked recipe, also fetch the original creator's profile
+      let originalCreatorData = null;
+      if (recipeData.is_forked && recipeData.original_creator_id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', recipeData.original_creator_id)
+          .single();
+        originalCreatorData = data;
+      }
+
       // Combine recipe with creator name and ensure structured_ingredients is properly typed
       const recipeWithCreator = {
         ...recipeData,
         creator_name: profileData?.display_name || 'Unbekannt',
+        original_creator_name: originalCreatorData?.display_name || null,
         structured_ingredients: Array.isArray(recipeData.structured_ingredients) 
           ? recipeData.structured_ingredients as unknown as StructuredIngredient[]
           : null
@@ -321,6 +338,60 @@ const RecipeDetail = () => {
     }
   };
 
+  const handleForkRecipe = async () => {
+    if (!recipe || !user) return;
+
+    if (!confirm('Möchten Sie dieses Rezept übernehmen und als eigenes bearbeiten?')) {
+      return;
+    }
+
+    setForking(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .insert({
+          title: recipe.title,
+          description: recipe.description,
+          ingredients: recipe.ingredients,
+          structured_ingredients: recipe.structured_ingredients as any,
+          instructions: recipe.instructions,
+          cooking_time: recipe.cooking_time,
+          servings: recipe.servings,
+          tags: recipe.tags,
+          user_id: user.id,
+          published: false, // New forked recipes start as unpublished
+          is_forked: true,
+          original_recipe_id: recipe.id,
+          original_creator_id: recipe.user_id,
+          image_url: recipe.image_url // Copy the image URL as well
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Rezept übernommen",
+        description: "Das Rezept wurde erfolgreich in Ihre Sammlung übernommen.",
+      });
+
+      // Navigate to the new forked recipe
+      navigate(`/recipe/${data.id}`);
+    } catch (error) {
+      console.error('Error forking recipe:', error);
+      toast({
+        title: "Fehler",
+        description: "Rezept konnte nicht übernommen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setForking(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -374,25 +445,46 @@ const RecipeDetail = () => {
                 </Button>
               </div>
             ) : user && user.id !== recipe.user_id && (
-              <Button 
-                size="icon"
-                variant="ghost" 
-                onClick={handleIgnoreRecipe}
-                disabled={ignoring}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                style={{ 
-                  backgroundColor: 'hsl(var(--primary))', 
-                  color: 'hsl(var(--primary-foreground))',
-                  borderColor: 'hsl(var(--foreground))'
-                }}
-                title="Rezept ignorieren"
-              >
-                {ignoring ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <EyeOff className="h-6 w-6" />
-                )}
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  size="icon"
+                  variant="ghost" 
+                  onClick={handleForkRecipe}
+                  disabled={forking}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
+                  title="Rezept übernehmen"
+                >
+                  {forking ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    <Copy className="h-6 w-6" />
+                  )}
+                </Button>
+                <Button 
+                  size="icon"
+                  variant="ghost" 
+                  onClick={handleIgnoreRecipe}
+                  disabled={ignoring}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
+                  title="Rezept ignorieren"
+                >
+                  {ignoring ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    <EyeOff className="h-6 w-6" />
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -578,8 +670,16 @@ const RecipeDetail = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm">
-                  <span className="text-muted-foreground">Erstellt von:</span>
+                  <span className="text-muted-foreground">
+                    {recipe.is_forked ? 'Geändert von:' : 'Erstellt von:'}
+                  </span>
                   <div className="font-medium">{recipe.creator_name}</div>
+                  {recipe.is_forked && recipe.original_creator_name && (
+                    <>
+                      <span className="text-muted-foreground block mt-1">Original von:</span>
+                      <div className="font-medium">{recipe.original_creator_name}</div>
+                    </>
+                  )}
                 </div>
                 <div className="text-sm">
                   <span className="text-muted-foreground">Erstellt am:</span>
