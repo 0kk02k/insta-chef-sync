@@ -172,6 +172,7 @@ export type Database = {
       shopping_list_items: {
         Row: {
           amount: number | null
+          category: string | null
           created_at: string
           id: string
           ingredient_name: string
@@ -183,6 +184,7 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          category?: string | null
           created_at?: string
           id?: string
           ingredient_name: string
@@ -194,6 +196,7 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          category?: string | null
           created_at?: string
           id?: string
           ingredient_name?: string
@@ -249,6 +252,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      categorize_ingredient: {
+        Args: { ingredient_name: string }
+        Returns: string
+      }
       cleanup_orphaned_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
