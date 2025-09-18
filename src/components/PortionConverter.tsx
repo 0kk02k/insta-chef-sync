@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Users } from 'lucide-react';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -48,32 +50,43 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
-      <div className="flex items-center gap-4">
-        <Label htmlFor="portions" className="text-sm font-medium">
-          Portionen:
-        </Label>
-        <div className="flex items-center gap-4 flex-1">
-          <Slider
-            value={[targetServings]}
-            onValueChange={(values) => handlePortionChange(values[0])}
-            min={1}
-            max={Math.max(originalServings * 3, 12)}
-            step={1}
-            className="flex-1"
-          />
-          <Input
-            id="portions"
-            type="number"
-            value={targetServings}
-            onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
-            min={1}
-            max={99}
-            className="w-16 text-center"
-          />
+    <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg text-coral flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Portionen anpassen
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Label htmlFor="portions" className="text-sm font-medium text-muted-foreground min-w-fit">
+            Portionen:
+          </Label>
+          <div className="flex items-center gap-4 flex-1">
+            <Slider
+              value={[targetServings]}
+              onValueChange={(values) => handlePortionChange(values[0])}
+              min={1}
+              max={Math.max(originalServings * 3, 12)}
+              step={1}
+              className="flex-1"
+            />
+            <Input
+              id="portions"
+              type="number"
+              value={targetServings}
+              onChange={(e) => handlePortionChange(parseInt(e.target.value) || 1)}
+              min={1}
+              max={99}
+              className="w-16 text-center border-border/50 bg-background/50"
+            />
+          </div>
         </div>
-      </div>
-    </div>
+        <div className="text-xs text-muted-foreground">
+          Original: {originalServings} Portionen
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
