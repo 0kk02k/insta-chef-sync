@@ -173,13 +173,13 @@ const ShoppingListDetail = () => {
     const iconColor = getCategoryColor(category);
 
     return (
-      <div key={category} className="space-y-2">
+      <div key={category} className="space-y-1">
         <div className="flex items-center gap-2 px-2">
           <IconComponent className={`h-4 w-4 ${iconColor}`} />
           <h4 className={`text-sm font-medium ${iconColor}`}>{category}</h4>
           <Badge variant="outline" className="text-xs">{categoryItems.length}</Badge>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {categoryItems.map((item) => (
             <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
               <Checkbox
@@ -302,7 +302,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="secondary">{uncheckedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2">
                   {Object.entries(groupItemsByCategory(uncheckedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, false)
                   )}
@@ -319,7 +319,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="outline">{checkedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2">
                   {Object.entries(groupItemsByCategory(checkedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, true)
                   )}
