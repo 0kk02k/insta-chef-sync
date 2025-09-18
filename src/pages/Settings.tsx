@@ -36,11 +36,19 @@ const Settings = () => {
 
   const fetchProfile = async () => {
     try {
+      console.log('Fetching profile for user ID:', user?.id);
+      
+      if (!user?.id) {
+        throw new Error('No user ID available');
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('display_name, email, language, measurement_unit')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
+
+      console.log('Profile fetch result:', { data, error });
 
       if (error) throw error;
       setProfile(data);
