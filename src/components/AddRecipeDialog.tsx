@@ -365,39 +365,41 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           <Plus className="h-6 w-6 text-white" strokeWidth={4} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" style={{backgroundColor: '#d8c9f8', borderColor: '#d8c9f8'}}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col" style={{backgroundColor: '#d8c9f8', borderColor: '#d8c9f8'}}>
         <DialogHeader>
           <DialogTitle>Rezept hinzufügen - copy&paste, drag&drop</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <UnifiedUploadZone
-            onContentChange={setUploadedContent}
-            disabled={loading || processing}
-            isProcessing={processing}
-            batchProgress={batchProgress}
-          />
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+            <UnifiedUploadZone
+              onContentChange={setUploadedContent}
+              disabled={loading || processing}
+              isProcessing={processing}
+              batchProgress={batchProgress}
+            />
 
-          {/* Batch Results */}
-          {processedRecipes.length > 0 && (
-            <div className="bg-muted/30 rounded-lg p-4">
-              <h4 className="font-medium mb-3">Verarbeitungsergebnisse:</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {processedRecipes.map((result) => (
-                  <div key={result.id} className="flex items-center justify-between text-sm">
-                    <span className="truncate flex-1">{result.name}</span>
-                    {result.success ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 ml-2" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-500 ml-2" />
-                    )}
-                  </div>
-                ))}
+            {/* Batch Results */}
+            {processedRecipes.length > 0 && (
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Verarbeitungsergebnisse:</h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {processedRecipes.map((result) => (
+                    <div key={result.id} className="flex items-center justify-between text-sm">
+                      <span className="truncate flex-1">{result.name}</span>
+                      {result.success ? (
+                        <CheckCircle className="w-4 h-4 text-green-500 ml-2" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-red-500 ml-2" />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t border-muted/20 mt-4 flex-shrink-0">
             <Button
               type="button"
               variant="outline"
