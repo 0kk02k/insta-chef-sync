@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit, Check, X, Plus, Minus } from 'lucide-react';
+import { Edit, Check, X, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
+import AddToShoppingListDialog from './AddToShoppingListDialog';
+
+interface StructuredIngredient {
+  amount: number | null;
+  unit: string | null;
+  ingredient: string;
+}
 
 interface InlineEditIngredientsProps {
   value: string[];
   recipeId: string;
   isOwner: boolean;
   onUpdate: (newValue: string[]) => void;
+  structuredIngredients?: StructuredIngredient[];
+  currentPortions?: number;
+  originalPortions?: number;
 }
 
-const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate }: InlineEditIngredientsProps) => {
+const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredIngredients, currentPortions, originalPortions }: InlineEditIngredientsProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
   const [saving, setSaving] = useState(false);
+  const [showShoppingListDialog, setShowShoppingListDialog] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -144,27 +155,56 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate }: InlineEdi
   }
 
   return (
-    <div className="group">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xl text-pink-vibrant">Zutaten</h3>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setIsEditing(true)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-slate-700 hover:text-slate-900"
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
+    <>
+      <div className="group">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl text-pink-vibrant">Zutaten</h3>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsEditing(true)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-slate-700 hover:text-slate-900"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        </div>
+        <ul className="space-y-3">
+          {value.map((ingredient, index) => (
+            <li key={index} className="flex items-start space-x-3">
+              <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
+              <span className="text-foreground">{ingredient}</span>
+            </li>
+          ))}
+        </ul>
+        
+        {/* Add to Shopping List Button */}
+        {structuredIngredients && (
+          <div className="flex justify-center mt-4 pt-4 border-t border-border/30">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowShoppingListDialog(true)}
+              className="gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Zur Einkaufsliste
+            </Button>
+          </div>
+        )}
       </div>
-      <ul className="space-y-3">
-        {value.map((ingredient, index) => (
-          <li key={index} className="flex items-start space-x-3">
-            <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
-            <span className="text-foreground">{ingredient}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+      
+      {/* Shopping List Dialog */}
+      {structuredIngredients && (
+        <AddToShoppingListDialog
+          isOpen={showShoppingListDialog}
+          onClose={() => setShowShoppingListDialog(false)}
+          ingredients={structuredIngredients}
+          currentPortions={currentPortions || originalPortions || 1}
+          originalPortions={originalPortions || 1}
+          recipeId={recipeId}
+        />
+      )}
+    </>
   );
 };
 

@@ -613,12 +613,15 @@ const RecipeDetail = () => {
               {recipe.ingredients.length > 0 && (
                 <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
                   <CardContent className="pt-6">
-                    <InlineEditIngredients
-                      value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
-                      recipeId={recipe.id}
-                      isOwner={user?.id === recipe.user_id}
-                      onUpdate={handleIngredientsUpdate}
-                    />
+                  <InlineEditIngredients
+                    value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
+                    recipeId={recipe.id}
+                    isOwner={user?.id === recipe.user_id}
+                    onUpdate={handleIngredientsUpdate}
+                    structuredIngredients={recipe.structured_ingredients}
+                    currentPortions={currentPortions}
+                    originalPortions={recipe.servings}
+                  />
                   </CardContent>
                 </Card>
               )}
@@ -655,12 +658,15 @@ const RecipeDetail = () => {
             {recipe.ingredients.length > 0 && (
               <Card className="border-border/50 bg-card/95 backdrop-blur-sm shadow-lg">
                 <CardContent className="pt-6">
-                  <InlineEditIngredients
-                    value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
-                    recipeId={recipe.id}
-                    isOwner={user?.id === recipe.user_id}
-                    onUpdate={handleIngredientsUpdate}
-                  />
+                <InlineEditIngredients
+                  value={displayedIngredients.length > 0 ? displayedIngredients : recipe.ingredients}
+                  recipeId={recipe.id}
+                  isOwner={user?.id === recipe.user_id}
+                  onUpdate={handleIngredientsUpdate}
+                  structuredIngredients={recipe.structured_ingredients}
+                  currentPortions={currentPortions}
+                  originalPortions={recipe.servings}
+                />
                 </CardContent>
               </Card>
             )}

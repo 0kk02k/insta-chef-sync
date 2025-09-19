@@ -83,17 +83,6 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
               </div>
             </div>
             
-            <div className="flex justify-end">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowShoppingListDialog(true)}
-                className="gap-2"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Zur Einkaufsliste
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
