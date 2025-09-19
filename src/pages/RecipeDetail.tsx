@@ -65,6 +65,19 @@ const RecipeDetail = () => {
     fetchRecipe();
   }, [id]);
 
+  // Helper function to format structured ingredients into text format
+  const formatStructuredIngredients = (structuredIngredients: StructuredIngredient[]): string[] => {
+    return structuredIngredients.map(ingredient => {
+      if (ingredient.amount && ingredient.unit) {
+        return `${ingredient.amount} ${ingredient.unit} ${ingredient.ingredient}`;
+      } else if (ingredient.amount) {
+        return `${ingredient.amount} ${ingredient.ingredient}`;
+      } else {
+        return ingredient.ingredient;
+      }
+    });
+  };
+
   const fetchRecipe = async () => {
     if (!id) return;
 
@@ -131,10 +144,13 @@ const RecipeDetail = () => {
 
       setRecipe(recipeWithCreator);
       
-      // Initialize displayed ingredients and current portions
-      if (recipeWithCreator.ingredients) {
+      // Initialize displayed ingredients - prefer structured_ingredients (metric) over original ingredients
+      if (recipeWithCreator.structured_ingredients && recipeWithCreator.structured_ingredients.length > 0) {
+        setDisplayedIngredients(formatStructuredIngredients(recipeWithCreator.structured_ingredients));
+      } else if (recipeWithCreator.ingredients) {
         setDisplayedIngredients(recipeWithCreator.ingredients);
       }
+      
       if (recipeWithCreator.servings) {
         setCurrentPortions(recipeWithCreator.servings);
       }
