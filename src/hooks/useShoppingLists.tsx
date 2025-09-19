@@ -116,20 +116,65 @@ export const useShoppingLists = () => {
     portionMultiplier: number = 1
   ) => {
     try {
-      const items = ingredients.map(ingredient => ({
-        shopping_list_id: shoppingListId,
-        recipe_id: recipeId,
-        ingredient_name: ingredient.ingredient,
-        amount: ingredient.amount ? ingredient.amount * portionMultiplier : null,
-        unit: ingredient.unit,
-        portion_multiplier: portionMultiplier,
-      }));
-
-      const { error } = await supabase
+      // First, get existing items in the shopping list
+      const { data: existingItems, error: fetchError } = await supabase
         .from('shopping_list_items')
-        .insert(items);
+        .select('*')
+        .eq('shopping_list_id', shoppingListId);
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
+
+      const itemsToInsert = [];
+      const itemsToUpdate = [];
+
+      for (const ingredient of ingredients) {
+        const scaledAmount = ingredient.amount ? ingredient.amount * portionMultiplier : null;
+        
+        // Check if an item with the same ingredient name and unit already exists
+        const existingItem = existingItems?.find(
+          item => 
+            item.ingredient_name.toLowerCase() === ingredient.ingredient.toLowerCase() &&
+            item.unit === ingredient.unit
+        );
+
+        if (existingItem && scaledAmount) {
+          // Combine amounts if both have amounts
+          const newAmount = (existingItem.amount || 0) + scaledAmount;
+          itemsToUpdate.push({
+            id: existingItem.id,
+            amount: newAmount,
+          });
+        } else {
+          // Create new item
+          itemsToInsert.push({
+            shopping_list_id: shoppingListId,
+            recipe_id: recipeId,
+            ingredient_name: ingredient.ingredient,
+            amount: scaledAmount,
+            unit: ingredient.unit,
+            portion_multiplier: portionMultiplier,
+          });
+        }
+      }
+
+      // Insert new items
+      if (itemsToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('shopping_list_items')
+          .insert(itemsToInsert);
+
+        if (insertError) throw insertError;
+      }
+
+      // Update existing items
+      for (const updateItem of itemsToUpdate) {
+        const { error: updateError } = await supabase
+          .from('shopping_list_items')
+          .update({ amount: updateItem.amount })
+          .eq('id', updateItem.id);
+
+        if (updateError) throw updateError;
+      }
       
       toast({
         title: 'Erfolg',
