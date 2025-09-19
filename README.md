@@ -82,6 +82,11 @@ This project is built with:
 - **Authentication**: Supabase Auth
 - **Database**: PostgreSQL (via Supabase)
 - **File Storage**: Supabase Storage
+- **Hosting**: Netlify
+- **AI Services**: 
+  - OpenAI (GPT models for text processing and image generation)
+  - DeepSeek (Recipe parsing and content analysis)
+  - Together AI (FLUX models for image generation)
 
 ## Project Structure
 
@@ -103,14 +108,29 @@ supabase/
 └── config.toml        # Supabase configuration
 ```
 
-## AI Processing Features
+## Architecture & AI Processing
 
+### Backend Architecture
+- **Supabase Edge Functions**: Serverless functions for AI processing and external API integrations
+- **Row Level Security (RLS)**: Secure data access with user-based permissions
+- **Real-time Subscriptions**: Live updates across all user sessions
+- **Automatic Backups**: Managed PostgreSQL with point-in-time recovery
+
+### AI Integration Layer
 This app includes several AI-powered features through Supabase Edge Functions:
 
-- **PDF Processing**: Extracts text from uploaded recipe PDFs
-- **Instagram Integration**: Scrapes recipe data from Instagram posts
-- **Screenshot Processing**: Converts recipe screenshots to structured data using AI
-- **Image Generation**: Creates recipe images using AI models
+- **PDF Processing**: Uses DeepSeek AI to extract and structure recipe data from PDFs
+- **Instagram Integration**: Scrapes and processes Instagram recipe content with AI parsing
+- **Screenshot Processing**: Converts recipe screenshots to structured data using OpenAI GPT models
+- **Image Generation**: Creates recipe images using Together AI's FLUX.1-schnell model
+- **Content Understanding**: AI-powered ingredient categorization and recipe parsing
+
+### Deployment & Hosting
+- **Frontend Hosting**: Netlify with automatic deployments
+- **Backend Services**: Supabase cloud infrastructure
+- **CDN**: Global content delivery through Netlify Edge
+- **SSL/TLS**: Automatic HTTPS with security headers
+- **Environment**: Production-ready with proper error handling and monitoring
 
 ## Deployment
 
