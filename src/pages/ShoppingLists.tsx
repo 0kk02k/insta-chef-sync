@@ -47,7 +47,7 @@ const ShoppingLists = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
-        <div className="bg-hot-pink px-4 py-6">
+        <div style={{ background: 'var(--gradient-shopping-header)' }} className="px-4 py-6">
           <div className="container mx-auto max-w-4xl">
             <div className="flex items-center gap-3">
               <Button 
@@ -83,7 +83,7 @@ const ShoppingLists = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
-      <div className="bg-hot-pink px-4 py-6">
+      <div style={{ background: 'var(--gradient-shopping-header)' }} className="px-4 py-6">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center gap-3">
             <Button 

@@ -64,6 +64,7 @@ All colors MUST be HSL.
 
     /* Design system gradients - Fresh carrot/pea theme */
     --gradient-header: linear-gradient(90deg, hsl(127 53% 79%), hsl(21 100% 81%)); /* pea to carrot pastel */
+    --gradient-shopping-header: linear-gradient(90deg, hsl(21 80% 76%), hsl(351 100% 86%)); /* orange to pink */
     --gradient-card-placeholder: linear-gradient(135deg, hsl(127 53% 79%), hsl(21 100% 81%)); /* pea to carrot pastel */
     --gradient-primary: linear-gradient(135deg, hsl(21 100% 81%), hsl(18 100% 61%)); /* carrot pastel to neon */
     --gradient-secondary: linear-gradient(135deg, hsl(127 53% 79%), hsl(156 74% 60%)); /* pea pastel to neon */
@@ -143,6 +144,7 @@ All colors MUST be HSL.
 
     /* Dark Mode Gradients */
     --gradient-header: linear-gradient(90deg, hsl(127 53% 82%), hsl(21 100% 83%)); /* enhanced pea to carrot */
+    --gradient-shopping-header: linear-gradient(90deg, hsl(21 80% 78%), hsl(351 100% 86%)); /* orange to pink - dark mode */
     --gradient-card-placeholder: linear-gradient(135deg, hsl(127 53% 82%), hsl(21 100% 83%)); /* enhanced pea to carrot */
     --gradient-primary: linear-gradient(135deg, hsl(21 100% 83%), hsl(18 100% 61%)); /* enhanced carrot to neon */
     --gradient-secondary: linear-gradient(135deg, hsl(127 53% 82%), hsl(156 74% 60%)); /* enhanced pea to neon */
