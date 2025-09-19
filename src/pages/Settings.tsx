@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trash2, User, ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { CookieSettings } from '@/components/CookieSettings';
+import IgnoredRecipesList from '@/components/IgnoredRecipesList';
 
 interface Profile {
   display_name: string;
@@ -189,6 +190,10 @@ const Settings = () => {
           <Separator />
           
           <CookieSettings />
+          
+          <Separator />
+
+          <IgnoredRecipesList />
           
           <Separator />
 
