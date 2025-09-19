@@ -122,7 +122,7 @@ This app includes several AI-powered features through Supabase Edge Functions:
 - **PDF Processing**: Uses DeepSeek AI to extract and structure recipe data from PDFs
 - **Instagram Integration**: Scrapes and processes Instagram recipe content with AI parsing
 - **Screenshot Processing**: Converts recipe screenshots to structured data using OpenAI GPT models
-- **Image Generation**: Creates recipe images using Together AI's FLUX.1-schnell model
+- **Image Generation**: Two-stage AI image creation - DeepSeek generates optimized prompts, then Together AI's FLUX.1-schnell model creates the images
 - **Content Understanding**: AI-powered ingredient categorization and recipe parsing
 
 ### Deployment & Hosting
