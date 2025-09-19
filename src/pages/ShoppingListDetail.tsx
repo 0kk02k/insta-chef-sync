@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ArrowLeft, MoreVertical, Trash2, CheckCheck, X, Apple, Fish, Milk, Sparkles, Droplets, ChefHat, ShoppingBasket, Package } from 'lucide-react';
 import { useShoppingLists, useShoppingListItems } from '@/hooks/useShoppingLists';
 import { useToast } from '@/hooks/use-toast';
+import AddManualItemDialog from '@/components/AddManualItemDialog';
 
 const ShoppingListDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +68,20 @@ const ShoppingListDetail = () => {
     toast({
       title: "Wiederhergestellt",
       description: `${formatItemDisplay(deletedItem)} wurde wiederhergestellt.`,
+    });
+  };
+
+  const handleAddManualItem = async (item: {
+    ingredient_name: string;
+    amount: number | null;
+    unit: string | null;
+  }) => {
+    await addItem({
+      ingredient_name: item.ingredient_name,
+      amount: item.amount,
+      unit: item.unit,
+      portion_multiplier: 1,
+      recipe_id: null
     });
   };
 
@@ -348,6 +363,13 @@ const ShoppingListDetail = () => {
                 </CardContent>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* Floating Add Manual Item Button */}
+        {items.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <AddManualItemDialog onItemAdd={handleAddManualItem} />
           </div>
         )}
 
