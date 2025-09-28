@@ -63,6 +63,7 @@ const RecipeDetail = () => {
   const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
   const [currentPortions, setCurrentPortions] = useState<number>(1);
   const [canScale, setCanScale] = useState<boolean>(true);
+  const [isProcessingIngredients, setIsProcessingIngredients] = useState(false);
 
   useEffect(() => {
     fetchRecipe();
@@ -282,6 +283,7 @@ const RecipeDetail = () => {
 
     // Während Re-Parsing Skalierung deaktivieren
     setCanScale(false);
+    setIsProcessingIngredients(true);
 
     // AI-Reprocessing der Zutaten anstoßen (structured_ingredients aktualisieren)
     (async () => {
@@ -311,6 +313,7 @@ const RecipeDetail = () => {
         console.error('Reprocessing error:', e);
       } finally {
         setCanScale(true);
+        setIsProcessingIngredients(false);
       }
     })();
   };
@@ -658,6 +661,7 @@ const RecipeDetail = () => {
                     structuredIngredients={recipe.structured_ingredients}
                     currentPortions={currentPortions}
                     originalPortions={recipe.servings}
+                    isProcessing={isProcessingIngredients}
                   />
                   </CardContent>
                 </Card>
@@ -703,6 +707,7 @@ const RecipeDetail = () => {
                   structuredIngredients={recipe.structured_ingredients}
                   currentPortions={currentPortions}
                   originalPortions={recipe.servings}
+                  isProcessing={isProcessingIngredients}
                 />
                 </CardContent>
               </Card>

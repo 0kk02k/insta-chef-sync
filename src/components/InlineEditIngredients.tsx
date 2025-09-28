@@ -20,9 +20,10 @@ interface InlineEditIngredientsProps {
   structuredIngredients?: StructuredIngredient[];
   currentPortions?: number;
   originalPortions?: number;
+  isProcessing?: boolean;
 }
 
-const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredIngredients, currentPortions, originalPortions }: InlineEditIngredientsProps) => {
+const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredIngredients, currentPortions, originalPortions, isProcessing = false }: InlineEditIngredientsProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -104,7 +105,15 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
   if (isEditing) {
     return (
       <div className="space-y-3">
-        <div className="space-y-2">
+        {isProcessing && (
+          <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+            <div className="text-sm text-muted-foreground italic">
+              KI analysiert Zutaten... Bitte warten Sie mit weiteren Änderungen.
+            </div>
+          </div>
+        )}
+        
+        <div className={`space-y-2 transition-opacity ${isProcessing ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
           {tempValue.map((ingredient, index) => (
             <div key={index} className="flex gap-2">
               <Input
@@ -112,13 +121,14 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
                 onChange={(e) => updateIngredient(index, e.target.value)}
                 placeholder={`Zutat ${index + 1}`}
                 className="flex-1"
+                disabled={isProcessing}
               />
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => removeIngredient(index)}
                 className="h-10 w-10 p-0"
-                disabled={tempValue.length <= 1}
+                disabled={tempValue.length <= 1 || isProcessing}
               >
                 <Minus className="h-4 w-4" />
               </Button>
@@ -131,6 +141,7 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
           variant="outline"
           onClick={addIngredient}
           className="w-full"
+          disabled={isProcessing}
         >
           <Plus className="h-4 w-4 mr-2" />
           Zutat hinzufügen
@@ -140,7 +151,7 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
           <Button
             size="sm"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || isProcessing}
             className="h-8"
           >
             <Check className="h-4 w-4" />
@@ -149,7 +160,7 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
             size="sm"
             variant="outline"
             onClick={handleCancel}
-            disabled={saving}
+            disabled={saving || isProcessing}
             className="h-8"
           >
             <X className="h-4 w-4" />
@@ -168,12 +179,20 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
             size="sm"
             variant="ghost"
             onClick={() => setIsEditing(true)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-slate-700 hover:text-slate-900"
+            disabled={isProcessing}
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-slate-700 hover:text-slate-900 disabled:opacity-50"
           >
             <Edit className="h-4 w-4" />
           </Button>
         </div>
-        <ul className="space-y-3">
+        
+        {isProcessing && (
+          <div className="mb-3 text-sm text-muted-foreground italic">
+            KI analysiert Zutaten...
+          </div>
+        )}
+        
+        <ul className={`space-y-3 transition-opacity ${isProcessing ? 'opacity-60' : 'opacity-100'}`}>
           {value.map((ingredient, index) => (
             <li key={index} className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-gradient-to-br from-pink-vibrant to-purple-soft rounded-full mt-2 flex-shrink-0"></div>
@@ -189,7 +208,8 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
               variant="outline" 
               size="sm"
               onClick={() => setShowShoppingListDialog(true)}
-              className="gap-2"
+              disabled={isProcessing}
+              className="gap-2 disabled:opacity-50"
             >
               <ShoppingCart className="h-4 w-4" />
               Zur Einkaufsliste
