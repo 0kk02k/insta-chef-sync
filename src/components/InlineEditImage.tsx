@@ -146,32 +146,17 @@ const InlineEditImage = ({
   if (isEditing) {
     return (
       <div className="space-y-4 p-4">
-        {tempValue && (
-          <div className="aspect-video w-full overflow-hidden rounded-lg border">
+        {value && (
+          <div className="w-32 h-24 overflow-hidden rounded-lg border mx-auto">
             <img
-              src={tempValue}
-              alt="Vorschau"
+              src={value}
+              alt="Aktuelles Bild"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
             />
           </div>
         )}
         
         <div className="space-y-3">
-          <Input
-            value={tempValue}
-            onChange={(e) => setTempValue(e.target.value)}
-            placeholder="Bild-URL eingeben"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave();
-              if (e.key === 'Escape') handleCancel();
-            }}
-          />
-          
-          <div className="text-center text-muted-foreground">oder</div>
-          
           <div>
             <Input
               type="file"
