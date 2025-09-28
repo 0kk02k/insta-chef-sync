@@ -274,7 +274,7 @@ const RecipeDetail = () => {
 
   const handleIngredientsUpdate = (newIngredients: string[]) => {
     if (recipe) {
-      setRecipe({ ...recipe, ingredients: newIngredients });
+      setRecipe({ ...recipe, ingredients: newIngredients, structured_ingredients: null });
     }
     // Ensure the visible list updates immediately after saving
     setDisplayedIngredients(newIngredients);
