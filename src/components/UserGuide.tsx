@@ -93,13 +93,6 @@ const UserGuide = () => {
             </ul>
           </div>
         </div>
-
-        <div className="bg-accent-2/20 p-4 rounded-lg border border-border/30">
-          <p className="text-sm text-ink-600">
-            <strong>Tipp:</strong> Bei Fragen oder Problemen können Sie sich jederzeit an unser Support-Team wenden. 
-            Wir helfen Ihnen gerne weiter!
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
