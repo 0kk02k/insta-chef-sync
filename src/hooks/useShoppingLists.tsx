@@ -109,6 +109,64 @@ export const useShoppingLists = () => {
     }
   };
 
+  // Fallback function for simple ingredient adding (without AI)
+  const addIngredientsSimple = async (
+    shoppingListId: string,
+    ingredients: StructuredIngredient[],
+    recipeId?: string,
+    existingItems: any[] = []
+  ) => {
+    const itemsToInsert = [];
+    const itemsToUpdate = [];
+
+    for (const ingredient of ingredients) {
+      // Check if an item with the same ingredient name and unit already exists
+      const existingItem = existingItems?.find(
+        item => 
+          item.ingredient_name.toLowerCase() === ingredient.ingredient.toLowerCase() &&
+          item.unit === ingredient.unit
+      );
+
+      if (existingItem && ingredient.amount) {
+        // Combine amounts if both have amounts
+        const newAmount = (existingItem.amount || 0) + ingredient.amount;
+        itemsToUpdate.push({
+          id: existingItem.id,
+          amount: newAmount,
+        });
+      } else {
+        // Create new item
+        itemsToInsert.push({
+          shopping_list_id: shoppingListId,
+          recipe_id: recipeId,
+          ingredient_name: ingredient.ingredient,
+          amount: ingredient.amount,
+          unit: ingredient.unit,
+          portion_multiplier: 1,
+        });
+      }
+    }
+
+    // Insert new items
+    if (itemsToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from('shopping_list_items')
+        .insert(itemsToInsert);
+
+      if (insertError) throw insertError;
+    }
+
+    // Update existing items
+    for (const updateItem of itemsToUpdate) {
+      const { error: updateError } = await supabase
+        .from('shopping_list_items')
+        .update({ amount: updateItem.amount })
+        .eq('id', updateItem.id);
+
+      if (updateError) throw updateError;
+    }
+  };
+
   const addIngredientsToList = async (
     shoppingListId: string,
     ingredients: StructuredIngredient[],
@@ -124,40 +182,92 @@ export const useShoppingLists = () => {
 
       if (fetchError) throw fetchError;
 
+      // Scale ingredients by portion multiplier
+      const scaledIngredients = ingredients.map(ingredient => ({
+        ...ingredient,
+        amount: ingredient.amount ? ingredient.amount * portionMultiplier : null
+      }));
+
+      // Use AI to normalize and merge ingredients
+      const { data: normalizeResponse, error: normalizeError } = await supabase.functions.invoke(
+        'normalize-ingredients',
+        {
+          body: {
+            existingItems: existingItems || [],
+            newIngredients: scaledIngredients,
+            shoppingListId
+          }
+        }
+      );
+
+      if (normalizeError) {
+        console.error('Normalization error:', normalizeError);
+        // Fallback to simple logic if AI fails
+        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
+        return;
+      }
+
+      if (!normalizeResponse?.success) {
+        console.error('Normalization failed:', normalizeResponse?.error);
+        // Fallback to simple logic if AI fails
+        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
+        return;
+      }
+
+      const normalizedItems = normalizeResponse.normalized_items;
+      console.log('Normalized items:', normalizedItems);
+
       const itemsToInsert = [];
       const itemsToUpdate = [];
+      const itemsToDelete = [];
 
-      for (const ingredient of ingredients) {
-        const scaledAmount = ingredient.amount ? ingredient.amount * portionMultiplier : null;
-        
-        // Check if an item with the same ingredient name and unit already exists
-        const existingItem = existingItems?.find(
-          item => 
-            item.ingredient_name.toLowerCase() === ingredient.ingredient.toLowerCase() &&
-            item.unit === ingredient.unit
-        );
+      for (const normalizedItem of normalizedItems) {
+        if (normalizedItem.action === 'merge') {
+          // Find existing items to merge
+          const existingItem = existingItems?.find(item => 
+            normalizedItem.original_items.includes(item.id)
+          );
+          
+          if (existingItem) {
+            itemsToUpdate.push({
+              id: existingItem.id,
+              ingredient_name: normalizedItem.canonical_name,
+              amount: normalizedItem.amount,
+              unit: normalizedItem.unit,
+            });
 
-        if (existingItem && scaledAmount) {
-          // Combine amounts if both have amounts
-          const newAmount = (existingItem.amount || 0) + scaledAmount;
-          itemsToUpdate.push({
-            id: existingItem.id,
-            amount: newAmount,
-          });
-        } else {
-          // Create new item
+            // Mark other items for deletion if they were merged
+            const otherItems = existingItems?.filter(item => 
+              normalizedItem.original_items.includes(item.id) && item.id !== existingItem.id
+            );
+            if (otherItems) {
+              itemsToDelete.push(...otherItems.map(item => item.id));
+            }
+          }
+        } else if (normalizedItem.action === 'add') {
+          // Add new item
           itemsToInsert.push({
             shopping_list_id: shoppingListId,
             recipe_id: recipeId,
-            ingredient_name: ingredient.ingredient,
-            amount: scaledAmount,
-            unit: ingredient.unit,
+            ingredient_name: normalizedItem.canonical_name,
+            amount: normalizedItem.amount,
+            unit: normalizedItem.unit,
             portion_multiplier: portionMultiplier,
           });
         }
+        // 'keep' action means no changes needed
       }
 
-      // Insert new items
+      // Execute database operations
+      if (itemsToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('shopping_list_items')
+          .delete()
+          .in('id', itemsToDelete);
+
+        if (deleteError) throw deleteError;
+      }
+
       if (itemsToInsert.length > 0) {
         const { error: insertError } = await supabase
           .from('shopping_list_items')
@@ -166,11 +276,14 @@ export const useShoppingLists = () => {
         if (insertError) throw insertError;
       }
 
-      // Update existing items
       for (const updateItem of itemsToUpdate) {
         const { error: updateError } = await supabase
           .from('shopping_list_items')
-          .update({ amount: updateItem.amount })
+          .update({ 
+            ingredient_name: updateItem.ingredient_name,
+            amount: updateItem.amount,
+            unit: updateItem.unit 
+          })
           .eq('id', updateItem.id);
 
         if (updateError) throw updateError;
