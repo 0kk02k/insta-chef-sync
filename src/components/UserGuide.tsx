@@ -54,9 +54,6 @@ const UserGuide = () => {
           <BookOpen className="h-5 w-5" />
           Benutzeranleitung
         </CardTitle>
-        <CardDescription>
-          Entdecken Sie alle Funktionen und lernen Sie, wie Sie das Beste aus der Rezept-App herausholen.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {guides.map((guide, index) => (
