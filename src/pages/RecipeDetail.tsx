@@ -472,20 +472,54 @@ const RecipeDetail = () => {
   const handleShareRecipe = async () => {
     if (!recipe) return;
 
+    // Ensure the recipe is public before sharing
+    if (!recipe.published) {
+      if (user && user.id === recipe.user_id) {
+        const confirmPublish = window.confirm(
+          'Dieses Rezept ist noch nicht veröffentlicht. Soll es jetzt veröffentlicht werden, damit jeder mit dem Link es sehen kann?'
+        );
+        if (!confirmPublish) {
+          toast({
+            title: 'Abgebrochen',
+            description: 'Der Link ist nur für dich sichtbar, solange das Rezept privat ist.',
+          });
+          return;
+        }
+        const { error } = await supabase
+          .from('recipes')
+          .update({ published: true })
+          .eq('id', recipe.id)
+          .eq('user_id', user.id);
+        if (error) {
+          toast({
+            title: 'Fehler',
+            description: 'Veröffentlichen fehlgeschlagen. Bitte erneut versuchen.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        setRecipe({ ...recipe, published: true });
+        toast({ title: 'Veröffentlicht', description: 'Das Rezept ist jetzt öffentlich sichtbar.' });
+      } else {
+        toast({
+          title: 'Nicht veröffentlicht',
+          description: 'Dieses Rezept ist privat und kann nicht öffentlich geteilt werden.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const shareUrl = `${window.location.origin}/recipe/${recipe.id}`;
-    
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({
-        title: "Link kopiert!",
-        description: "Der Rezept-Link wurde in die Zwischenablage kopiert.",
+        title: 'Link kopiert!',
+        description: 'Der Rezept-Link wurde in die Zwischenablage kopiert.',
       });
     } catch (error) {
       // Fallback für Browser ohne clipboard API
-      toast({
-        title: "Rezept teilen",
-        description: shareUrl,
-      });
+      toast({ title: 'Rezept teilen', description: shareUrl });
     }
   };
 
