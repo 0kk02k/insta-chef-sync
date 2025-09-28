@@ -13,6 +13,7 @@ import { Trash2, User, ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { CookieSettings } from '@/components/CookieSettings';
 import IgnoredRecipesList from '@/components/IgnoredRecipesList';
+import UserGuide from '@/components/UserGuide';
 
 interface Profile {
   display_name: string;
@@ -140,6 +141,11 @@ const Settings = () => {
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
         <div className="space-y-6">
+          {/* User Guide */}
+          <UserGuide />
+          
+          <Separator />
+
           {/* Profile Information */}
           <Card>
             <CardHeader>
