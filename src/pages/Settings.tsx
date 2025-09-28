@@ -142,22 +142,22 @@ const Settings = () => {
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         <Tabs defaultValue="guide" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="guide" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Anleitung
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 grid-rows-1 sm:grid-rows-1 md:grid-cols-4 md:grid-rows-1 gap-1 h-auto min-h-[3rem] p-1">
+            <TabsTrigger value="guide" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-2 min-w-0">
+              <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Anleitung</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profilinformationen
+            <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-2 min-w-0">
+              <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Profil</span>
             </TabsTrigger>
-            <TabsTrigger value="cookies" className="flex items-center gap-2">
-              <Cookie className="h-4 w-4" />
-              Cookieeinstellungen
+            <TabsTrigger value="cookies" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-2 min-w-0">
+              <Cookie className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Cookies</span>
             </TabsTrigger>
-            <TabsTrigger value="ignored" className="flex items-center gap-2">
-              <EyeOff className="h-4 w-4" />
-              Ignorierte Rezepte
+            <TabsTrigger value="ignored" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-2 min-w-0">
+              <EyeOff className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="truncate">Ignoriert</span>
             </TabsTrigger>
           </TabsList>
 
