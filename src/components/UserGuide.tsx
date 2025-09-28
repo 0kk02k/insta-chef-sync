@@ -8,7 +8,6 @@ const UserGuide = () => {
     {
       icon: <Upload className="h-5 w-5" />,
       title: "Rezepte hinzufügen",
-      description: "Laden Sie Ihre Lieblingsrezepte auf verschiedene Weise hoch:",
       steps: [
         "📄 PDF-Dateien hochladen (bis zu 10 PDFs gleichzeitig zur Stapelverarbeitung)",
         "📸 Screenshots von Rezepten hochladen (mehrere Screenshots können zu einem Rezept zusammengefügt werden)",
@@ -20,7 +19,6 @@ const UserGuide = () => {
     {
       icon: <Search className="h-5 w-5" />,
       title: "Rezepte finden & teilen",
-      description: "Entdecken und teilen Sie Rezepte:",
       steps: [
         "Suchen Sie nach Rezeptnamen, Zutaten oder Hashtags",
         "Private Links erstellen für einzelne Rezepte",
@@ -33,34 +31,11 @@ const UserGuide = () => {
     {
       icon: <ShoppingCart className="h-5 w-5" />,
       title: "Einkaufslisten erstellen",
-      description: "Erstellen Sie praktische Einkaufslisten aus Rezepten:",
       steps: [
         "Öffnen Sie ein Rezept",
         "Klicken Sie auf 'Zur Einkaufsliste hinzufügen'",
         "Wählen Sie eine bestehende Liste oder erstellen Sie eine neue",
         "Verwalten Sie Ihre Listen im Einkaufslisten-Bereich"
-      ]
-    },
-    {
-      icon: <Camera className="h-5 w-5" />,
-      title: "Portionsrechner",
-      description: "Passen Sie Rezeptmengen an Ihre Bedürfnisse an:",
-      steps: [
-        "Öffnen Sie ein Rezept mit definierten Portionen",
-        "Nutzen Sie den Portionsrechner oben im Rezept",
-        "Ändern Sie die Anzahl der gewünschten Portionen",
-        "Alle Zutatenmenge werden automatisch angepasst"
-      ]
-    },
-    {
-      icon: <Settings className="h-5 w-5" />,
-      title: "Einstellungen verwalten",
-      description: "Personalisieren Sie Ihre Erfahrung:",
-      steps: [
-        "Verwalten Sie Ihre Cookie-Einstellungen",
-        "Entfernen Sie ignorierte Rezepte aus Ihrer Liste",
-        "Überprüfen Sie Ihre Profil-Informationen",
-        "Löschen Sie Ihr Konto, falls gewünscht (unwiderruflich)"
       ]
     }
   ];
@@ -90,7 +65,7 @@ const UserGuide = () => {
               <div className="text-primary">{guide.icon}</div>
               <h3 className="font-semibold text-ink-900">{guide.title}</h3>
             </div>
-            <p className="text-sm text-ink-600 ml-7">{guide.description}</p>
+            
             <ul className="space-y-1 ml-7">
               {guide.steps.map((step, stepIndex) => (
                 <li key={stepIndex} className="text-sm text-ink-700">
