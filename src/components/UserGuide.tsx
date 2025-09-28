@@ -10,8 +10,8 @@ const UserGuide = () => {
       title: "Rezepte hinzufügen",
       description: "Laden Sie Ihre Lieblingsrezepte auf verschiedene Weise hoch:",
       steps: [
-        "📄 PDF-Dateien hochladen und automatisch verarbeiten lassen",
-        "📸 Screenshots von Rezepten aus Apps oder Websites hochladen",
+        "📄 PDF-Dateien hochladen (bis zu 10 PDFs gleichzeitig zur Stapelverarbeitung)",
+        "📸 Screenshots von Rezepten hochladen (mehrere Screenshots können zu einem Rezept zusammengefügt werden)",
         "🔗 Instagram-Links einfügen für automatische Verarbeitung",
         "✍️ Manuell Titel, Zutaten und Anweisungen eingeben"
       ]
@@ -21,32 +21,8 @@ const UserGuide = () => {
       title: "Rezepte teilen",
       description: "Teilen Sie Ihre Rezepte mit anderen:",
       steps: [
-        "Öffnen Sie ein Rezept aus Ihrer Sammlung",
-        "Klicken Sie auf das Teilen-Symbol (↗)",
-        "Das Rezept wird automatisch teilbar gemacht",
-        "Der Link wird in die Zwischenablage kopiert",
-        "Senden Sie den Link an Freunde und Familie"
-      ]
-    },
-    {
-      icon: <Star className="h-5 w-5" />,
-      title: "Rezepte bewerten",
-      description: "Bewerten Sie Rezepte und lassen Sie andere wissen, wie sie Ihnen gefallen haben:",
-      steps: [
-        "Öffnen Sie ein veröffentlichtes Rezept",
-        "Klicken Sie auf die Sterne unter dem Rezepttitel",
-        "Wählen Sie 1-5 Sterne aus",
-        "Ihre Bewertung wird sofort gespeichert"
-      ]
-    },
-    {
-      icon: <Heart className="h-5 w-5" />,
-      title: "Rezepte favorisieren",
-      description: "Markieren Sie Ihre Lieblingsrezepte:",
-      steps: [
-        "Klicken Sie auf das Herz-Symbol bei einem Rezept",
-        "Favorisierte Rezepte werden in Ihrer persönlichen Sammlung hervorgehoben",
-        "Nutzen Sie Favoriten, um Ihre besten Rezepte schnell zu finden"
+        "Private Links: Erstellen Sie teilbare Links für einzelne Rezepte",
+        "Veröffentlichen: Machen Sie Rezepte öffentlich sichtbar für alle Nutzer"
       ]
     },
     {
