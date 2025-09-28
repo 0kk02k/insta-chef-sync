@@ -127,7 +127,7 @@ Generate a detailed FLUX.schnell prompt that will create an appetizing, professi
           throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
         }
       } catch (deepseekError) {
-        console.warn('DeepSeek prompt generation failed, falling back to template:', deepseekError.message);
+        console.warn('DeepSeek prompt generation failed, falling back to template:', deepseekError instanceof Error ? deepseekError.message : String(deepseekError));
         prompt = generateFallbackPrompt(title, description, ingredients);
       }
     } else {
@@ -218,7 +218,7 @@ Generate a detailed FLUX.schnell prompt that will create an appetizing, professi
     return new Response(
       JSON.stringify({ 
         error: 'Failed to generate image', 
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error) 
       }),
       { 
         status: 500, 

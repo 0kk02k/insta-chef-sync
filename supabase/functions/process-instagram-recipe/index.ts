@@ -122,7 +122,7 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ 
               success: false,
-              error: `Fehler beim Laden der URL: ${error.message}` 
+              error: `Fehler beim Laden der URL: ${error instanceof Error ? error.message : String(error)}` 
             }), 
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
@@ -355,15 +355,15 @@ ${processContent}
   } catch (error) {
     console.error('Error in process-instagram-recipe function:', error);
     console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
     });
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Unbekannter Fehler beim Verarbeiten des Rezepts',
-        details: error.name || 'Unknown error type'
+        error: error instanceof Error ? error.message : 'Unbekannter Fehler beim Verarbeiten des Rezepts',
+        details: error instanceof Error ? error.name : 'Unknown error type'
       }),
       {
         status: 500,

@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import pdf from "npm:pdf-parse";
+
+// Type declaration for pdf-parse
+declare const pdf: (buffer: Uint8Array) => Promise<{ text: string; numpages: number; info: any; metadata: any; version: string }>;
+
+// Import pdf-parse with explicit type annotation
+// @ts-ignore - npm imports in Deno don't have perfect type resolution
+const pdfParse = (await import("npm:pdf-parse")).default as typeof pdf;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -51,7 +57,7 @@ serve(async (req) => {
     console.log("PDF downloaded, size:", buffer.byteLength);
 
     // 2) Text extrahieren
-    const parsed = await pdf(new Uint8Array(buffer));
+    const parsed = await pdfParse(new Uint8Array(buffer));
     const text = parsed.text.substring(0, 4000); // Text begrenzen
     console.log("Extracted text length:", text.length);
 
@@ -163,7 +169,7 @@ ${text}`
     console.error("PDF processor error:", err);
     return new Response(JSON.stringify({ 
       success: false,
-      error: err.message 
+      error: err instanceof Error ? err.message : String(err)
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

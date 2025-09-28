@@ -310,7 +310,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       return new Response(
         JSON.stringify({ 
           error: 'OpenAI response parsing failed', 
-          details: parseError.message,
+          details: parseError instanceof Error ? parseError.message : String(parseError),
           rawResponse 
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
