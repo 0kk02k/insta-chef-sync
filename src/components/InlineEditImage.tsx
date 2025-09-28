@@ -146,6 +146,19 @@ const InlineEditImage = ({
   if (isEditing) {
     return (
       <div className="space-y-4 p-4">
+        {tempValue && (
+          <div className="aspect-video w-full overflow-hidden rounded-lg border">
+            <img
+              src={tempValue}
+              alt="Vorschau"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        
         <div className="space-y-3">
           <Input
             value={tempValue}
