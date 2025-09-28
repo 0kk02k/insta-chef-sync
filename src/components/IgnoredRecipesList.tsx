@@ -179,24 +179,26 @@ const IgnoredRecipesList = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => navigate(`/recipe/${ignoredRecipe.recipe.id}`)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 text-xs px-2 py-1 h-7 w-full sm:w-auto"
                   >
                     <ExternalLink className="h-3 w-3" />
-                    Ansehen
+                    <span className="hidden sm:inline">Ansehen</span>
+                    <span className="sm:hidden">👁️</span>
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleRemoveFromIgnored(ignoredRecipe.id)}
-                    className="flex items-center gap-1 text-destructive hover:text-destructive"
+                    className="flex items-center gap-1 text-destructive hover:text-destructive text-xs px-2 py-1 h-7 w-full sm:w-auto"
                   >
                     <X className="h-3 w-3" />
-                    Entfernen
+                    <span className="hidden sm:inline">Entfernen</span>
+                    <span className="sm:hidden">✕</span>
                   </Button>
                 </div>
               </div>
