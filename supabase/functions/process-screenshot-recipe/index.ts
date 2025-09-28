@@ -453,7 +453,17 @@ async function validateMultipleScreenshots(
   openAIApiKey: string, 
   userPrefs: { language: string; measurement_unit: string }
 ): Promise<ValidationResult> {
-  const languagePrompt = userPrefs.language === 'de' ? 'Antworte auf Deutsch.' : 'Answer in English.';
+  const languageInstructions = userPrefs.language === 'de' ? 
+    'Übersetze alle Texte ins Deutsche. WICHTIG: Alle Rezeptinhalte (Titel, Zutaten, Anweisungen, Beschreibung, Tags) müssen auf Deutsch sein.' : 
+    userPrefs.language === 'en' ? 'Translate all text to English. IMPORTANT: All recipe content (title, ingredients, instructions, description, tags) must be in English.' :
+    userPrefs.language === 'fr' ? 'Traduisez tout le texte en français. IMPORTANT: Tout le contenu de la recette doit être en français.' :
+    userPrefs.language === 'es' ? 'Traduce todo el texto al español. IMPORTANTE: Todo el contenido de la receta debe estar en español.' :
+    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano. IMPORTANTE: Tutto il contenuto della ricetta deve essere in italiano.' :
+    'Keep text in original language.';
+
+  const measurementInstructions = userPrefs.measurement_unit === 'metric' ? 
+    'Konvertiere alle Mengenangaben in metrische Einheiten (Gramm, Kilogramm, Milliliter, Liter, Celsius). WICHTIG: Konvertiere "cups" in tatsächliche Volumen/Gewicht - z.B. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", nicht nur "1 Tasse". Konvertiere "tbsp" zu "EL" (Esslöffel) und "tsp" zu "TL" (Teelöffel).' :
+    'Konvertiere alle Mengenangaben in imperiale Einheiten (Unzen, Pfund, Cups, Fahrenheit).';
   
   // Create image content array for all images
   const imageContent = images.map(img => ({
@@ -473,7 +483,8 @@ async function validateMultipleScreenshots(
 2. Enthalten sie gültige Rezept-Informationen?
 3. Können sie zu einem vollständigen Rezept kombiniert werden?
 
-${languagePrompt}
+${languageInstructions}
+${measurementInstructions}
 
 Antworte NUR mit gültigem JSON in diesem Format:
 {
@@ -506,7 +517,13 @@ WICHTIGE REGELN:
 - Unvollständige oder unlesbare Screenshots → isValidRecipe: false
 - Confidence: 90-100% = sehr sicher, 70-89% = wahrscheinlich, <70% = unsicher
 
-${userPrefs.measurement_unit === 'metric' ? 'Umrechnungen: 1 cup Mehl=125g, 1 cup Zucker=200g, 1 cup Milch=240ml, tbsp=EL, tsp=TL' : 'Keep imperial measurements'}
+${languageInstructions}
+${measurementInstructions}
+
+Beispiele für korrekte Umrechnungen:
+- "1 cup flour" → "125g Mehl" (nicht "1 Tasse Mehl")
+- "2 tbsp butter" → "30g Butter" (nicht "2 EL Butter")
+- "1 tsp salt" → "5g Salz" (nicht "1 TL Salz")
 
 Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "italienisch", "pasta", "vegetarisch").`
           },
@@ -593,14 +610,17 @@ async function extractRecipeFromImages(
   openAIApiKey: string,
   userPrefs: { language: string; measurement_unit: string }
 ): Promise<RecipeData> {
-  const languagePrompt = userPrefs.language === 'de' ? 'Übersetze alle Texte ins Deutsche.' :
-    userPrefs.language === 'en' ? 'Translate all text to English.' :
-    userPrefs.language === 'fr' ? 'Traduisez tout le texte en français.' :
-    userPrefs.language === 'es' ? 'Traduce todo el texto al español.' :
-    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
+  const languageInstructions = userPrefs.language === 'de' ? 
+    'Übersetze alle Texte ins Deutsche. WICHTIG: Alle Rezeptinhalte (Titel, Zutaten, Anweisungen, Beschreibung, Tags) müssen auf Deutsch sein.' : 
+    userPrefs.language === 'en' ? 'Translate all text to English. IMPORTANT: All recipe content (title, ingredients, instructions, description, tags) must be in English.' :
+    userPrefs.language === 'fr' ? 'Traduisez tout le texte en français. IMPORTANT: Tout le contenu de la recette doit être en français.' :
+    userPrefs.language === 'es' ? 'Traduce todo el texto al español. IMPORTANTE: Todo el contenido de la receta debe estar en español.' :
+    userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano. IMPORTANTE: Tutto il contenuto della ricetta deve essere in italiano.' :
     'Keep text in original language.';
 
-  const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+  const measurementInstructions = userPrefs.measurement_unit === 'metric' ? 
+    'Konvertiere alle Mengenangaben in metrische Einheiten (Gramm, Kilogramm, Milliliter, Liter, Celsius). WICHTIG: Konvertiere "cups" in tatsächliche Volumen/Gewicht - z.B. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", nicht nur "1 Tasse". Konvertiere "tbsp" zu "EL" (Esslöffel) und "tsp" zu "TL" (Teelöffel). Aber verwende in structured_ingredients die Gramm-Werte: "125g" statt "EL".' :
+    'Konvertiere alle Mengenangaben in imperiale Einheiten (Unzen, Pfund, Cups, Fahrenheit).';
 
   const imageContent = images.map(img => ({
     type: 'image_url',
@@ -612,11 +632,44 @@ async function extractRecipeFromImages(
     max_tokens: 2000,
     stream: false,
     messages: [
-      { role: 'system', content: `Du bist ein zuverlässiger Parser. Antworte ausschließlich mit valider JSON. ${languagePrompt} ${unitPrompt}` },
-      { role: 'user', content: [
-        { type: 'text', text: `Extrahiere das Rezept als JSON: { "title": string, "servings": number|null, "ingredients": [string], "structured_ingredients": [{"amount": number|null, "unit": string|null, "ingredient": string}], "instructions": [string], "cooking_time": number|null, "description": string|null, "tags": [string] }.` },
-        ...imageContent
-      ]}
+      { 
+        role: 'system', 
+        content: `Du bist ein zuverlässiger Rezept-Parser. Antworte ausschließlich mit valider JSON.
+
+${languageInstructions}
+${measurementInstructions}
+
+Beispiele für korrekte Umrechnungen:
+- "1 cup flour" → Zutat: "125g Mehl", structured: {"amount": 125, "unit": "g", "ingredient": "Mehl"}
+- "2 tbsp butter" → Zutat: "30g Butter", structured: {"amount": 30, "unit": "g", "ingredient": "Butter"}
+- "1 tsp salt" → Zutat: "5g Salz", structured: {"amount": 5, "unit": "g", "ingredient": "Salz"}` 
+      },
+      { 
+        role: 'user', 
+        content: [
+          { 
+            type: 'text', 
+            text: `Extrahiere das Rezept aus diesen Bildern als JSON mit diesem exakten Format:
+
+{
+  "title": string,
+  "servings": number|null,
+  "ingredients": [string],
+  "structured_ingredients": [{"amount": number|null, "unit": string|null, "ingredient": string}],
+  "instructions": [string],
+  "cooking_time": number|null,
+  "description": string|null,
+  "tags": [string]
+}
+
+${languageInstructions}
+${measurementInstructions}
+
+Erstelle mindestens 3-5 passende Tags für das Rezept.` 
+          },
+          ...imageContent
+        ]
+      }
     ]
   };
 
