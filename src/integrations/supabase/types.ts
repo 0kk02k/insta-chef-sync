@@ -119,6 +119,7 @@ export type Database = {
           published: boolean
           rating: number | null
           servings: number | null
+          shareable: boolean
           structured_ingredients: Json | null
           tags: string[] | null
           title: string
@@ -140,6 +141,7 @@ export type Database = {
           published?: boolean
           rating?: number | null
           servings?: number | null
+          shareable?: boolean
           structured_ingredients?: Json | null
           tags?: string[] | null
           title: string
@@ -161,6 +163,7 @@ export type Database = {
           published?: boolean
           rating?: number | null
           servings?: number | null
+          shareable?: boolean
           structured_ingredients?: Json | null
           tags?: string[] | null
           title?: string

@@ -27,6 +27,7 @@ interface Recipe {
   user_id: string;
   creator_name?: string;
   published: boolean;
+  shareable?: boolean;
 }
 
 const Index = () => {

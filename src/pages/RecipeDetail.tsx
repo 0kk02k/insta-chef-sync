@@ -18,6 +18,8 @@ import InlineEditMetadata from '@/components/InlineEditMetadata';
 import InlineEditImage from '@/components/InlineEditImage';
 import InlineEditTags from '@/components/InlineEditTags';
 import PublishButtons from '@/components/PublishButtons';
+import ShareOptionDialog from '@/components/ShareOptionDialog';
+import RecipeStatusBadge from '@/components/RecipeStatusBadge';
 import Footer from '@/components/Footer';
 
 interface StructuredIngredient {
@@ -43,6 +45,7 @@ interface Recipe {
   user_id: string;
   creator_name?: string;
   published: boolean;
+  shareable?: boolean;
   original_recipe_id?: string | null;
   is_forked?: boolean;
   original_creator_id?: string | null;
@@ -469,58 +472,9 @@ const RecipeDetail = () => {
     }
   };
 
-  const handleShareRecipe = async () => {
+  const handleRecipeUpdate = (updates: { published?: boolean; shareable?: boolean }) => {
     if (!recipe) return;
-
-    // Ensure the recipe is public before sharing
-    if (!recipe.published) {
-      if (user && user.id === recipe.user_id) {
-        const confirmPublish = window.confirm(
-          'Dieses Rezept ist noch nicht veröffentlicht. Soll es jetzt veröffentlicht werden, damit jeder mit dem Link es sehen kann?'
-        );
-        if (!confirmPublish) {
-          toast({
-            title: 'Abgebrochen',
-            description: 'Der Link ist nur für dich sichtbar, solange das Rezept privat ist.',
-          });
-          return;
-        }
-        const { error } = await supabase
-          .from('recipes')
-          .update({ published: true })
-          .eq('id', recipe.id)
-          .eq('user_id', user.id);
-        if (error) {
-          toast({
-            title: 'Fehler',
-            description: 'Veröffentlichen fehlgeschlagen. Bitte erneut versuchen.',
-            variant: 'destructive',
-          });
-          return;
-        }
-        setRecipe({ ...recipe, published: true });
-        toast({ title: 'Veröffentlicht', description: 'Das Rezept ist jetzt öffentlich sichtbar.' });
-      } else {
-        toast({
-          title: 'Nicht veröffentlicht',
-          description: 'Dieses Rezept ist privat und kann nicht öffentlich geteilt werden.',
-          variant: 'destructive',
-        });
-        return;
-      }
-    }
-
-    const shareUrl = `${window.location.origin}/recipe/${recipe.id}`;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: 'Link kopiert!',
-        description: 'Der Rezept-Link wurde in die Zwischenablage kopiert.',
-      });
-    } catch (error) {
-      // Fallback für Browser ohne clipboard API
-      toast({ title: 'Rezept teilen', description: shareUrl });
-    }
+    setRecipe({ ...recipe, ...updates });
   };
 
   if (loading) {
@@ -553,20 +507,11 @@ const RecipeDetail = () => {
             
             {user && user.id === recipe.user_id ? (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <ShareOptionDialog 
+                  recipe={recipe}
+                  user={user}
+                  onRecipeUpdate={handleRecipeUpdate}
+                />
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -588,20 +533,11 @@ const RecipeDetail = () => {
               </div>
             ) : user && user.id !== recipe.user_id ? (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <ShareOptionDialog 
+                  recipe={recipe}
+                  user={user}
+                  onRecipeUpdate={handleRecipeUpdate}
+                />
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -643,20 +579,11 @@ const RecipeDetail = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <ShareOptionDialog 
+                  recipe={recipe}
+                  user={user}
+                  onRecipeUpdate={handleRecipeUpdate}
+                />
               </div>
             )}
           </div>
@@ -683,12 +610,20 @@ const RecipeDetail = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <InlineEditTitle
-                      value={recipe.title}
-                      recipeId={recipe.id}
-                      isOwner={user?.id === recipe.user_id}
-                      onUpdate={handleTitleUpdate}
-                    />
+                    <div className="flex items-center gap-3 mb-2">
+                      <InlineEditTitle
+                        value={recipe.title}
+                        recipeId={recipe.id}
+                        isOwner={user?.id === recipe.user_id}
+                        onUpdate={handleTitleUpdate}
+                      />
+                      {user?.id === recipe.user_id && (
+                        <RecipeStatusBadge 
+                          published={recipe.published} 
+                          shareable={recipe.shareable} 
+                        />
+                      )}
+                    </div>
                     <InlineEditDescription
                       value={recipe.description}
                       recipeId={recipe.id}
