@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, User, ArrowLeft } from 'lucide-react';
+import { Trash2, User, ArrowLeft, BookOpen, Cookie, EyeOff } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { CookieSettings } from '@/components/CookieSettings';
 import IgnoredRecipesList from '@/components/IgnoredRecipesList';
@@ -139,152 +140,170 @@ const Settings = () => {
         </div>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
-        <div className="space-y-6">
-          {/* User Guide */}
-          <UserGuide />
-          
-          <Separator />
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+        <Tabs defaultValue="guide" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="guide" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Anleitung
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Profilinformationen
+            </TabsTrigger>
+            <TabsTrigger value="cookies" className="flex items-center gap-2">
+              <Cookie className="h-4 w-4" />
+              Cookieeinstellungen
+            </TabsTrigger>
+            <TabsTrigger value="ignored" className="flex items-center gap-2">
+              <EyeOff className="h-4 w-4" />
+              Ignorierte Rezepte
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Profile Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-ink-900">
-                <User className="h-5 w-5" />
-                Profil-Informationen
-              </CardTitle>
-              <CardDescription>
-                Hier können Sie Ihre Kontoinformationen einsehen.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-ink-700">Anzeigename</Label>
-                <Input 
-                  value={profile?.display_name || ''} 
-                  disabled 
-                  className="bg-accent-2/20 border-border/30"
-                />
-              </div>
-              <div>
-                <Label className="text-ink-700">E-Mail</Label>
-                <Input 
-                  value={profile?.email || ''} 
-                  disabled 
-                  className="bg-accent-2/20 border-border/30"
-                />
-              </div>
-              <div>
-                <Label className="text-ink-700">Sprache</Label>
-                <Input 
-                  value={profile?.language || ''} 
-                  disabled 
-                  className="bg-accent-2/20 border-border/30"
-                />
-              </div>
-              <div>
-                <Label className="text-ink-700">Maßeinheit</Label>
-                <Input 
-                  value={profile?.measurement_unit || ''} 
-                  disabled 
-                  className="bg-accent-2/20 border-border/30"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="guide" className="mt-6">
+            <UserGuide />
+          </TabsContent>
 
-          <Separator />
-          
-          <CookieSettings />
-          
-          <Separator />
+          <TabsContent value="profile" className="mt-6 space-y-6">
+            {/* Profile Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-ink-900">
+                  <User className="h-5 w-5" />
+                  Profil-Informationen
+                </CardTitle>
+                <CardDescription>
+                  Hier können Sie Ihre Kontoinformationen einsehen.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-ink-700">Anzeigename</Label>
+                  <Input 
+                    value={profile?.display_name || ''} 
+                    disabled 
+                    className="bg-accent-2/20 border-border/30"
+                  />
+                </div>
+                <div>
+                  <Label className="text-ink-700">E-Mail</Label>
+                  <Input 
+                    value={profile?.email || ''} 
+                    disabled 
+                    className="bg-accent-2/20 border-border/30"
+                  />
+                </div>
+                <div>
+                  <Label className="text-ink-700">Sprache</Label>
+                  <Input 
+                    value={profile?.language || ''} 
+                    disabled 
+                    className="bg-accent-2/20 border-border/30"
+                  />
+                </div>
+                <div>
+                  <Label className="text-ink-700">Maßeinheit</Label>
+                  <Input 
+                    value={profile?.measurement_unit || ''} 
+                    disabled 
+                    className="bg-accent-2/20 border-border/30"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          <IgnoredRecipesList />
-          
-          <Separator />
+            {/* Delete Account Section */}
+            <Card className="border-destructive/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <Trash2 className="h-5 w-5" />
+                  Konto löschen
+                </CardTitle>
+                <CardDescription>
+                  Das Löschen Ihres Kontos ist unwiderruflich. Alle Ihre Daten werden permanent entfernt.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-destructive/10 p-4 rounded-lg mb-4">
+                  <h4 className="font-semibold text-destructive mb-2">Was wird gelöscht:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Ihr Benutzerprofil</li>
+                    <li>• Alle Ihre Rezepte</li>
+                    <li>• Alle Ihre Kommentare</li>
+                    <li>• Alle gespeicherten Präferenzen</li>
+                  </ul>
+                </div>
 
-          {/* Delete Account Section */}
-          <Card className="border-destructive/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <Trash2 className="h-5 w-5" />
-                Konto löschen
-              </CardTitle>
-              <CardDescription>
-                Das Löschen Ihres Kontos ist unwiderruflich. Alle Ihre Daten werden permanent entfernt.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-destructive/10 p-4 rounded-lg mb-4">
-                <h4 className="font-semibold text-destructive mb-2">Was wird gelöscht:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Ihr Benutzerprofil</li>
-                  <li>• Alle Ihre Rezepte</li>
-                  <li>• Alle Ihre Kommentare</li>
-                  <li>• Alle gespeicherten Präferenzen</li>
-                </ul>
-              </div>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-full">
-                    Konto permanent löschen
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Sind Sie sicher?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle zugehörigen Daten werden permanent gelöscht.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => setShowSecondDialog(true)}
-                      className="bg-destructive hover:bg-destructive/90"
-                    >
-                      Fortfahren
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
-              <AlertDialog open={showSecondDialog} onOpenChange={setShowSecondDialog}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Finale Bestätigung</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Geben Sie "LÖSCHEN" ein, um Ihr Konto endgültig zu löschen.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="py-4">
-                    <Input
-                      placeholder="LÖSCHEN eingeben"
-                      value={deleteConfirmation}
-                      onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    />
-                  </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => {
-                      setDeleteConfirmation('');
-                      setShowSecondDialog(false);
-                    }}>
-                      Abbrechen
-                    </AlertDialogCancel>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDeleteAccount}
-                      disabled={deleteConfirmation !== 'LÖSCHEN' || isDeleting}
-                    >
-                      {isDeleting ? 'Lösche...' : 'Endgültig löschen'}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full">
+                      Konto permanent löschen
                     </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardContent>
-          </Card>
-        </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Sind Sie sicher?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle zugehörigen Daten werden permanent gelöscht.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => setShowSecondDialog(true)}
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        Fortfahren
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog open={showSecondDialog} onOpenChange={setShowSecondDialog}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Finale Bestätigung</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Geben Sie "LÖSCHEN" ein, um Ihr Konto endgültig zu löschen.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="py-4">
+                      <Input
+                        placeholder="LÖSCHEN eingeben"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      />
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => {
+                        setDeleteConfirmation('');
+                        setShowSecondDialog(false);
+                      }}>
+                        Abbrechen
+                      </AlertDialogCancel>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDeleteAccount}
+                        disabled={deleteConfirmation !== 'LÖSCHEN' || isDeleting}
+                      >
+                        {isDeleting ? 'Lösche...' : 'Endgültig löschen'}
+                      </Button>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cookies" className="mt-6">
+            <CookieSettings />
+          </TabsContent>
+
+          <TabsContent value="ignored" className="mt-6">
+            <IgnoredRecipesList />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />
