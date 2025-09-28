@@ -12,28 +12,22 @@ const UserGuide = () => {
       steps: [
         "📄 PDF-Dateien hochladen (bis zu 10 PDFs gleichzeitig zur Stapelverarbeitung)",
         "📸 Screenshots von Rezepten hochladen (mehrere Screenshots können zu einem Rezept zusammengefügt werden)",
-        "🔗 Instagram-Links einfügen für automatische Verarbeitung",
-        "✍️ Manuell Titel, Zutaten und Anweisungen eingeben"
-      ]
-    },
-    {
-      icon: <Share className="h-5 w-5" />,
-      title: "Rezepte teilen",
-      description: "Teilen Sie Ihre Rezepte mit anderen:",
-      steps: [
-        "Private Links: Erstellen Sie teilbare Links für einzelne Rezepte",
-        "Veröffentlichen: Machen Sie Rezepte öffentlich sichtbar für alle Nutzer"
+        "🔗 Webseiten-Links einfügen für automatische Verarbeitung",
+        "✍️ Manuell Titel, Zutaten und Anweisungen eingeben",
+        "🏷️ Rezepte mit Hashtags versehen für bessere Auffindbarkeit"
       ]
     },
     {
       icon: <Search className="h-5 w-5" />,
-      title: "Rezepte finden",
-      description: "Entdecken Sie neue Rezepte:",
+      title: "Rezepte finden & teilen",
+      description: "Entdecken und teilen Sie Rezepte:",
       steps: [
-        "Nutzen Sie die Suchfunktion auf der Startseite",
-        "Suchen Sie nach Rezeptnamen, Zutaten oder Kategorien",
-        "Filtern Sie nach Ihren Präferenzen",
-        "Durchstöbern Sie die Rezeptsammlung anderer Nutzer"
+        "Suchen Sie nach Rezeptnamen, Zutaten oder Hashtags",
+        "Private Links erstellen für einzelne Rezepte",
+        "Rezepte öffentlich veröffentlichen",
+        "Veröffentlichte Rezepte anderer Nutzer kommentieren",
+        "Fremde Rezepte zur eigenen Weiterentwicklung kopieren",
+        "Unerwünschte Rezepte ignorieren"
       ]
     },
     {
