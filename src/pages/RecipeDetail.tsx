@@ -3,11 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Edit, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { useAuth } from '@/hooks/useAuth';
-import EditRecipeDialog from '@/components/EditRecipeDialog';
 import StarRating from '@/components/StarRating';
 import CommentsSection from '@/components/CommentsSection';
 import InlineEditTitle from '@/components/InlineEditTitle';
@@ -16,6 +15,9 @@ import InlineEditIngredients from '@/components/InlineEditIngredients';
 import PortionConverter from '@/components/PortionConverter';
 import InlineEditInstructions from '@/components/InlineEditInstructions';
 import InlineEditMetadata from '@/components/InlineEditMetadata';
+import InlineEditImage from '@/components/InlineEditImage';
+import InlineEditTags from '@/components/InlineEditTags';
+import PublishButtons from '@/components/PublishButtons';
 import Footer from '@/components/Footer';
 
 interface StructuredIngredient {
@@ -240,6 +242,24 @@ const RecipeDetail = () => {
     fetchRecipe();
   };
 
+  const handleImageUpdate = (newImageUrl: string | null) => {
+    if (recipe) {
+      setRecipe({ ...recipe, image_url: newImageUrl });
+    }
+  };
+
+  const handleTagsUpdate = (newTags: string[]) => {
+    if (recipe) {
+      setRecipe({ ...recipe, tags: newTags });
+    }
+  };
+
+  const handlePublishUpdate = (published: boolean) => {
+    if (recipe) {
+      setRecipe({ ...recipe, published });
+    }
+  };
+
   const handleTitleUpdate = (newTitle: string) => {
     if (recipe) {
       setRecipe({ ...recipe, title: newTitle });
@@ -438,9 +458,6 @@ const RecipeDetail = () => {
             
             {user && user.id === recipe.user_id ? (
               <div className="flex items-center space-x-2">
-                <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:border [&>button]:border-foreground">
-                  <EditRecipeDialog recipe={recipe} onRecipeUpdated={handleRecipeUpdated} />
-                </div>
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -513,42 +530,15 @@ const RecipeDetail = () => {
           <div className="lg:col-span-2 space-y-3">
             {/* Recipe Image & Title */}
             <Card className="overflow-hidden border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
-              {recipe.image_url ? (
-                <div className="aspect-video w-full overflow-hidden">
-                  <img
-                    src={recipe.image_url}
-                    alt={recipe.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : user?.id === recipe.user_id && (
-                <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <div className="text-muted-foreground mb-4">
-                      <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-60" />
-                      <p className="text-lg font-medium">Noch kein Bild vorhanden</p>
-                      <p className="text-sm">Generiere ein appetitliches Bild mit KI</p>
-                    </div>
-                    <Button
-                      onClick={handleGenerateImage}
-                      disabled={generatingImage}
-                      className="bg-gradient-to-r from-purple-soft to-hot-pink text-white hover:from-purple-soft/90 hover:to-hot-pink/90"
-                    >
-                      {generatingImage ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generiere Bild...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          KI-Bild generieren
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <InlineEditImage
+                value={recipe.image_url}
+                recipeId={recipe.id}
+                recipeTitle={recipe.title}
+                isOwner={user?.id === recipe.user_id}
+                onUpdate={handleImageUpdate}
+                onGenerateImage={handleGenerateImage}
+                generatingImage={generatingImage}
+              />
               
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
@@ -586,19 +576,12 @@ const RecipeDetail = () => {
                   onUpdate={handleMetadataUpdate}
                 />
                 
-                {recipe.tags && recipe.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {recipe.tags.map((tag, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-flex items-center text-sm py-2 px-4 bg-hot-pink text-white rounded-md"
-                      >
-                        <Hash className="h-4 w-4 mr-2" />
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <InlineEditTags
+                  value={recipe.tags || []}
+                  recipeId={recipe.id}
+                  isOwner={user?.id === recipe.user_id}
+                  onUpdate={handleTagsUpdate}
+                />
 
                 {/* Rating Section */}
                 <div className="pt-2 border-t border-border/50">
@@ -723,6 +706,14 @@ const RecipeDetail = () => {
             </Card>
           </div>
         </div>
+
+        {/* Publish Buttons */}
+        <PublishButtons
+          recipeId={recipe.id}
+          isPublished={recipe.published}
+          isOwner={user?.id === recipe.user_id}
+          onUpdate={handlePublishUpdate}
+        />
 
         {/* Comments Section */}
         <CommentsSection recipeId={recipe.id} isPublished={recipe.published} />

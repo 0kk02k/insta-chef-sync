@@ -1,0 +1,274 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Edit, Check, X, Upload, Sparkles, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/cookieAwareClient';
+
+interface InlineEditImageProps {
+  value: string | null;
+  recipeId: string;
+  recipeTitle: string;
+  isOwner: boolean;
+  onUpdate: (newValue: string | null) => void;
+  onGenerateImage: () => void;
+  generatingImage: boolean;
+}
+
+const InlineEditImage = ({ 
+  value, 
+  recipeId, 
+  recipeTitle,
+  isOwner, 
+  onUpdate, 
+  onGenerateImage,
+  generatingImage 
+}: InlineEditImageProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempValue, setTempValue] = useState(value || '');
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const newValue = tempValue.trim() || null;
+      const { error } = await supabase
+        .from('recipes')
+        .update({ image_url: newValue })
+        .eq('id', recipeId);
+
+      if (error) throw error;
+
+      onUpdate(newValue);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating image:', error);
+      toast({
+        title: "Fehler",
+        description: "Bild konnte nicht gespeichert werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setTempValue(value || '');
+    setIsEditing(false);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fehler",
+        description: "Datei ist zu groß. Maximum: 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Fehler",
+        description: "Nur Bilddateien sind erlaubt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${recipeId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('recipe-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('recipe-images')
+        .getPublicUrl(filePath);
+
+      const imageUrl = data.publicUrl;
+
+      // Update recipe with new image URL
+      const { error: updateError } = await supabase
+        .from('recipes')
+        .update({ image_url: imageUrl })
+        .eq('id', recipeId);
+
+      if (updateError) throw updateError;
+
+      onUpdate(imageUrl);
+      setTempValue(imageUrl);
+      setIsEditing(false);
+
+      toast({
+        title: "Bild hochgeladen",
+        description: "Das Bild wurde erfolgreich gespeichert.",
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Fehler",
+        description: "Bild konnte nicht hochgeladen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (!isOwner) {
+    return value ? (
+      <div className="aspect-video w-full overflow-hidden">
+        <img
+          src={value}
+          alt={recipeTitle}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    ) : null;
+  }
+
+  if (isEditing) {
+    return (
+      <div className="space-y-4 p-4">
+        <div className="space-y-3">
+          <Input
+            value={tempValue}
+            onChange={(e) => setTempValue(e.target.value)}
+            placeholder="Bild-URL eingeben"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') handleCancel();
+            }}
+          />
+          
+          <div className="text-center text-muted-foreground">oder</div>
+          
+          <div>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              className="cursor-pointer"
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || uploading}
+            className="h-8"
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={saving || uploading}
+            className="h-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative">
+      {value ? (
+        <div className="aspect-video w-full overflow-hidden relative">
+          <img
+            src={value}
+            alt={recipeTitle}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setIsEditing(true)}
+              className="h-8"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Bearbeiten
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onGenerateImage}
+              disabled={generatingImage}
+              className="h-8"
+            >
+              {generatingImage ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-1" />
+              )}
+              KI-Bild
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center">
+          <div className="text-center p-8">
+            <div className="text-muted-foreground mb-4">
+              <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-60" />
+              <p className="text-lg font-medium">Noch kein Bild vorhanden</p>
+              <p className="text-sm">Bild hinzufügen oder mit KI generieren</p>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => setIsEditing(true)}
+                variant="outline"
+                size="sm"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Bild hinzufügen
+              </Button>
+              <Button
+                onClick={onGenerateImage}
+                disabled={generatingImage}
+                className="bg-gradient-to-r from-purple-soft to-hot-pink text-white hover:from-purple-soft/90 hover:to-hot-pink/90"
+                size="sm"
+              >
+                {generatingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generiere...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    KI-Bild generieren
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default InlineEditImage;
