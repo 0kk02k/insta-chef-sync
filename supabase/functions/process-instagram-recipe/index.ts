@@ -287,26 +287,28 @@ ${processContent}
 
     console.log('Successfully extracted recipe data:', recipeData);
 
-    // Generate AI image for the recipe
+    // Generate AI image for the recipe using FLUX
     let finalImageUrl: string | null = null;
-    console.log('Generating AI image...');
+    console.log('Generating AI image with FLUX...');
     try {
-        const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-        if (openaiApiKey) {
+        const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+        if (togetherApiKey) {
           const imagePrompt = `A high-quality, appetizing food photograph of ${recipeData.title}. Professional food photography, well-lit, attractive presentation, restaurant quality.`;
           
-          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+          const imageResponse = await fetch('https://api.together.xyz/v1/images/generations', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${openaiApiKey}`,
+              'Authorization': `Bearer ${togetherApiKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-image-1',
+              model: 'black-forest-labs/FLUX.1-schnell',
               prompt: imagePrompt,
-              size: '1024x1024',
-              quality: 'standard',
-              n: 1
+              width: 1024,
+              height: 1024,
+              steps: 4,
+              n: 1,
+              response_format: 'b64_json'
             }),
           });
 
@@ -330,12 +332,12 @@ ${processContent}
                 .getPublicUrl(fileName);
               
               finalImageUrl = publicUrl;
-              console.log('Generated and uploaded AI image:', finalImageUrl);
+              console.log('Generated and uploaded FLUX image:', finalImageUrl);
             }
           }
         }
     } catch (error) {
-      console.error('Error generating AI image:', error);
+      console.error('Error generating FLUX image:', error);
       // Continue without image if generation fails
     }
 

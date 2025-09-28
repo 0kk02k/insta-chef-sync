@@ -717,12 +717,12 @@ async function generateRecipeImage(
   xaiApiKey: string, 
   supabase: any
 ): Promise<string | null> {
-  console.log('🎨 Generating AI image for recipe');
+  console.log('🎨 Generating AI image for recipe with FLUX');
   
-  // For image generation, we still use OpenAI since the plan was to keep image generation
-  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!openAIApiKey) {
-    console.warn('OpenAI API key not available for image generation');
+  // Use FLUX via Together AI for image generation
+  const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+  if (!togetherApiKey) {
+    console.warn('Together API key not available for image generation');
     return null;
   }
   
@@ -730,24 +730,25 @@ async function generateRecipeImage(
   ${recipeData.description ? recipeData.description + '. ' : ''}
   High quality, appetizing, well-lit, restaurant-style presentation. Ultra high resolution.`;
 
-  const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+  const imageResponse = await fetch('https://api.together.xyz/v1/images/generations', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
+      'Authorization': `Bearer ${togetherApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-image-1',
+      model: 'black-forest-labs/FLUX.1-schnell',
       prompt: imagePrompt,
+      width: 1024,
+      height: 1024,
+      steps: 4,
       n: 1,
-      size: '1024x1024',
-      quality: 'high',
-      output_format: 'png',
+      response_format: 'b64_json'
     }),
   });
 
   if (!imageResponse.ok) {
-    console.error('❌ Image generation failed:', await imageResponse.text());
+    console.error('❌ FLUX image generation failed:', await imageResponse.text());
     return null;
   }
 
@@ -760,23 +761,23 @@ async function generateRecipeImage(
 
   // Upload the generated image to Supabase Storage
   const imageBuffer = Uint8Array.from(atob(imageBase64Data), c => c.charCodeAt(0));
-  const imageFileName = `generated-${Date.now()}-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+  const fileName = `ai-generated-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-${Date.now()}.png`;
   
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('recipe-images')
-    .upload(imageFileName, imageBuffer, {
+    .upload(fileName, imageBuffer, {
       contentType: 'image/png'
     });
 
   if (uploadError) {
-    console.error('❌ Image upload error:', uploadError);
+    console.error('❌ Storage upload error:', uploadError);
     return null;
   }
 
   const { data: { publicUrl } } = supabase.storage
     .from('recipe-images')
-    .getPublicUrl(imageFileName);
-  
-  console.log('✅ AI image generated and uploaded');
+    .getPublicUrl(fileName);
+
+  console.log('✅ FLUX image generated and uploaded:', publicUrl);
   return publicUrl;
 }
