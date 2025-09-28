@@ -13,7 +13,8 @@ const UserGuide = () => {
         "📸 Screenshots von Rezepten hochladen (mehrere Screenshots können zu einem Rezept zusammengefügt werden)",
         "🔗 Webseiten-Links einfügen für automatische Verarbeitung",
         "✍️ Manuell Titel, Zutaten und Anweisungen eingeben",
-        "🏷️ Rezepte mit Hashtags versehen für bessere Auffindbarkeit"
+        "🏷️ Rezepte mit Hashtags versehen für bessere Auffindbarkeit",
+        "🎨 KI-generierte Bilder aus dem Rezept erstellen lassen oder eigene Bilder hinzufügen"
       ]
     },
     {
