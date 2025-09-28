@@ -552,7 +552,7 @@ const RecipeDetail = () => {
                   )}
                 </Button>
               </div>
-            ) : user && user.id !== recipe.user_id && (
+            ) : user && user.id !== recipe.user_id ? (
               <div className="flex items-center space-x-2">
                 <Button 
                   size="icon"
