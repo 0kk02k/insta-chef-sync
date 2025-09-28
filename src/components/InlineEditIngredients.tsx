@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Edit, Check, X, Plus, Minus, ShoppingCart } from 'lucide-react';
@@ -28,6 +28,11 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
   const [saving, setSaving] = useState(false);
   const [showShoppingListDialog, setShowShoppingListDialog] = useState(false);
   const { toast } = useToast();
+
+  // Update tempValue when value prop changes
+  useEffect(() => {
+    setTempValue(value);
+  }, [value]);
 
   const handleSave = async () => {
     const filteredIngredients = tempValue.filter(ingredient => ingredient.trim() !== '');
