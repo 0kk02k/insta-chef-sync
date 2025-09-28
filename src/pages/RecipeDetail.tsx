@@ -175,7 +175,7 @@ const RecipeDetail = () => {
   const handleDelete = async () => {
     if (!recipe || !user) return;
 
-    if (!confirm('Sind Sie sicher, dass Sie dieses Rezept löschen möchten?')) {
+    if (!confirm('Bist du sicher, dass du dieses Rezept löschen möchtest?')) {
       return;
     }
 
@@ -380,7 +380,7 @@ const RecipeDetail = () => {
   const handleIgnoreRecipe = async () => {
     if (!recipe || !user) return;
 
-    if (!confirm('Möchten Sie dieses Rezept ignorieren? Es wird dann nicht mehr in Ihrer Rezeptliste angezeigt.')) {
+    if (!confirm('Möchtest du dieses Rezept ignorieren? Es wird dann nicht mehr in deiner Rezeptliste angezeigt.')) {
       return;
     }
 
@@ -400,7 +400,7 @@ const RecipeDetail = () => {
 
       toast({
         title: "Rezept ignoriert",
-        description: "Das Rezept wird nicht mehr in Ihrer Liste angezeigt.",
+        description: "Das Rezept wird nicht mehr in deiner Liste angezeigt.",
       });
 
       navigate('/');
@@ -419,7 +419,7 @@ const RecipeDetail = () => {
   const handleForkRecipe = async () => {
     if (!recipe || !user) return;
 
-    if (!confirm('Möchten Sie dieses Rezept übernehmen und als eigenes bearbeiten?')) {
+    if (!confirm('Möchtest du dieses Rezept übernehmen und als eigenes bearbeiten?')) {
       return;
     }
 
@@ -453,7 +453,7 @@ const RecipeDetail = () => {
 
       toast({
         title: "Rezept übernommen",
-        description: "Das Rezept wurde erfolgreich in Ihre Sammlung übernommen.",
+        description: "Das Rezept wurde erfolgreich in deine Sammlung übernommen.",
       });
 
       // Navigate to the new forked recipe

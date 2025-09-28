@@ -74,7 +74,7 @@ const Settings = () => {
       toast({
         variant: "destructive",
         title: "Bestätigung erforderlich",
-        description: "Bitte geben Sie 'LÖSCHEN' ein, um fortzufahren."
+        description: "Bitte gib 'LÖSCHEN' ein, um fortzufahren."
       });
       return;
     }
@@ -89,7 +89,7 @@ const Settings = () => {
 
       toast({
         title: "Konto gelöscht",
-        description: "Ihr Konto wurde erfolgreich gelöscht."
+        description: "Dein Konto wurde erfolgreich gelöscht."
       });
 
       await signOut();
@@ -99,7 +99,7 @@ const Settings = () => {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es später erneut."
+        description: "Konto konnte nicht gelöscht werden. Bitte versuche es später erneut."
       });
     } finally {
       setIsDeleting(false);
@@ -174,7 +174,7 @@ const Settings = () => {
                   Profil-Informationen
                 </CardTitle>
                 <CardDescription>
-                  Hier können Sie Ihre Kontoinformationen einsehen.
+                  Hier kannst du deine Kontoinformationen einsehen.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -221,16 +221,16 @@ const Settings = () => {
                   Konto löschen
                 </CardTitle>
                 <CardDescription>
-                  Das Löschen Ihres Kontos ist unwiderruflich. Alle Ihre Daten werden permanent entfernt.
+                  Das Löschen deines Kontos ist unwiderruflich. Alle deine Daten werden permanent entfernt.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="bg-destructive/10 p-4 rounded-lg mb-4">
                   <h4 className="font-semibold text-destructive mb-2">Was wird gelöscht:</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Ihr Benutzerprofil</li>
-                    <li>• Alle Ihre Rezepte</li>
-                    <li>• Alle Ihre Kommentare</li>
+                    <li>• Dein Benutzerprofil</li>
+                    <li>• Alle deine Rezepte</li>
+                    <li>• Alle deine Kommentare</li>
                     <li>• Alle gespeicherten Präferenzen</li>
                   </ul>
                 </div>
@@ -243,9 +243,9 @@ const Settings = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Sind Sie sicher?</AlertDialogTitle>
+                      <AlertDialogTitle>Bist du sicher?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle zugehörigen Daten werden permanent gelöscht.
+                        Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto und alle zugehörigen Daten werden permanent gelöscht.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -265,7 +265,7 @@ const Settings = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Finale Bestätigung</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Geben Sie "LÖSCHEN" ein, um Ihr Konto endgültig zu löschen.
+                        Gib "LÖSCHEN" ein, um dein Konto endgültig zu löschen.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="py-4">

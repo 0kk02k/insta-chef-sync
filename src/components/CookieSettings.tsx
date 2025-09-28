@@ -50,7 +50,7 @@ export const CookieSettings = () => {
                 <Label className="font-medium">Funktionale Cookies</Label>
               </div>
               <p className="text-sm text-muted-foreground">
-                Speichern Ihre Präferenzen und Einstellungen, um Ihre Benutzererfahrung zu verbessern.
+                Speichern deine Präferenzen und Einstellungen, um deine Benutzererfahrung zu verbessern.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Beispiele: Sidebar-Status, Theme-Präferenzen, Sprache, Maßeinheiten
@@ -70,7 +70,7 @@ export const CookieSettings = () => {
                 <Label className="font-medium">Analytik-Cookies</Label>
               </div>
               <p className="text-sm text-muted-foreground">
-                Helfen uns zu verstehen, wie Sie die Website nutzen, um sie zu verbessern.
+                Helfen uns zu verstehen, wie du die Website nutzt, um sie zu verbessern.
                 <span className="text-green-600 font-medium"> (Derzeit nicht verwendet)</span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -105,7 +105,7 @@ export const CookieSettings = () => {
                   <AlertDialogTitle>Alle Cookies löschen?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Dies wird alle gespeicherten Cookies und Einstellungen löschen. 
-                    Sie werden abgemeldet und müssen Ihre Präferenzen neu einstellen.
+                    Du wirst abgemeldet und musst deine Präferenzen neu einstellen.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

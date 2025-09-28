@@ -21,7 +21,7 @@ const UserGuide = () => {
       icon: <Search className="h-5 w-5" />,
       title: "Rezepte finden & teilen",
       steps: [
-        "Suchen Sie nach Rezeptnamen, Zutaten oder Hashtags",
+        "Suche nach Rezeptnamen, Zutaten oder Hashtags",
         "Private Links erstellen für einzelne Rezepte",
         "Rezepte öffentlich veröffentlichen",
         "Veröffentlichte Rezepte anderer Nutzer kommentieren",
@@ -33,19 +33,19 @@ const UserGuide = () => {
       icon: <ShoppingCart className="h-5 w-5" />,
       title: "Einkaufslisten erstellen",
       steps: [
-        "Öffnen Sie ein Rezept",
-        "Klicken Sie auf 'Zur Einkaufsliste hinzufügen'",
-        "Wählen Sie eine bestehende Liste oder erstellen Sie eine neue",
-        "Verwalten Sie Ihre Listen im Einkaufslisten-Bereich"
+        "Öffne ein Rezept",
+        "Klicke auf 'Zur Einkaufsliste hinzufügen'",
+        "Wähle eine bestehende Liste oder erstelle eine neue",
+        "Verwalte deine Listen im Einkaufslisten-Bereich"
       ]
     }
   ];
 
   const securityTips = [
-    "Teilen Sie nur Rezepte, die Sie selbst erstellt haben oder für die Sie die Rechte besitzen",
+    "Teile nur Rezepte, die du selbst erstellt hast oder für die du die Rechte besitzt",
     "Geteilte Rezepte sind über den Link für jeden zugänglich",
-    "Ihre persönlichen Daten werden nie ohne Ihre Zustimmung geteilt",
-    "Sie können jederzeit Ihr Konto und alle Daten löschen"
+    "Deine persönlichen Daten werden nie ohne deine Zustimmung geteilt",
+    "Du kannst jederzeit dein Konto und alle Daten löschen"
   ];
 
   return (

@@ -162,7 +162,7 @@ const CommentsSection = ({ recipeId, isPublished }: CommentsSectionProps) => {
         {user && (
           <div className="mb-6">
             <Textarea
-              placeholder="Schreiben Sie einen Kommentar..."
+              placeholder="Schreibe einen Kommentar..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="mb-3"
@@ -188,7 +188,7 @@ const CommentsSection = ({ recipeId, isPublished }: CommentsSectionProps) => {
           ) : comments.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               Noch keine Kommentare vorhanden. 
-              {user ? ' Seien Sie der Erste!' : ' Melden Sie sich an, um zu kommentieren.'}
+              {user ? ' Sei der Erste!' : ' Melde dich an, um zu kommentieren.'}
             </div>
           ) : (
             comments.map((comment) => (

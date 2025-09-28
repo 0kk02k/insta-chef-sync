@@ -443,8 +443,8 @@ const Index = () => {
                 </h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   {user 
-                    ? 'Fügen Sie Ihr erstes Rezept hinzu, um Ihre kulinarische Sammlung zu starten!'
-                    : 'Entdecken Sie köstliche Rezepte aus der Community oder melden Sie sich an, um eigene Rezepte zu teilen!'
+                    ? 'Füge dein erstes Rezept hinzu, um deine kulinarische Sammlung zu starten!'
+                    : 'Entdecke köstliche Rezepte aus der Community oder melde dich an, um eigene Rezepte zu teilen!'
                   }
                 </p>
                 {user ? (
@@ -469,8 +469,8 @@ const Index = () => {
                   Keine Rezepte gefunden
                 </h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Keine Rezepte entsprechen Ihrer Suche nach "{searchTerm}". 
-                  Versuchen Sie es mit anderen Begriffen.
+                  Keine Rezepte entsprechen deiner Suche nach "{searchTerm}". 
+                  Versuche es mit anderen Begriffen.
                 </p>
                 <div className="flex gap-2">
                   <Button 

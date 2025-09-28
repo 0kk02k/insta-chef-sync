@@ -188,7 +188,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     if (!user) {
       toast({
         title: "Fehler",
-        description: "Sie müssen angemeldet sein.",
+        description: "Du musst angemeldet sein.",
         variant: "destructive",
       });
       return;
@@ -197,7 +197,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     if (!formData.title.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie einen Titel ein.",
+        description: "Bitte gib einen Titel ein.",
         variant: "destructive",
       });
       return;

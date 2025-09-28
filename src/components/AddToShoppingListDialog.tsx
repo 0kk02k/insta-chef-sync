@@ -81,7 +81,7 @@ const AddToShoppingListDialog = ({
         <DialogHeader>
           <DialogTitle>Zur Einkaufsliste hinzufügen</DialogTitle>
           <DialogDescription>
-            Wählen Sie eine Einkaufsliste aus oder erstellen Sie eine neue für {currentPortions} Portion{currentPortions !== 1 ? 'en' : ''}.
+            Wähle eine Einkaufsliste aus oder erstelle eine neue für {currentPortions} Portion{currentPortions !== 1 ? 'en' : ''}.
           </DialogDescription>
         </DialogHeader>
 

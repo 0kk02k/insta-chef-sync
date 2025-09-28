@@ -33,7 +33,7 @@ const PublishButtons = ({ recipeId, isPublished, isOwner, onUpdate }: PublishBut
         title: shouldPublish ? "Rezept veröffentlicht" : "Rezept auf privat gesetzt",
         description: shouldPublish 
           ? "Das Rezept ist jetzt für alle sichtbar."
-          : "Das Rezept ist jetzt nur für Sie sichtbar.",
+          : "Das Rezept ist jetzt nur für dich sichtbar.",
       });
     } catch (error) {
       console.error('Error updating publish status:', error);

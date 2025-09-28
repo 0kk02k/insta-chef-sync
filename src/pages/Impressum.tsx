@@ -50,8 +50,8 @@ const Impressum = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Kontakt</h2>
                 <div className="text-muted-foreground">
-                  <p>E-Mail: [Ihre E-Mail-Adresse]</p>
-                  <p>Telefon: [Ihre Telefonnummer]</p>
+                  <p>E-Mail: [Deine E-Mail-Adresse]</p>
+                  <p>Telefon: [Deine Telefonnummer]</p>
                 </div>
               </section>
 
@@ -97,7 +97,7 @@ const Impressum = () => {
                 </p>
                 <p className="text-muted-foreground mt-2">
                   Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte 
-                  Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem 
+                  Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Solltest du trotzdem 
                   auf eine Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei 
                   Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.
                 </p>

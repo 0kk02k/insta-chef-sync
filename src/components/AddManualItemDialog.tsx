@@ -34,7 +34,7 @@ const AddManualItemDialog = ({ onItemAdd }: AddManualItemDialogProps) => {
     if (!ingredient_name.trim()) {
       toast({
         title: 'Fehler',
-        description: 'Bitte geben Sie einen Zutatennamen ein.',
+        description: 'Bitte gib einen Zutatennamen ein.',
         variant: 'destructive',
       });
       return;

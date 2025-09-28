@@ -243,7 +243,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     if (!user) {
       toast({
         title: "Fehler",
-        description: "Sie müssen angemeldet sein, um ein Rezept hinzuzufügen.",
+        description: "Du musst angemeldet sein, um ein Rezept hinzuzufügen.",
         variant: "destructive",
       });
       return;
@@ -252,7 +252,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
     if (!uploadedContent || uploadedContent.length === 0) {
       toast({
         title: "Fehler",
-        description: "Bitte fügen Sie Inhalt hinzu, um ein Rezept zu erstellen.",
+        description: "Bitte füge Inhalt hinzu, um ein Rezept zu erstellen.",
         variant: "destructive",
       });
       return;
@@ -347,7 +347,7 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
     } catch (error) {
       console.error('Error adding recipe:', error);
-      const errorMessage = error instanceof Error ? error.message : "Fehler beim Verarbeiten des Rezepts. Bitte versuchen Sie es erneut.";
+      const errorMessage = error instanceof Error ? error.message : "Fehler beim Verarbeiten des Rezepts. Bitte versuche es erneut.";
       toast({
         title: "Fehler",
         description: errorMessage,

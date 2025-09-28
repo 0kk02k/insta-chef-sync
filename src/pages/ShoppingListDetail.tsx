@@ -321,7 +321,7 @@ const ShoppingListDetail = () => {
           <Card className="text-center py-12">
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Diese Einkaufsliste ist leer. Fügen Sie Zutaten aus Ihren Rezepten hinzu.
+                Diese Einkaufsliste ist leer. Füge Zutaten aus deinen Rezepten hinzu.
               </p>
               <Button onClick={() => navigate('/')}>
                 Zu den Rezepten
@@ -379,7 +379,7 @@ const ShoppingListDetail = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Erledigte Artikel entfernen</AlertDialogTitle>
               <AlertDialogDescription>
-                Möchten Sie alle erledigten Artikel aus der Liste entfernen? 
+                Möchtest du alle erledigten Artikel aus der Liste entfernen? 
                 Diese Aktion kann nicht rückgängig gemacht werden.
               </AlertDialogDescription>
             </AlertDialogHeader>

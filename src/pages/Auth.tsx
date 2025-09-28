@@ -49,7 +49,7 @@ const Auth = () => {
     if (!passwordValidation.isValid) {
       toast({
         title: "Passwort zu schwach",
-        description: "Bitte wählen Sie ein stärkeres Passwort.",
+        description: "Bitte wähle ein stärkeres Passwort.",
         variant: "destructive",
       });
       return;
@@ -62,7 +62,7 @@ const Auth = () => {
       const resetDate = resetTime ? new Date(resetTime) : new Date();
       toast({
         title: "Zu viele Versuche",
-        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
+        description: `Bitte warte bis ${resetDate.toLocaleTimeString()} bevor du es erneut versuchst.`,
         variant: "destructive",
       });
       return;
@@ -79,7 +79,7 @@ const Auth = () => {
       if (error.message.includes('User already registered')) {
         toast({
           title: "Benutzer bereits registriert",
-          description: "Diese E-Mail-Adresse ist bereits registriert. Bitte loggen Sie sich stattdessen ein.",
+          description: "Diese E-Mail-Adresse ist bereits registriert. Bitte logge dich stattdessen ein.",
           variant: "destructive",
         });
       } else {
@@ -114,7 +114,7 @@ const Auth = () => {
       const resetDate = resetTime ? new Date(resetTime) : new Date();
       toast({
         title: "Zu viele Versuche",
-        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
+        description: `Bitte warte bis ${resetDate.toLocaleTimeString()} bevor du es erneut versuchst.`,
         variant: "destructive",
       });
       return;
@@ -132,7 +132,7 @@ const Auth = () => {
           error.message.toLowerCase().includes('not found')) {
         toast({
           title: "Anmeldung fehlgeschlagen",
-          description: "E-Mail oder Passwort ungültig. Überprüfen Sie Ihre Eingaben oder nutzen Sie 'Passwort vergessen?'",
+          description: "E-Mail oder Passwort ungültig. Überprüfe deine Eingaben oder nutze 'Passwort vergessen?'",
           variant: "destructive",
         });
       } else {
@@ -167,7 +167,7 @@ const Auth = () => {
       const resetDate = resetTime ? new Date(resetTime) : new Date();
       toast({
         title: "Zu viele Versuche",
-        description: `Bitte warten Sie bis ${resetDate.toLocaleTimeString()} bevor Sie es erneut versuchen.`,
+        description: `Bitte warte bis ${resetDate.toLocaleTimeString()} bevor du es erneut versuchst.`,
         variant: "destructive",
       });
       return;
@@ -185,7 +185,7 @@ const Auth = () => {
     } else {
       toast({
         title: "E-Mail gesendet",
-        description: "Überprüfen Sie Ihre E-Mails für den Passwort-Reset-Link.",
+        description: "Überprüfe deine E-Mails für den Passwort-Reset-Link.",
       });
       setShowResetPassword(false);
       // Reset rate limit on successful password reset request
@@ -220,7 +220,7 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl">CookingCompiler</CardTitle>
           <CardDescription>
-            Sammeln und organisieren Sie Ihre Rezepte
+            Sammle und organisiere deine Rezepte
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -315,7 +315,7 @@ const Auth = () => {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Ihre E-Mail-Adresse"
+                          placeholder="Deine E-Mail-Adresse"
                           required
                         />
                       </div>
@@ -338,7 +338,7 @@ const Auth = () => {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Ihr vollständiger Name"
+                    placeholder="Dein vollständiger Name"
                     required
                   />
                 </div>

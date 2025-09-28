@@ -222,7 +222,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     if (!navigator.clipboard) {
       toast({
         title: "Einfügen nicht unterstützt",
-        description: "Ihr Browser unterstützt das automatische Einfügen nicht. Verwenden Sie Strg+V.",
+        description: "Dein Browser unterstützt das automatische Einfügen nicht. Verwende Strg+V.",
         variant: "destructive",
       });
       return;
@@ -248,7 +248,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     } catch (error) {
       toast({
         title: "Einfügen fehlgeschlagen", 
-        description: "Verwenden Sie Strg+V oder Cmd+V zum Einfügen.",
+        description: "Verwende Strg+V oder Cmd+V zum Einfügen.",
         variant: "destructive",
       });
     }

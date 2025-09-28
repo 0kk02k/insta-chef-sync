@@ -25,7 +25,7 @@ export const CookieBanner = () => {
                 <p className="text-sm text-muted-foreground">
                   Wir verwenden Cookies, um Ihnen die bestmögliche Erfahrung zu bieten. 
                   Notwendige Cookies ermöglichen grundlegende Funktionen, funktionale Cookies 
-                  speichern Ihre Präferenzen.
+                  speichern deine Präferenzen.
                 </p>
               </div>
               

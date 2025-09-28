@@ -112,7 +112,7 @@ const ShoppingLists = () => {
               <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Keine Einkaufslisten</h3>
               <p className="text-muted-foreground mb-4">
-                Erstellen Sie Ihre erste Einkaufsliste, um Rezeptzutaten zu sammeln.
+                Erstelle deine erste Einkaufsliste, um Rezeptzutaten zu sammeln.
               </p>
               <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -176,7 +176,7 @@ const ShoppingLists = () => {
             <DialogHeader>
               <DialogTitle>Neue Einkaufsliste erstellen</DialogTitle>
               <DialogDescription>
-                Geben Sie einen Namen für Ihre neue Einkaufsliste ein.
+                Gib einen Namen für deine neue Einkaufsliste ein.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -204,7 +204,7 @@ const ShoppingLists = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Einkaufsliste löschen</AlertDialogTitle>
               <AlertDialogDescription>
-                Sind Sie sicher, dass Sie diese Einkaufsliste löschen möchten? 
+                Bist du sicher, dass du diese Einkaufsliste löschen möchtest? 
                 Alle Einträge gehen verloren. Diese Aktion kann nicht rückgängig gemacht werden.
               </AlertDialogDescription>
             </AlertDialogHeader>

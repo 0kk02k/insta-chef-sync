@@ -108,7 +108,7 @@ const InlineEditIngredients = ({ value, recipeId, isOwner, onUpdate, structuredI
         {isProcessing && (
           <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
             <div className="text-sm text-muted-foreground italic">
-              KI analysiert Zutaten... Bitte warten Sie mit weiteren Änderungen.
+              KI analysiert Zutaten... Bitte warte mit weiteren Änderungen.
             </div>
           </div>
         )}

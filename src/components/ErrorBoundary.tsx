@@ -32,7 +32,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               Etwas ist schiefgelaufen
             </h1>
             <p className="text-muted-foreground mb-6">
-              Die Anwendung ist auf einen Fehler gestoßen. Bitte laden Sie die Seite neu.
+              Die Anwendung ist auf einen Fehler gestoßen. Bitte lade die Seite neu.
             </p>
             <button
               onClick={() => window.location.reload()}

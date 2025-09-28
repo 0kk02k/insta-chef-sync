@@ -132,14 +132,14 @@ const IgnoredRecipesList = () => {
           Ignorierte Rezepte
         </CardTitle>
         <CardDescription>
-          Hier sind alle Rezepte aufgelistet, die Sie ignoriert haben. Sie werden nicht mehr in den Empfehlungen angezeigt.
+          Hier sind alle Rezepte aufgelistet, die du ignoriert hast. Sie werden nicht mehr in den Empfehlungen angezeigt.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {ignoredRecipes.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <EyeOff className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>Sie haben keine Rezepte ignoriert.</p>
+            <p>Du hast keine Rezepte ignoriert.</p>
           </div>
         ) : (
           <div className="space-y-3">
