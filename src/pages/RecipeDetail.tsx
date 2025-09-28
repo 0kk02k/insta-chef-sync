@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { useAuth } from '@/hooks/useAuth';
@@ -469,6 +469,26 @@ const RecipeDetail = () => {
     }
   };
 
+  const handleShareRecipe = async () => {
+    if (!recipe) return;
+
+    const shareUrl = `${window.location.origin}/recipe/${recipe.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link kopiert!",
+        description: "Der Rezept-Link wurde in die Zwischenablage kopiert.",
+      });
+    } catch (error) {
+      // Fallback für Browser ohne clipboard API
+      toast({
+        title: "Rezept teilen",
+        description: shareUrl,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -502,6 +522,20 @@ const RecipeDetail = () => {
                 <Button 
                   size="icon"
                   variant="ghost" 
+                  onClick={handleShareRecipe}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
+                  title="Rezept teilen"
+                >
+                  <Share2 className="h-6 w-6" />
+                </Button>
+                <Button 
+                  size="icon"
+                  variant="ghost" 
                   onClick={handleDelete}
                   disabled={deleting}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
@@ -520,6 +554,20 @@ const RecipeDetail = () => {
               </div>
             ) : user && user.id !== recipe.user_id && (
               <div className="flex items-center space-x-2">
+                <Button 
+                  size="icon"
+                  variant="ghost" 
+                  onClick={handleShareRecipe}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
+                  title="Rezept teilen"
+                >
+                  <Share2 className="h-6 w-6" />
+                </Button>
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -557,6 +605,23 @@ const RecipeDetail = () => {
                   ) : (
                     <EyeOff className="h-6 w-6" />
                   )}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button 
+                  size="icon"
+                  variant="ghost" 
+                  onClick={handleShareRecipe}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'hsl(var(--primary-foreground))',
+                    borderColor: 'hsl(var(--foreground))'
+                  }}
+                  title="Rezept teilen"
+                >
+                  <Share2 className="h-6 w-6" />
                 </Button>
               </div>
             )}
