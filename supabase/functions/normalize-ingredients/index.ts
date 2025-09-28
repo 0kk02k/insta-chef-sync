@@ -31,9 +31,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!deepseekApiKey) {
-      throw new Error('DEEPSEEK_API_KEY nicht konfiguriert');
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
+    if (!xaiApiKey) {
+      throw new Error('XAI_API_KEY nicht konfiguriert');
     }
 
     const { existingItems, newIngredients, shoppingListId } = await req.json();
@@ -122,16 +122,16 @@ ANTWORT NUR als JSON Array:
   "action": "merge"|"keep"|"add"
 }]`;
 
-    console.log('Sending request to DeepSeek with prompt:', prompt);
+    console.log('Sending request to xAI Grok with prompt:', prompt);
 
-    const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const grokRes = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${xaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'grok-4-fast',
         messages: [
           { role: 'system', content: 'Du bist ein präziser Zutatennormalisierer. Antworte ausschließlich mit valider JSON.' },
           { role: 'user', content: prompt }
@@ -141,17 +141,17 @@ ANTWORT NUR als JSON Array:
       })
     });
 
-    if (!dsRes.ok) {
-      const errorText = await dsRes.text();
-      console.error('DeepSeek Error:', errorText);
-      throw new Error('DeepSeek API Fehler');
+    if (!grokRes.ok) {
+      const errorText = await grokRes.text();
+      console.error('xAI Grok Error:', errorText);
+      throw new Error('xAI Grok API Fehler');
     }
 
-    const data = await dsRes.json();
+    const data = await grokRes.json();
     let content = data.choices?.[0]?.message?.content || '';
     content = content.replace(/```json\n?|\n?```/g, '').trim();
 
-    console.log('DeepSeek response:', content);
+    console.log('xAI Grok response:', content);
 
     let normalizedItems: NormalizedIngredient[];
     try {

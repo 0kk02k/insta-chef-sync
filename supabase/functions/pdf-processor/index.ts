@@ -61,15 +61,15 @@ serve(async (req) => {
     const text = parsed.text.substring(0, 4000); // Text begrenzen
     console.log("Extracted text length:", text.length);
 
-    // 3) DeepSeek Chat API anfragen für Rezept-Extraktion
-    const completion = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    // 3) xAI Grok Chat API anfragen für Rezept-Extraktion
+    const completion = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get("DEEPSEEK_API_KEY")}`,
+        Authorization: `Bearer ${Deno.env.get("XAI_API_KEY")}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "grok-4-fast",
         messages: [
           { 
             role: "system", 
@@ -127,14 +127,14 @@ ${text}`
     });
 
     const result = await completion.json();
-    console.log("DeepSeek response:", result);
+    console.log("xAI Grok response:", result);
 
     if (!result.choices?.[0]?.message?.content) {
-      throw new Error("Keine gültige Antwort von DeepSeek");
+      throw new Error("Keine gültige Antwort von xAI Grok");
     }
 
     const answer = result.choices[0].message.content.trim();
-    console.log("DeepSeek answer raw:", answer);
+    console.log("xAI Grok answer raw:", answer);
     
     // JSON parsen und validieren
     let recipeData;

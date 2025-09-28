@@ -48,7 +48,7 @@ serve(async (req) => {
     console.log('Generating image for recipe:', recipeId);
 
     const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
     
     if (!togetherApiKey) {
       throw new Error('Together API key not configured');
@@ -56,21 +56,21 @@ serve(async (req) => {
 
     let prompt = '';
     
-    // Try to generate enhanced prompt with DeepSeek first
-    if (deepseekApiKey) {
+    // Try to generate enhanced prompt with xAI Grok first
+    if (xaiApiKey) {
       try {
-        console.log('Using DeepSeek to generate enhanced prompt...');
+        console.log('Using xAI Grok to generate enhanced prompt...');
         
         const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 8).join(', ') : '';
         
-        const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+        const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${deepseekApiKey}`,
+            'Authorization': `Bearer ${xaiApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: 'grok-4-fast',
             messages: [
               {
                 role: 'system',
@@ -119,19 +119,19 @@ Generate a detailed FLUX.schnell prompt that will create an appetizing, professi
           }),
         });
 
-        if (deepseekResponse.ok) {
-          const deepseekData = await deepseekResponse.json();
-          prompt = deepseekData.choices[0].message.content.trim();
-          console.log('DeepSeek generated prompt:', prompt);
+        if (grokResponse.ok) {
+          const grokData = await grokResponse.json();
+          prompt = grokData.choices[0].message.content.trim();
+          console.log('xAI Grok generated prompt:', prompt);
         } else {
-          throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
+          throw new Error(`xAI Grok API error: ${grokResponse.status}`);
         }
-      } catch (deepseekError) {
-        console.warn('DeepSeek prompt generation failed, falling back to template:', deepseekError instanceof Error ? deepseekError.message : String(deepseekError));
+      } catch (grokError) {
+        console.warn('xAI Grok prompt generation failed, falling back to template:', grokError instanceof Error ? grokError.message : String(grokError));
         prompt = generateFallbackPrompt(title, description, ingredients);
       }
     } else {
-      console.log('DeepSeek API key not available, using fallback prompt');
+      console.log('xAI API key not available, using fallback prompt');
       prompt = generateFallbackPrompt(title, description, ingredients);
     }
 

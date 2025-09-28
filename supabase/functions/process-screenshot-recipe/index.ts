@@ -42,13 +42,13 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!openAIApiKey) {
-      console.error('❌ OpenAI API key not found');
-      throw new Error('OpenAI API key not configured');
+    if (!xaiApiKey) {
+      console.error('❌ xAI API key not found');
+      throw new Error('xAI API key not configured');
     }
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -67,13 +67,17 @@ serve(async (req) => {
         max_output_tokens: 50,
         input: [{ role: 'user', content: [{ type: 'input_text', text: 'Sage nur: {"ok":true}' }] }],
       };
-      const resp = await fetch('https://api.openai.com/v1/responses', {
+      const resp = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${openAIApiKey}`,
+          Authorization: `Bearer ${xaiApiKey}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          model: 'grok-4-fast',
+          messages: [{ role: 'user', content: 'Sage nur: {"ok":true}' }],
+          max_tokens: 50
+        }),
       });
       const raw = await resp.text();
       return new Response(raw, { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } });
@@ -115,7 +119,7 @@ serve(async (req) => {
     if (normalizedImages.length > 1) {
       console.log(`🔍 Processing ${normalizedImages.length} screenshots - validating coherence`);
       
-      const validationResult = await validateMultipleScreenshots(normalizedImages, openAIApiKey, userPrefs);
+      const validationResult = await validateMultipleScreenshots(normalizedImages, xaiApiKey, userPrefs);
       
       if (!validationResult.isValidRecipe) {
         throw new Error(`Ungültige Rezept-Screenshots: ${validationResult.reason}`);
@@ -131,7 +135,7 @@ serve(async (req) => {
         // Generate AI image for the combined recipe
         let generatedImageUrl = null;
         try {
-          generatedImageUrl = await generateRecipeImage(validationResult.combinedRecipe, openAIApiKey, supabase);
+          generatedImageUrl = await generateRecipeImage(validationResult.combinedRecipe, xaiApiKey, supabase);
         } catch (imageError) {
           console.warn('⚠️ Image generation failed, continuing without image:', imageError);
         }
@@ -153,11 +157,11 @@ serve(async (req) => {
         });
       } else {
         console.log('ℹ️ Validation returned no combinedRecipe, extracting from all images...');
-        const extracted = await extractRecipeFromImages(normalizedImages, openAIApiKey, userPrefs);
+        const extracted = await extractRecipeFromImages(normalizedImages, xaiApiKey, userPrefs);
 
         let generatedImageUrl = null;
         try {
-          generatedImageUrl = await generateRecipeImage(extracted, openAIApiKey, supabase);
+          generatedImageUrl = await generateRecipeImage(extracted, xaiApiKey, supabase);
         } catch (imageError) {
           console.warn('⚠️ Image generation failed, continuing without image:', imageError);
         }
@@ -199,13 +203,13 @@ serve(async (req) => {
 
     const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
-    console.log('📸 Processing screenshot with GPT-4o-mini Vision API (Chat Completions)');
+    console.log('📸 Processing screenshot with xAI Grok-4-Fast Vision API (Chat Completions)');
     console.log('🎯 API Endpoint: /v1/chat/completions');
 
-    // Fallback to Chat Completions API (more stable for GPT-5-Nano)
+    // Use xAI Grok-4-Fast for vision processing
     const payload = {
-      model: 'gpt-4o-mini', // Bewährtes Vision-Modell statt GPT-5 Nano
-      max_tokens: 2000, // Für gpt-4o-mini verwenden wir max_tokens
+      model: 'grok-4-fast', // xAI Grok-4-Fast with vision capabilities
+      max_tokens: 2000, // Using max_tokens for compatibility
       // Explicitly disable streaming
       stream: false,
       messages: [
@@ -277,15 +281,15 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     console.log('📋 Complete Payload (without API key):');
     console.log(JSON.stringify(payloadForLogging, null, 2));
 
-    console.log('📤 Sending payload to OpenAI Chat Completions API (GPT-4o-mini)');
+    console.log('📤 Sending payload to xAI Chat Completions API (Grok-4-Fast)');
     console.log('🔧 Payload model:', payload.model);
     console.log('🔧 Max tokens:', payload.max_tokens);
     console.log('🔧 Stream disabled:', payload.stream === false);
 
-    const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const visionResponse = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${xaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload)
@@ -293,14 +297,14 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
 
     if (!visionResponse.ok) {
       const errorText = await visionResponse.text();
-      console.error('❌ OpenAI Vision API error:', errorText);
-      throw new Error(`OpenAI Vision API error: ${visionResponse.status}`);
+      console.error('❌ xAI Vision API error:', errorText);
+      throw new Error(`xAI Vision API error: ${visionResponse.status}`);
     }
 
-    console.log('✅ GPT-5 Nano Vision response received');
+    console.log('✅ xAI Grok-4-Fast Vision response received');
     
     const rawResponse = await visionResponse.text();
-    console.log('🔍 COMPLETE OpenAI Response (raw text):', rawResponse);
+    console.log('🔍 COMPLETE xAI Response (raw text):', rawResponse);
     
     let visionData: any = null;
     try {
@@ -309,7 +313,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       console.error('❌ JSON parse of response failed:', parseError);
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI response parsing failed', 
+          error: 'xAI response parsing failed', 
           details: parseError instanceof Error ? parseError.message : String(parseError),
           rawResponse 
         }),
@@ -351,8 +355,8 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI returned empty content', 
-          details: 'Responses API returned empty content',
+          error: 'xAI returned empty content', 
+          details: 'Chat Completions API returned empty content',
           responseKeys: Object.keys(visionData || {}),
           rawResponse 
         }),
@@ -415,7 +419,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     // Step 2: Generate an AI image based on the recipe
     let generatedImageUrl = null;
     try {
-      generatedImageUrl = await generateRecipeImage(recipeData, openAIApiKey, supabase);
+      generatedImageUrl = await generateRecipeImage(recipeData, xaiApiKey, supabase);
     } catch (imageError) {
       console.warn('⚠️ Image generation failed, continuing without image:', imageError);
     }
@@ -450,7 +454,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
 // Helper function to validate multiple screenshots
 async function validateMultipleScreenshots(
   images: Array<{ base64: string; mime: string }>, 
-  openAIApiKey: string, 
+  xaiApiKey: string, 
   userPrefs: { language: string; measurement_unit: string }
 ): Promise<ValidationResult> {
   const languageInstructions = userPrefs.language === 'de' ? 
@@ -472,7 +476,7 @@ async function validateMultipleScreenshots(
   }));
 
   const payload = {
-    model: 'gpt-4o-mini',
+    model: 'grok-4-fast',
     max_tokens: 3000,
     stream: false,
     messages: [
@@ -533,10 +537,10 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
     ]
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
+      'Authorization': `Bearer ${xaiApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload)
@@ -607,7 +611,7 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
 // Extract combined recipe from multiple images
 async function extractRecipeFromImages(
   images: Array<{ base64: string; mime: string }>,
-  openAIApiKey: string,
+  xaiApiKey: string,
   userPrefs: { language: string; measurement_unit: string }
 ): Promise<RecipeData> {
   const languageInstructions = userPrefs.language === 'de' ? 
@@ -628,7 +632,7 @@ async function extractRecipeFromImages(
   }));
 
   const payload = {
-    model: 'gpt-4o-mini',
+    model: 'grok-4-fast',
     max_tokens: 2000,
     stream: false,
     messages: [
@@ -673,8 +677,8 @@ Erstelle mindestens 3-5 passende Tags für das Rezept.`
     ]
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST', headers: { 'Authorization': `Bearer ${openAIApiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  const response = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST', headers: { 'Authorization': `Bearer ${xaiApiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
   });
   if (!response.ok) {
     const errText = await response.text();
@@ -710,10 +714,17 @@ Erstelle mindestens 3-5 passende Tags für das Rezept.`
 // Helper function to generate recipe image
 async function generateRecipeImage(
   recipeData: RecipeData, 
-  openAIApiKey: string, 
+  xaiApiKey: string, 
   supabase: any
 ): Promise<string | null> {
   console.log('🎨 Generating AI image for recipe');
+  
+  // For image generation, we still use OpenAI since the plan was to keep image generation
+  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openAIApiKey) {
+    console.warn('OpenAI API key not available for image generation');
+    return null;
+  }
   
   const imagePrompt = `A beautiful, professional food photography image of ${recipeData.title}. 
   ${recipeData.description ? recipeData.description + '. ' : ''}

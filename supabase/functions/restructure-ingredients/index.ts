@@ -23,9 +23,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!deepseekApiKey) {
-      throw new Error('DEEPSEEK_API_KEY nicht konfiguriert');
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
+    if (!xaiApiKey) {
+      throw new Error('XAI_API_KEY nicht konfiguriert');
     }
 
     const { recipeId, ingredients } = await req.json();
@@ -82,14 +82,14 @@ ANFORDERUNGEN:
 
 ZUTATEN:\n${ingredients.map((i: string) => `- ${i}`).join('\n')}`;
 
-    const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const grokRes = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${xaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'grok-4-fast',
         messages: [
           { role: 'system', content: 'Du bist ein präziser Parser. Antworte ausschließlich mit valider JSON.' },
           { role: 'user', content: prompt }
@@ -99,13 +99,13 @@ ZUTATEN:\n${ingredients.map((i: string) => `- ${i}`).join('\n')}`;
       })
     });
 
-    if (!dsRes.ok) {
-      const t = await dsRes.text();
-      console.error('DeepSeek Error:', t);
-      throw new Error('DeepSeek API Fehler');
+    if (!grokRes.ok) {
+      const t = await grokRes.text();
+      console.error('xAI Grok Error:', t);
+      throw new Error('xAI Grok API Fehler');
     }
 
-    const data = await dsRes.json();
+    const data = await grokRes.json();
     let content = data.choices?.[0]?.message?.content || '';
     content = content.replace(/```json\n?|\n?```/g, '').trim();
 

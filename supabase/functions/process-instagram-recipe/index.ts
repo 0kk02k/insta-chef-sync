@@ -150,10 +150,10 @@ serve(async (req) => {
 
     console.log('Content received, analyzing with DeepSeek...');
 
-    // Extract recipe data with DeepSeek
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!deepseekApiKey) {
-      throw new Error('DEEPSEEK_API_KEY nicht konfiguriert');
+    // Extract recipe data with xAI Grok
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
+    if (!xaiApiKey) {
+      throw new Error('XAI_API_KEY nicht konfiguriert');
     }
 
     let messages;
@@ -239,34 +239,34 @@ ${processContent}
       ];
     }
 
-    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${xaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'grok-4-fast',
         messages: messages,
         temperature: 0.1,
         max_tokens: 2000
       }),
     });
 
-    if (!deepseekResponse.ok) {
-      const errorText = await deepseekResponse.text();
-      console.error('DeepSeek error:', errorText);
-      throw new Error(`DeepSeek API Fehler: ${deepseekResponse.status}`);
+    if (!grokResponse.ok) {
+      const errorText = await grokResponse.text();
+      console.error('xAI Grok error:', errorText);
+      throw new Error(`xAI Grok API Fehler: ${grokResponse.status}`);
     }
 
-    const deepseekData = await deepseekResponse.json();
-    const extractedText = deepseekData.choices[0]?.message?.content;
+    const grokData = await grokResponse.json();
+    const extractedText = grokData.choices[0]?.message?.content;
     
     if (!extractedText) {
-      throw new Error('Keine Antwort von DeepSeek API');
+      throw new Error('Keine Antwort von xAI Grok API');
     }
 
-    console.log('Raw DeepSeek response:', extractedText);
+    console.log('Raw xAI Grok response:', extractedText);
 
     // Parse JSON response
     let recipeData: RecipeData;
