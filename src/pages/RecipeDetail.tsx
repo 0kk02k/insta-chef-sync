@@ -109,7 +109,7 @@ const RecipeDetail = () => {
       }
 
       // Check if user has access to this recipe
-      if (!recipeData.published && (!user || user.id !== recipeData.user_id)) {
+      if (!recipeData.published && !recipeData.shareable && (!user || user.id !== recipeData.user_id)) {
         toast({
           title: "Zugriff verweigert",
           description: "Dieses Rezept ist nicht veröffentlicht.",
@@ -839,7 +839,7 @@ const RecipeDetail = () => {
         />
 
         {/* Comments Section */}
-        <CommentsSection recipeId={recipe.id} isPublished={recipe.published} />
+        <CommentsSection recipeId={recipe.id} isPublished={Boolean(recipe.published || recipe.shareable)} />
       </div>
       <Footer />
     </div>
