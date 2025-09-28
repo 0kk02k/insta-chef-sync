@@ -62,6 +62,7 @@ const RecipeDetail = () => {
   const [forking, setForking] = useState(false);
   const [displayedIngredients, setDisplayedIngredients] = useState<string[]>([]);
   const [currentPortions, setCurrentPortions] = useState<number>(1);
+  const [canScale, setCanScale] = useState<boolean>(true);
 
   useEffect(() => {
     fetchRecipe();
@@ -274,10 +275,44 @@ const RecipeDetail = () => {
 
   const handleIngredientsUpdate = (newIngredients: string[]) => {
     if (recipe) {
-      setRecipe({ ...recipe, ingredients: newIngredients, structured_ingredients: null });
+      setRecipe({ ...recipe, ingredients: newIngredients });
     }
-    // Ensure the visible list updates immediately after saving
+    // Sichtbare Liste sofort aktualisieren
     setDisplayedIngredients(newIngredients);
+
+    // Während Re-Parsing Skalierung deaktivieren
+    setCanScale(false);
+
+    // AI-Reprocessing der Zutaten anstoßen (structured_ingredients aktualisieren)
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('restructure-ingredients', {
+          body: { recipeId: recipe?.id, ingredients: newIngredients }
+        });
+        if (error) throw error;
+        if (data?.success && data.structured_ingredients) {
+          setRecipe(prev => prev ? { ...prev, structured_ingredients: data.structured_ingredients } as any : prev);
+          // Falls Portionen bereits geändert wurden, neu skalieren
+          if (recipe?.servings) {
+            const factor = currentPortions / recipe.servings;
+            const scaled = data.structured_ingredients.map((ing: any) => ({
+              ...ing,
+              amount: ing.amount ? Math.round(ing.amount * factor * 100) / 100 : null
+            }));
+            const scaledText = scaled.map((ingredient: any) => {
+              if (ingredient.amount && ingredient.unit) return `${ingredient.amount} ${ingredient.unit} ${ingredient.ingredient}`;
+              if (ingredient.amount) return `${ingredient.amount} ${ingredient.ingredient}`;
+              return ingredient.ingredient;
+            });
+            setDisplayedIngredients(scaledText);
+          }
+        }
+      } catch (e) {
+        console.error('Reprocessing error:', e);
+      } finally {
+        setCanScale(true);
+      }
+    })();
   };
 
   const handleInstructionsUpdate = (newInstructions: string[]) => {
@@ -294,7 +329,9 @@ const RecipeDetail = () => {
 
   const handlePortionChange = (newPortions: number, scaledIngredients: StructuredIngredient[]) => {
     setCurrentPortions(newPortions);
-    // Convert structured ingredients back to text format for display
+    if (!canScale) {
+      return; // Während Re-Parsing nicht überschreiben
+    }
     const scaledTextIngredients = scaledIngredients.map(ingredient => {
       if (ingredient.amount && ingredient.unit) {
         return `${ingredient.amount} ${ingredient.unit} ${ingredient.ingredient}`;
@@ -306,7 +343,6 @@ const RecipeDetail = () => {
     });
     setDisplayedIngredients(scaledTextIngredients);
   };
-
   const handleRatingChange = async (newRating: number) => {
     if (!recipe || !user) return;
 
