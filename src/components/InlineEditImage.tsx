@@ -84,10 +84,6 @@ const InlineEditImage = ({
         // Fallback to the other provider if KiE.ai fails
         if (provider === 'kie') {
           console.log('🔄 Falling back to Together AI...');
-          toast({
-            title: "Fallback",
-            description: "SeaDream nicht verfügbar, versuche FLUX...",
-          });
           await handleGenerateImage('together');
           return;
         }
@@ -105,10 +101,6 @@ const InlineEditImage = ({
         setTempValue(data.imageUrl);
         await handleSave(data.imageUrl);
         const providerName = provider === 'kie' ? 'SeaDream' : 'FLUX';
-        toast({
-          title: "Erfolg",
-          description: `${providerName} Bild erfolgreich generiert!`,
-        });
       } else {
         console.log(`❌ No image URL in response from ${provider}`);
         toast({
@@ -123,10 +115,6 @@ const InlineEditImage = ({
       // Fallback to the other provider if KiE.ai fails
       if (provider === 'kie') {
         console.log('🔄 Exception fallback to Together AI...');
-        toast({
-          title: "Fallback",
-          description: "SeaDream nicht verfügbar, versuche FLUX...",
-        });
         await handleGenerateImage('together');
         return;
       }
@@ -199,10 +187,6 @@ const InlineEditImage = ({
       setTempValue(imageUrl);
       setIsEditing(false);
 
-      toast({
-        title: "Bild hochgeladen",
-        description: "Das Bild wurde erfolgreich gespeichert.",
-      });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({

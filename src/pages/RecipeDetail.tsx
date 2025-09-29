@@ -233,10 +233,6 @@ const RecipeDetail = () => {
         // Fallback to the other provider if KiE.ai fails
         if (provider === 'kie') {
           console.log('🔄 RecipeDetail: Falling back to Together AI...');
-          toast({
-            title: "Fallback",
-            description: "SeaDream nicht verfügbar, versuche FLUX...",
-          });
           await handleGenerateImage('together');
           return;
         }
@@ -248,10 +244,6 @@ const RecipeDetail = () => {
         console.log(`✅ RecipeDetail: ${provider} generated image successfully:`, data.imageUrl);
         setRecipe({ ...recipe, image_url: data.imageUrl });
         const providerName = provider === 'kie' ? 'SeaDream' : 'FLUX';
-        toast({
-          title: "Erfolg",
-          description: `${providerName} Bild erfolgreich generiert!`,
-        });
       } else {
         throw new Error(data?.details || 'Failed to generate image');
       }
@@ -261,10 +253,6 @@ const RecipeDetail = () => {
       // Fallback to the other provider if KiE.ai fails
       if (provider === 'kie') {
         console.log('🔄 RecipeDetail: Exception fallback to Together AI...');
-        toast({
-          title: "Fallback",
-          description: "SeaDream nicht verfügbar, versuche FLUX...",
-        });
         await handleGenerateImage('together');
         return;
       }
@@ -489,10 +477,6 @@ const RecipeDetail = () => {
         throw error;
       }
 
-      toast({
-        title: "Rezept übernommen",
-        description: "Das Rezept wurde erfolgreich in deine Sammlung übernommen.",
-      });
 
       // Navigate to the new forked recipe
       navigate(`/recipe/${data.id}`);
@@ -533,10 +517,6 @@ const RecipeDetail = () => {
     const shareUrl = `${window.location.origin}/recipe/${recipe.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: 'Link kopiert!',
-        description: 'Der Rezept-Link wurde kopiert.',
-      });
     } catch (error) {
       toast({ title: 'Rezept teilen', description: shareUrl });
     }

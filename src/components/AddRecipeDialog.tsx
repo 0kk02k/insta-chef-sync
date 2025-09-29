@@ -326,10 +326,6 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
         if (insertError) throw insertError;
 
-        toast({
-          title: 'Rezept aus Screenshots erstellt',
-          description: `"${processedData.title}" wurde aus ${uploadedContent.length} Screenshots kombiniert.`,
-        });
 
         onRecipeAdded?.();
         resetForm();

@@ -48,10 +48,6 @@ const AddManualItemDialog = ({ onItemAdd }: AddManualItemDialogProps) => {
         unit: unit.trim() || null,
       });
 
-      toast({
-        title: 'Erfolg',
-        description: 'Zutat wurde zur Liste hinzugefügt.',
-      });
 
       // Reset form
       setIngredientName('');

@@ -94,10 +94,6 @@ const IgnoredRecipesList = () => {
 
       setIgnoredRecipes(prev => prev.filter(recipe => recipe.id !== ignoredRecipeId));
       
-      toast({
-        title: "Erfolgreich entfernt",
-        description: "Das Rezept wurde aus der Ignorierliste entfernt."
-      });
     } catch (error) {
       console.error('Error removing ignored recipe:', error);
       toast({

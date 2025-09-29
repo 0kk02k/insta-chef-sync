@@ -68,10 +68,6 @@ export const useShoppingLists = () => {
       if (error) throw error;
       
       await fetchShoppingLists();
-      toast({
-        title: 'Erfolg',
-        description: 'Einkaufsliste wurde erstellt.',
-      });
       
       return data.id;
     } catch (error) {
@@ -95,10 +91,6 @@ export const useShoppingLists = () => {
       if (error) throw error;
       
       await fetchShoppingLists();
-      toast({
-        title: 'Erfolg',
-        description: 'Einkaufsliste wurde gelöscht.',
-      });
     } catch (error) {
       console.error('Error deleting shopping list:', error);
       toast({
@@ -289,10 +281,6 @@ export const useShoppingLists = () => {
         if (updateError) throw updateError;
       }
       
-      toast({
-        title: 'Erfolg',
-        description: 'Zutaten zur Einkaufsliste hinzugefügt.',
-      });
     } catch (error) {
       console.error('Error adding ingredients to shopping list:', error);
       toast({
@@ -433,10 +421,6 @@ export const useShoppingListItems = (shoppingListId: string) => {
       if (error) throw error;
       
       await fetchItems();
-      toast({
-        title: 'Erfolg',
-        description: 'Erledigte Elemente wurden entfernt.',
-      });
     } catch (error) {
       console.error('Error clearing checked items:', error);
       toast({

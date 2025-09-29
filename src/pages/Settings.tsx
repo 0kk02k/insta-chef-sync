@@ -87,10 +87,6 @@ const Settings = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Konto gelöscht",
-        description: "Dein Konto wurde erfolgreich gelöscht."
-      });
 
       await signOut();
       navigate('/');
