@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.audit-logger]
 verify_jwt = false
+
+[functions.generate-recipe-image-kie]
+verify_jwt = true
