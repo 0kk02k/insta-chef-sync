@@ -205,13 +205,18 @@ const RecipeDetail = () => {
     }
   };
 
-  const handleGenerateImage = async () => {
+  const handleGenerateImage = async (provider: 'kie' | 'together' = 'kie') => {
     if (!recipe || !user) return;
 
+    console.log(`🚀 RecipeDetail: Starting image generation with ${provider} (SeaDream as default)...`);
     setGeneratingImage(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-recipe-image', {
+      // Try KiE.ai SeaDream first
+      const functionName = provider === 'kie' ? 'generate-recipe-image-kie' : 'generate-recipe-image';
+      console.log(`📡 RecipeDetail: Calling function: ${functionName}`);
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
           recipeId: recipe.id,
           title: recipe.title,
@@ -220,17 +225,50 @@ const RecipeDetail = () => {
         }
       });
 
+      console.log(`📋 RecipeDetail: ${provider} response:`, { data, error });
+
       if (error) {
+        console.error(`❌ RecipeDetail: Error with ${provider}:`, error);
+        
+        // Fallback to the other provider if KiE.ai fails
+        if (provider === 'kie') {
+          console.log('🔄 RecipeDetail: Falling back to Together AI...');
+          toast({
+            title: "Fallback",
+            description: "SeaDream nicht verfügbar, versuche FLUX...",
+          });
+          await handleGenerateImage('together');
+          return;
+        }
+        
         throw error;
       }
 
-      if (data.success) {
+      if (data?.success) {
+        console.log(`✅ RecipeDetail: ${provider} generated image successfully:`, data.imageUrl);
         setRecipe({ ...recipe, image_url: data.imageUrl });
+        const providerName = provider === 'kie' ? 'SeaDream' : 'FLUX';
+        toast({
+          title: "Erfolg",
+          description: `${providerName} Bild erfolgreich generiert!`,
+        });
       } else {
-        throw new Error(data.details || 'Failed to generate image');
+        throw new Error(data?.details || 'Failed to generate image');
       }
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error(`❌ RecipeDetail: Error generating image with ${provider}:`, error);
+      
+      // Fallback to the other provider if KiE.ai fails
+      if (provider === 'kie') {
+        console.log('🔄 RecipeDetail: Exception fallback to Together AI...');
+        toast({
+          title: "Fallback",
+          description: "SeaDream nicht verfügbar, versuche FLUX...",
+        });
+        await handleGenerateImage('together');
+        return;
+      }
+      
       toast({
         title: "Fehler",
         description: "KI-Bild konnte nicht generiert werden.",
