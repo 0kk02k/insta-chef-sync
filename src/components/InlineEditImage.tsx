@@ -11,7 +11,7 @@ interface InlineEditImageProps {
   recipeTitle: string;
   isOwner: boolean;
   onUpdate: (newValue: string | null) => void;
-  onGenerateImage: () => void;
+  onGenerateImage: (provider?: 'kie' | 'together') => void;
   generatingImage: boolean;
 }
 
@@ -30,10 +30,10 @@ const InlineEditImage = ({
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  const handleSave = async () => {
+  const handleSave = async (imageUrl?: string) => {
     setSaving(true);
     try {
-      const newValue = tempValue.trim() || null;
+      const newValue = (imageUrl || tempValue).trim() || null;
       const { error } = await supabase
         .from('recipes')
         .update({ image_url: newValue })
@@ -42,6 +42,7 @@ const InlineEditImage = ({
       if (error) throw error;
 
       onUpdate(newValue);
+      setTempValue(newValue || '');
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating image:', error);
@@ -52,6 +53,82 @@ const InlineEditImage = ({
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGenerateImage = async (provider: 'kie' | 'together' = 'kie') => {
+    if (generatingImage) return;
+    
+    onGenerateImage(provider);
+    
+    try {
+      const functionName = provider === 'kie' ? 'generate-recipe-image-kie' : 'generate-recipe-image';
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: {
+          recipeId,
+          title: recipeTitle,
+          description: null,
+          ingredients: []
+        }
+      });
+
+      if (error) {
+        console.error(`Error generating image with ${provider}:`, error);
+        
+        // Fallback to the other provider if KiE.ai fails
+        if (provider === 'kie') {
+          toast({
+            title: "Fallback",
+            description: "KiE.ai nicht verfügbar, versuche andere KI...",
+          });
+          await handleGenerateImage('together');
+          return;
+        }
+        
+        toast({
+          title: "Fehler",
+          description: "Fehler beim Generieren des Bildes",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Image generation response:', data);
+      
+      if (data.imageUrl) {
+        setTempValue(data.imageUrl);
+        await handleSave(data.imageUrl);
+        const providerName = provider === 'kie' ? 'KiE.ai SeaDream' : 'Together AI';
+        toast({
+          title: "Erfolg",
+          description: `${providerName} Bild erfolgreich generiert!`,
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Fehler beim Generieren des Bildes",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error(`Error generating image with ${provider}:`, error);
+      
+      // Fallback to the other provider if KiE.ai fails
+      if (provider === 'kie') {
+        toast({
+          title: "Fallback",
+          description: "KiE.ai nicht verfügbar, versuche andere KI...",
+        });
+        await handleGenerateImage('together');
+        return;
+      }
+      
+      toast({
+        title: "Fehler",
+        description: "Fehler beim Generieren des Bildes",
+        variant: "destructive",
+      });
     }
   };
 
@@ -171,7 +248,7 @@ const InlineEditImage = ({
         <div className="flex gap-2">
           <Button
             size="sm"
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={saving || uploading}
             className="h-8"
           >
@@ -213,7 +290,7 @@ const InlineEditImage = ({
             <Button
               size="sm"
               variant="secondary"
-              onClick={onGenerateImage}
+              onClick={() => handleGenerateImage('kie')}
               disabled={generatingImage}
               className="h-8"
             >
@@ -222,7 +299,7 @@ const InlineEditImage = ({
               ) : (
                 <Sparkles className="h-4 w-4 mr-1" />
               )}
-              KI-Bild
+              SeaDream
             </Button>
           </div>
         </div>
@@ -244,7 +321,7 @@ const InlineEditImage = ({
                 Bild hinzufügen
               </Button>
               <Button
-                onClick={onGenerateImage}
+                onClick={() => handleGenerateImage('kie')}
                 disabled={generatingImage}
                 className="bg-gradient-to-r from-purple-soft to-hot-pink text-white hover:from-purple-soft/90 hover:to-hot-pink/90"
                 size="sm"
@@ -257,7 +334,7 @@ const InlineEditImage = ({
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    KI-Bild generieren
+                    KI-Bild (SeaDream)
                   </>
                 )}
               </Button>
