@@ -263,6 +263,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_public_profile: {
+        Args: { profile_user_id: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
