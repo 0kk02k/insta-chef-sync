@@ -59,72 +59,9 @@ const InlineEditImage = ({
   const handleGenerateImage = async (provider: 'kie' | 'together' = 'kie') => {
     if (generatingImage) return;
     
-    console.log(`🚀 InlineEditImage: Starting image generation with ${provider} (SeaDream as default)...`);
-    // Don't call onGenerateImage here to avoid duplicate requests
-    // onGenerateImage(provider);
-    
-    try {
-      const functionName = provider === 'kie' ? 'generate-recipe-image-kie' : 'generate-recipe-image';
-      console.log(`📡 Calling function: ${functionName}`);
-      
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: {
-          recipeId,
-          title: recipeTitle,
-          description: null,
-          ingredients: []
-        }
-      });
-
-      console.log(`📋 ${provider} response:`, { data, error });
-
-      if (error) {
-        console.error(`❌ Error generating image with ${provider}:`, error);
-        
-        // Fallback to the other provider if KiE.ai fails
-        if (provider === 'kie') {
-          console.log('🔄 Falling back to Together AI...');
-          await handleGenerateImage('together');
-          return;
-        }
-        
-        toast({
-          title: "Fehler",
-          description: "Fehler beim Generieren des Bildes",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.imageUrl) {
-        console.log(`✅ ${provider} generated image successfully:`, data.imageUrl);
-        setTempValue(data.imageUrl);
-        await handleSave(data.imageUrl);
-        const providerName = provider === 'kie' ? 'SeaDream' : 'FLUX';
-      } else {
-        console.log(`❌ No image URL in response from ${provider}`);
-        toast({
-          title: "Fehler",
-          description: "Fehler beim Generieren des Bildes",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error(`❌ Exception generating image with ${provider}:`, error);
-      
-      // Fallback to the other provider if KiE.ai fails
-      if (provider === 'kie') {
-        console.log('🔄 Exception fallback to Together AI...');
-        await handleGenerateImage('together');
-        return;
-      }
-      
-      toast({
-        title: "Fehler",
-        description: "Fehler beim Generieren des Bildes",
-        variant: "destructive",
-      });
-    }
+    console.log(`🚀 InlineEditImage: Delegating to parent handleGenerateImage with ${provider}`);
+    // Delegate to parent component's handleGenerateImage to avoid duplicate requests
+    onGenerateImage(provider);
   };
 
   const handleCancel = () => {
