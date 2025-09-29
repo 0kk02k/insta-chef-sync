@@ -59,8 +59,9 @@ const InlineEditImage = ({
   const handleGenerateImage = async (provider: 'kie' | 'together' = 'kie') => {
     if (generatingImage) return;
     
-    console.log(`🚀 Starting image generation with ${provider} (SeaDream as default)...`);
-    onGenerateImage(provider);
+    console.log(`🚀 InlineEditImage: Starting image generation with ${provider} (SeaDream as default)...`);
+    // Don't call onGenerateImage here to avoid duplicate requests
+    // onGenerateImage(provider);
     
     try {
       const functionName = provider === 'kie' ? 'generate-recipe-image-kie' : 'generate-recipe-image';
