@@ -131,46 +131,111 @@ Generate a detailed SeaDream prompt that will create an appetizing, professional
 
     console.log('Final prompt for SeaDream:', prompt);
 
-    // Generate image with KiE.ai SeaDream
-    const imageResponse = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
+    // Generate image with KiE.ai SeaDream text-to-image
+    const createTaskResponse = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${kieApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'seadream',
-        prompt: prompt,
-        width: 1024,
-        height: 1024,
-        steps: 20,
-        cfg_scale: 7,
-        response_format: 'b64_json'
+        model: "bytedance/seedream-v4-text-to-image",
+        input: {
+          prompt: prompt,
+          image_size: "square_hd",
+          image_resolution: "2K",
+          max_images: 1
+        }
       }),
     });
 
-    if (!imageResponse.ok) {
-      const error = await imageResponse.text();
-      console.error('KiE.ai API error:', error);
-      throw new Error(`KiE.ai API error: ${imageResponse.status}`);
+    if (!createTaskResponse.ok) {
+      const errorText = await createTaskResponse.text();
+      console.error('KiE.ai createTask API error:', errorText);
+      throw new Error(`KiE.ai createTask API failed: ${createTaskResponse.status} ${errorText}`);
     }
 
-    const imageData = await imageResponse.json();
-    const base64Image = imageData.data[0].b64_json;
+    const createTaskResult = await createTaskResponse.json();
+    console.log('KiE.ai createTask response:', createTaskResult);
+
+    if (createTaskResult.code !== 200 || !createTaskResult.data?.taskId) {
+      throw new Error(`KiE.ai task creation failed: ${createTaskResult.message || 'Unknown error'}`);
+    }
+
+    const taskId = createTaskResult.data.taskId;
+    console.log('Task created with ID:', taskId);
+
+    // Poll for task completion
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes max
+    let taskResult;
+
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+      
+      const queryResponse = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${taskId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${kieApiKey}`,
+        },
+      });
+
+      if (!queryResponse.ok) {
+        console.error('Query task failed:', queryResponse.status);
+        attempts++;
+        continue;
+      }
+
+      taskResult = await queryResponse.json();
+      console.log('Task status check:', taskResult);
+
+      if (taskResult.code === 200 && taskResult.data) {
+        if (taskResult.data.state === 'success') {
+          console.log('Task completed successfully');
+          break;
+        } else if (taskResult.data.state === 'fail') {
+          throw new Error(`Task failed: ${taskResult.data.failMsg || 'Unknown error'}`);
+        }
+        // Still waiting/processing, continue polling
+      }
+      
+      attempts++;
+    }
+
+    if (attempts >= maxAttempts || !taskResult?.data?.resultJson) {
+      throw new Error('Task timed out or no result received');
+    }
+
+    // Parse result JSON to get image URLs
+    const resultData = JSON.parse(taskResult.data.resultJson);
+    if (!resultData.resultUrls || !resultData.resultUrls[0]) {
+      throw new Error('No image URL in task result');
+    }
+
+    const imageUrl = resultData.resultUrls[0];
+    console.log('Generated image URL:', imageUrl);
+
+    // Download the image from KiE.ai
+    const imageDownloadResponse = await fetch(imageUrl);
+    if (!imageDownloadResponse.ok) {
+      throw new Error(`Failed to download image: ${imageDownloadResponse.status}`);
+    }
+
+    const imageBuffer = await imageDownloadResponse.arrayBuffer();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Convert base64 to blob
-    const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
+    // Convert ArrayBuffer to Uint8Array for upload
+    const imageBufferUint8 = new Uint8Array(imageBuffer);
     
     // Upload to Supabase Storage
     const fileName = `kie-ai-${recipeId}-${Date.now()}.png`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('recipe-images')
-      .upload(fileName, imageBuffer, {
+      .upload(fileName, imageBufferUint8, {
         contentType: 'image/png',
         upsert: true
       });
