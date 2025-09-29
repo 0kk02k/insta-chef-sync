@@ -132,7 +132,7 @@ Generate a detailed SeaDream prompt that will create an appetizing, professional
     console.log('Final prompt for SeaDream:', prompt);
 
     // Generate image with KiE.ai SeaDream
-    const imageResponse = await fetch('https://api.kie.ai/v1/images/generations', {
+    const imageResponse = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${kieApiKey}`,
