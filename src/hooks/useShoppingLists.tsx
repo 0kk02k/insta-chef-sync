@@ -236,18 +236,24 @@ export const useShoppingLists = () => {
               itemsToDelete.push(...otherItems.map(item => item.id));
             }
           }
-        } else if (normalizedItem.action === 'add') {
-          // Add new item
-          itemsToInsert.push({
-            shopping_list_id: shoppingListId,
-            recipe_id: recipeId,
-            ingredient_name: normalizedItem.canonical_name,
-            amount: normalizedItem.amount,
-            unit: normalizedItem.unit,
-            portion_multiplier: portionMultiplier,
-          });
+        } else if (normalizedItem.action === 'add' || normalizedItem.action === 'keep') {
+          // Add new item or keep item (both mean: insert new item)
+          // Check if this is a new ingredient (not an existing item ID)
+          const isNewIngredient = !existingItems?.some(item => 
+            normalizedItem.original_items.includes(item.id)
+          );
+          
+          if (isNewIngredient) {
+            itemsToInsert.push({
+              shopping_list_id: shoppingListId,
+              recipe_id: recipeId,
+              ingredient_name: normalizedItem.canonical_name,
+              amount: normalizedItem.amount,
+              unit: normalizedItem.unit,
+              portion_multiplier: portionMultiplier,
+            });
+          }
         }
-        // 'keep' action means no changes needed
       }
 
       // Execute database operations
@@ -280,6 +286,11 @@ export const useShoppingLists = () => {
 
         if (updateError) throw updateError;
       }
+
+      toast({
+        title: 'Erfolgreich',
+        description: 'Zutaten wurden zur Einkaufsliste hinzugefügt.',
+      });
       
     } catch (error) {
       console.error('Error adding ingredients to shopping list:', error);
