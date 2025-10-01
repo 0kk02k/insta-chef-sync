@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useShoppingLists, StructuredIngredient } from '@/hooks/useShoppingLists';
 import { Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddToShoppingListDialogProps {
   isOpen: boolean;
@@ -36,22 +37,30 @@ const AddToShoppingListDialog = ({
   const [newListName, setNewListName] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const portionMultiplier = currentPortions / originalPortions;
 
   const handleSubmit = async () => {
     if (!selectedListId && !isCreatingNewList) return;
-    
     setIsLoading(true);
+    console.log('AddToShoppingListDialog: handleSubmit', {
+      selectedListId,
+      isCreatingNewList,
+      newListName,
+      portionMultiplier,
+      ingredientsCount: ingredients.length,
+      recipeId,
+    });
+    toast({ title: 'Wird hinzugefügt', description: 'Sende Zutaten an Einkaufsliste...' });
     try {
       let listId = selectedListId;
-      
       if (isCreatingNewList && newListName.trim()) {
-        listId = await createShoppingList(newListName.trim()) || '';
+        listId = (await createShoppingList(newListName.trim())) || '';
       }
-      
       if (listId) {
         await addIngredientsToList(listId, ingredients, recipeId, portionMultiplier);
+        toast({ title: 'Anfrage gesendet', description: 'Zutaten wurden übertragen.' });
         onClose();
         setSelectedListId('');
         setNewListName('');
@@ -59,6 +68,7 @@ const AddToShoppingListDialog = ({
       }
     } catch (error) {
       console.error('Error adding to shopping list:', error);
+      toast({ title: 'Fehler', description: 'Übertragung fehlgeschlagen.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
