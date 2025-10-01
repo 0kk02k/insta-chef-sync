@@ -206,7 +206,11 @@ export const useShoppingLists = () => {
         return;
       }
 
-      const normalizedItems = normalizeResponse.normalized_items;
+      const normalizedItemsRaw = normalizeResponse.normalized_items;
+      const normalizedItems = (normalizedItemsRaw || []).map((it: any) => ({
+        ...it,
+        action: typeof it.action === 'string' ? it.action.toLowerCase() : it.action,
+      }));
       console.log('Normalized items:', normalizedItems);
 
       const itemsToInsert = [];
@@ -224,7 +228,7 @@ export const useShoppingLists = () => {
             itemsToUpdate.push({
               id: existingItem.id,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount,
+              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
               unit: normalizedItem.unit,
             });
 
@@ -242,7 +246,7 @@ export const useShoppingLists = () => {
               shopping_list_id: shoppingListId,
               recipe_id: recipeId,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount,
+              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
               unit: normalizedItem.unit,
               portion_multiplier: portionMultiplier,
             });
@@ -259,7 +263,7 @@ export const useShoppingLists = () => {
               shopping_list_id: shoppingListId,
               recipe_id: recipeId,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount,
+              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
               unit: normalizedItem.unit,
               portion_multiplier: portionMultiplier,
             });
@@ -315,9 +319,10 @@ export const useShoppingLists = () => {
       
     } catch (error) {
       console.error('Error adding ingredients to shopping list:', error);
+      const message = (error as any)?.message || (error as any)?.error_description || 'Zutaten konnten nicht hinzugefügt werden.';
       toast({
         title: 'Fehler',
-        description: 'Zutaten konnten nicht hinzugefügt werden.',
+        description: message,
         variant: 'destructive',
       });
     }
