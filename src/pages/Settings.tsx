@@ -51,11 +51,16 @@ const Settings = () => {
         .from('profiles')
         .select('display_name, email, language, measurement_unit')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       console.log('Profile fetch result:', { data, error });
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error('Profil nicht gefunden');
+      }
+      
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
