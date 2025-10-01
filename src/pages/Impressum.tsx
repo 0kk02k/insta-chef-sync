@@ -30,7 +30,7 @@ const Impressum = () => {
       <div className="flex-1 container mx-auto px-4 py-8">
         <Card className="max-w-4xl mx-auto border-border/50 bg-card/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold text-center text-primary">
               Impressum
             </CardTitle>
           </CardHeader>
