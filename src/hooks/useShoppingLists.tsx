@@ -20,6 +20,7 @@ export interface ShoppingListItem {
   portion_multiplier: number;
   is_checked: boolean;
   created_at: string;
+  category?: string;
 }
 
 export interface StructuredIngredient {
@@ -27,6 +28,70 @@ export interface StructuredIngredient {
   unit: string | null;
   ingredient: string;
 }
+
+// Helper function to normalize ingredient names for comparison
+const normalizeIngredientName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[,\.!?]/g, '');
+};
+
+// Helper function to convert units
+const convertUnit = (amount: number, fromUnit: string, toUnit: string): number | null => {
+  const normalizedFrom = fromUnit?.toLowerCase().trim() || '';
+  const normalizedTo = toUnit?.toLowerCase().trim() || '';
+  
+  // Same unit, no conversion needed
+  if (normalizedFrom === normalizedTo) return amount;
+  
+  // Weight conversions
+  if (normalizedFrom === 'g' && normalizedTo === 'kg') return amount / 1000;
+  if (normalizedFrom === 'kg' && normalizedTo === 'g') return amount * 1000;
+  
+  // Volume conversions
+  if (normalizedFrom === 'ml' && normalizedTo === 'l') return amount / 1000;
+  if (normalizedFrom === 'l' && normalizedTo === 'ml') return amount * 1000;
+  
+  // Cannot convert between incompatible units
+  return null;
+};
+
+// Helper function to determine if two units are compatible
+const areUnitsCompatible = (unit1: string | null, unit2: string | null): boolean => {
+  if (!unit1 || !unit2) return !unit1 && !unit2;
+  
+  const normalized1 = unit1.toLowerCase().trim();
+  const normalized2 = unit2.toLowerCase().trim();
+  
+  if (normalized1 === normalized2) return true;
+  
+  // Weight units are compatible
+  const weightUnits = ['g', 'kg', 'gramm'];
+  if (weightUnits.includes(normalized1) && weightUnits.includes(normalized2)) return true;
+  
+  // Volume units are compatible
+  const volumeUnits = ['ml', 'l', 'liter'];
+  if (volumeUnits.includes(normalized1) && volumeUnits.includes(normalized2)) return true;
+  
+  return false;
+};
+
+// Helper function to get standardized unit (prefer kg over g, l over ml)
+const getStandardUnit = (unit1: string | null, unit2: string | null): string | null => {
+  if (!unit1) return unit2;
+  if (!unit2) return unit1;
+  
+  const normalized1 = unit1.toLowerCase().trim();
+  const normalized2 = unit2.toLowerCase().trim();
+  
+  // Prefer larger units
+  if ((normalized1 === 'kg' || normalized2 === 'kg') && (normalized1 === 'g' || normalized2 === 'g')) return 'kg';
+  if ((normalized1 === 'l' || normalized2 === 'l') && (normalized1 === 'ml' || normalized2 === 'ml')) return 'l';
+  
+  return unit1;
+};
 
 export const useShoppingLists = () => {
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
@@ -101,64 +166,6 @@ export const useShoppingLists = () => {
     }
   };
 
-  // Fallback function for simple ingredient adding (without AI)
-  const addIngredientsSimple = async (
-    shoppingListId: string,
-    ingredients: StructuredIngredient[],
-    recipeId?: string,
-    existingItems: any[] = []
-  ) => {
-    const itemsToInsert = [];
-    const itemsToUpdate = [];
-
-    for (const ingredient of ingredients) {
-      // Check if an item with the same ingredient name and unit already exists
-      const existingItem = existingItems?.find(
-        item => 
-          item.ingredient_name.toLowerCase() === ingredient.ingredient.toLowerCase() &&
-          item.unit === ingredient.unit
-      );
-
-      if (existingItem && ingredient.amount) {
-        // Combine amounts if both have amounts
-        const newAmount = (existingItem.amount || 0) + ingredient.amount;
-        itemsToUpdate.push({
-          id: existingItem.id,
-          amount: newAmount,
-        });
-      } else {
-        // Create new item
-        itemsToInsert.push({
-          shopping_list_id: shoppingListId,
-          recipe_id: recipeId,
-          ingredient_name: ingredient.ingredient,
-          amount: ingredient.amount,
-          unit: ingredient.unit,
-          portion_multiplier: 1,
-        });
-      }
-    }
-
-    // Insert new items
-    if (itemsToInsert.length > 0) {
-      const { error: insertError } = await supabase
-        .from('shopping_list_items')
-        .insert(itemsToInsert);
-
-      if (insertError) throw insertError;
-    }
-
-    // Update existing items
-    for (const updateItem of itemsToUpdate) {
-      const { error: updateError } = await supabase
-        .from('shopping_list_items')
-        .update({ amount: updateItem.amount })
-        .eq('id', updateItem.id);
-
-      if (updateError) throw updateError;
-    }
-  };
-
   const addIngredientsToList = async (
     shoppingListId: string,
     ingredients: StructuredIngredient[],
@@ -166,7 +173,9 @@ export const useShoppingLists = () => {
     portionMultiplier: number = 1
   ) => {
     try {
-      // First, get existing items in the shopping list
+      console.log('Adding ingredients to list:', { shoppingListId, ingredients, recipeId, portionMultiplier });
+      
+      // Fetch existing items
       const { data: existingItems, error: fetchError } = await supabase
         .from('shopping_list_items')
         .select('*')
@@ -174,130 +183,103 @@ export const useShoppingLists = () => {
 
       if (fetchError) throw fetchError;
 
+      console.log('Existing items:', existingItems);
+
       // Scale ingredients by portion multiplier
       const scaledIngredients = ingredients.map(ingredient => ({
         ...ingredient,
         amount: ingredient.amount ? ingredient.amount * portionMultiplier : null
       }));
 
-      // Use AI to normalize and merge ingredients
-      const { data: normalizeResponse, error: normalizeError } = await supabase.functions.invoke(
-        'normalize-ingredients',
-        {
-          body: {
-            existingItems: existingItems || [],
-            newIngredients: scaledIngredients,
-            shoppingListId
-          }
-        }
-      );
+      console.log('Scaled ingredients:', scaledIngredients);
 
-      if (normalizeError) {
-        console.error('Normalization error:', normalizeError);
-        // Fallback to simple logic if AI fails
-        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
-        return;
-      }
+      const itemsToInsert: any[] = [];
+      const itemsToUpdate: any[] = [];
 
-      if (!normalizeResponse?.success) {
-        console.error('Normalization failed:', normalizeResponse?.error);
-        // Fallback to simple logic if AI fails
-        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
-        return;
-      }
-
-      const normalizedItemsRaw = normalizeResponse.normalized_items;
-      const normalizedItems = (normalizedItemsRaw || []).map((it: any) => ({
-        ...it,
-        action: typeof it.action === 'string' ? it.action.toLowerCase() : it.action,
-      }));
-      console.log('Normalized items:', normalizedItems);
-
-      const itemsToInsert = [];
-      const itemsToUpdate = [];
-      const itemsToDelete = [];
-
-      for (const normalizedItem of normalizedItems) {
-        if (normalizedItem.action === 'merge') {
-          // Find existing items to merge
-          const existingItem = existingItems?.find(item => 
-            normalizedItem.original_items.includes(item.id)
-          );
+      // Process each new ingredient
+      for (const newIngredient of scaledIngredients) {
+        const normalizedNewName = normalizeIngredientName(newIngredient.ingredient);
+        
+        // Try to find a matching existing item
+        const matchingItem = existingItems?.find(existingItem => {
+          const normalizedExistingName = normalizeIngredientName(existingItem.ingredient_name);
           
-          if (existingItem) {
-            itemsToUpdate.push({
-              id: existingItem.id,
-              ingredient_name: normalizedItem.canonical_name,
-              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
-                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
-                : null,
-              unit: normalizedItem.unit,
-            });
+          // Check if names match
+          if (normalizedNewName !== normalizedExistingName) return false;
+          
+          // Check if units are compatible
+          return areUnitsCompatible(existingItem.unit, newIngredient.unit);
+        });
 
-            // Mark other items for deletion if they were merged
-            const otherItems = existingItems?.filter(item => 
-              normalizedItem.original_items.includes(item.id) && item.id !== existingItem.id
-            );
-            if (otherItems) {
-              itemsToDelete.push(...otherItems.map(item => item.id));
+        if (matchingItem && newIngredient.amount !== null) {
+          // Merge with existing item
+          const standardUnit = getStandardUnit(matchingItem.unit, newIngredient.unit);
+          
+          let combinedAmount = matchingItem.amount || 0;
+          
+          // Convert existing amount to standard unit
+          if (matchingItem.unit && standardUnit && matchingItem.unit !== standardUnit) {
+            const converted = convertUnit(matchingItem.amount || 0, matchingItem.unit, standardUnit);
+            if (converted !== null) combinedAmount = converted;
+          }
+          
+          // Convert new amount to standard unit
+          if (newIngredient.unit && standardUnit && newIngredient.unit !== standardUnit) {
+            const converted = convertUnit(newIngredient.amount, newIngredient.unit, standardUnit);
+            if (converted !== null) {
+              combinedAmount += converted;
+            } else {
+              combinedAmount += newIngredient.amount;
             }
           } else {
-            // No existing item matched – this is a merge between new incoming ingredients
-            // Treat as a new insert of the merged canonical item
-            itemsToInsert.push({
-              shopping_list_id: shoppingListId,
-              recipe_id: recipeId,
-              ingredient_name: normalizedItem.canonical_name,
-              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
-                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
-                : null,
-              unit: normalizedItem.unit,
-              portion_multiplier: portionMultiplier,
-            });
+            combinedAmount += newIngredient.amount;
           }
-        } else if (normalizedItem.action === 'add' || normalizedItem.action === 'keep') {
-          // Add new item or keep item (both mean: insert new item)
-          // Check if this is a new ingredient (not an existing item ID)
-          const isNewIngredient = !existingItems?.some(item => 
-            normalizedItem.original_items.includes(item.id)
-          );
-          
-          if (isNewIngredient) {
-            itemsToInsert.push({
-              shopping_list_id: shoppingListId,
-              recipe_id: recipeId,
-              ingredient_name: normalizedItem.canonical_name,
-              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
-                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
-                : null,
-              unit: normalizedItem.unit,
-              portion_multiplier: portionMultiplier,
-            });
-          }
-        }
-      }
 
-      // If AI produced no actionable changes, fallback to simple insert
-      if (itemsToInsert.length === 0 && itemsToUpdate.length === 0 && itemsToDelete.length === 0) {
-        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
-        toast({
-          title: 'Erfolgreich',
-          description: 'Zutaten wurden zur Einkaufsliste hinzugefügt.',
-        });
-        return;
+          itemsToUpdate.push({
+            id: matchingItem.id,
+            amount: combinedAmount,
+            unit: standardUnit,
+          });
+
+          console.log('Merging ingredient:', {
+            existing: matchingItem,
+            new: newIngredient,
+            combined: { amount: combinedAmount, unit: standardUnit }
+          });
+        } else {
+          // Add as new item
+          itemsToInsert.push({
+            shopping_list_id: shoppingListId,
+            recipe_id: recipeId,
+            ingredient_name: newIngredient.ingredient,
+            amount: newIngredient.amount,
+            unit: newIngredient.unit,
+            portion_multiplier: portionMultiplier,
+            is_checked: false,
+          });
+
+          console.log('Adding new ingredient:', newIngredient);
+        }
       }
 
       // Execute database operations
-      if (itemsToDelete.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('shopping_list_items')
-          .delete()
-          .in('id', itemsToDelete);
+      if (itemsToUpdate.length > 0) {
+        console.log('Updating items:', itemsToUpdate);
+        for (const updateItem of itemsToUpdate) {
+          const { error: updateError } = await supabase
+            .from('shopping_list_items')
+            .update({ 
+              amount: updateItem.amount,
+              unit: updateItem.unit 
+            })
+            .eq('id', updateItem.id);
 
-        if (deleteError) throw deleteError;
+          if (updateError) throw updateError;
+        }
       }
 
       if (itemsToInsert.length > 0) {
+        console.log('Inserting items:', itemsToInsert);
         const { error: insertError } = await supabase
           .from('shopping_list_items')
           .insert(itemsToInsert);
@@ -305,30 +287,16 @@ export const useShoppingLists = () => {
         if (insertError) throw insertError;
       }
 
-      for (const updateItem of itemsToUpdate) {
-        const { error: updateError } = await supabase
-          .from('shopping_list_items')
-          .update({ 
-            ingredient_name: updateItem.ingredient_name,
-            amount: updateItem.amount,
-            unit: updateItem.unit 
-          })
-          .eq('id', updateItem.id);
-
-        if (updateError) throw updateError;
-      }
-
       toast({
         title: 'Erfolgreich',
-        description: 'Zutaten wurden zur Einkaufsliste hinzugefügt.',
+        description: `${itemsToInsert.length + itemsToUpdate.length} Zutat${itemsToInsert.length + itemsToUpdate.length !== 1 ? 'en' : ''} hinzugefügt.`,
       });
       
     } catch (error) {
       console.error('Error adding ingredients to shopping list:', error);
-      const message = (error as any)?.message || (error as any)?.error_description || 'Zutaten konnten nicht hinzugefügt werden.';
       toast({
         title: 'Fehler',
-        description: message,
+        description: 'Zutaten konnten nicht hinzugefügt werden.',
         variant: 'destructive',
       });
     }
