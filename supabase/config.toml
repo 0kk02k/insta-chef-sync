@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.generate-recipe-image-kie]
 verify_jwt = true
+
+[functions.normalize-ingredients]
+verify_jwt = true
+
+[functions.restructure-ingredients]
+verify_jwt = true

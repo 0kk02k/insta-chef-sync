@@ -228,7 +228,9 @@ export const useShoppingLists = () => {
             itemsToUpdate.push({
               id: existingItem.id,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
+              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
+                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
+                : null,
               unit: normalizedItem.unit,
             });
 
@@ -246,7 +248,9 @@ export const useShoppingLists = () => {
               shopping_list_id: shoppingListId,
               recipe_id: recipeId,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
+              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
+                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
+                : null,
               unit: normalizedItem.unit,
               portion_multiplier: portionMultiplier,
             });
@@ -263,7 +267,9 @@ export const useShoppingLists = () => {
               shopping_list_id: shoppingListId,
               recipe_id: recipeId,
               ingredient_name: normalizedItem.canonical_name,
-              amount: normalizedItem.amount !== null && normalizedItem.amount !== undefined ? Number(normalizedItem.amount) : null,
+              amount: (normalizedItem.amount !== null && normalizedItem.amount !== undefined) 
+                ? (typeof normalizedItem.amount === 'string' ? parseFloat(normalizedItem.amount) : normalizedItem.amount)
+                : null,
               unit: normalizedItem.unit,
               portion_multiplier: portionMultiplier,
             });
