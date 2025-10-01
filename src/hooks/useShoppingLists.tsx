@@ -267,6 +267,16 @@ export const useShoppingLists = () => {
         }
       }
 
+      // If AI produced no actionable changes, fallback to simple insert
+      if (itemsToInsert.length === 0 && itemsToUpdate.length === 0 && itemsToDelete.length === 0) {
+        await addIngredientsSimple(shoppingListId, scaledIngredients, recipeId, existingItems || []);
+        toast({
+          title: 'Erfolgreich',
+          description: 'Zutaten wurden zur Einkaufsliste hinzugefügt.',
+        });
+        return;
+      }
+
       // Execute database operations
       if (itemsToDelete.length > 0) {
         const { error: deleteError } = await supabase
