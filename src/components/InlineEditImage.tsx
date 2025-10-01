@@ -28,6 +28,7 @@ const InlineEditImage = ({
   const [tempValue, setTempValue] = useState(value || '');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showControls, setShowControls] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async (imageUrl?: string) => {
@@ -197,19 +198,24 @@ const InlineEditImage = ({
   }
 
   return (
-    <div className="group relative">
+    <div className="relative">
       {value ? (
         <div className="aspect-video w-full overflow-hidden relative">
           <img
             src={value}
             alt={recipeTitle}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover cursor-pointer"
+            onClick={() => setShowControls(!showControls)}
           />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <div className={`absolute inset-0 bg-black/50 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity flex items-center justify-center gap-2`}>
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => setIsEditing(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+                setShowControls(false);
+              }}
               className="h-8"
             >
               <Edit className="h-4 w-4 mr-1" />
@@ -218,7 +224,10 @@ const InlineEditImage = ({
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => handleGenerateImage('kie')}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleGenerateImage('kie');
+              }}
               disabled={generatingImage}
               className="h-8"
             >
@@ -228,6 +237,17 @@ const InlineEditImage = ({
                 <Sparkles className="h-4 w-4 mr-1" />
               )}
               SeaDream
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowControls(false);
+              }}
+              className="h-8 text-white hover:bg-white/20"
+            >
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
