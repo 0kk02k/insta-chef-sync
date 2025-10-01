@@ -235,6 +235,17 @@ export const useShoppingLists = () => {
             if (otherItems) {
               itemsToDelete.push(...otherItems.map(item => item.id));
             }
+          } else {
+            // No existing item matched – this is a merge between new incoming ingredients
+            // Treat as a new insert of the merged canonical item
+            itemsToInsert.push({
+              shopping_list_id: shoppingListId,
+              recipe_id: recipeId,
+              ingredient_name: normalizedItem.canonical_name,
+              amount: normalizedItem.amount,
+              unit: normalizedItem.unit,
+              portion_multiplier: portionMultiplier,
+            });
           }
         } else if (normalizedItem.action === 'add' || normalizedItem.action === 'keep') {
           // Add new item or keep item (both mean: insert new item)
