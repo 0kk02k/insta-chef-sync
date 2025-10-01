@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -41,8 +41,17 @@ const AddToShoppingListDialog = ({
 
   const portionMultiplier = currentPortions / originalPortions;
 
+  useEffect(() => {
+    if (!isCreatingNewList && !selectedListId && shoppingLists.length > 0) {
+      setSelectedListId(shoppingLists[0].id);
+    }
+  }, [shoppingLists, isCreatingNewList, selectedListId]);
+
   const handleSubmit = async () => {
-    if (!selectedListId && !isCreatingNewList) return;
+    if (!selectedListId && !isCreatingNewList) {
+      toast({ title: 'Liste wählen', description: 'Bitte eine Einkaufsliste auswählen oder neu erstellen.', variant: 'destructive' });
+      return;
+    }
     setIsLoading(true);
     console.log('AddToShoppingListDialog: handleSubmit', {
       selectedListId,

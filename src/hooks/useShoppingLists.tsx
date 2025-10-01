@@ -263,6 +263,10 @@ export const useShoppingLists = () => {
       }
 
       // Execute database operations
+      toast({
+        title: 'Übertragung',
+        description: `Vorbereitet: ${itemsToUpdate.length} Aktualisierung(en), ${itemsToInsert.length} Neueintrag/Einträge.`,
+      });
       if (itemsToUpdate.length > 0) {
         console.log('Updating items:', itemsToUpdate);
         for (const updateItem of itemsToUpdate) {
@@ -296,7 +300,7 @@ export const useShoppingLists = () => {
       console.error('Error adding ingredients to shopping list:', error);
       toast({
         title: 'Fehler',
-        description: 'Zutaten konnten nicht hinzugefügt werden.',
+        description: `Zutaten konnten nicht hinzugefügt werden: ${error instanceof Error ? error.message : String(error)}`,
         variant: 'destructive',
       });
     }
