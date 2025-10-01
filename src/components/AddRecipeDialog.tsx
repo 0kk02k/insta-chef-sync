@@ -289,6 +289,8 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           throw error;
         }
 
+        onRecipeAdded?.();
+        resetForm();
         setOpen(false);
       } else if (uploadedContent.every((c) => c.type === 'screenshot')) {
         // Multiple screenshots -> combine into a single recipe via edge function
