@@ -76,11 +76,11 @@ const InlineEditInstructions = ({ value, recipeId, isOwner, onUpdate }: InlineEd
     return (
       <ol className="space-y-4">
         {value.map((instruction, index) => (
-          <li key={index} className="flex items-start space-x-4">
-            <div className="flex-shrink-0 w-8 h-8 bg-lavender text-primary rounded-full flex items-center justify-center font-bold text-sm">
+          <li key={index} className="flex items-center space-x-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-lavender text-primary rounded-full flex items-center justify-center font-extrabold text-lg">
               {index + 1}
             </div>
-            <p className="text-foreground pt-1">{instruction}</p>
+            <p className="text-foreground">{instruction}</p>
           </li>
         ))}
       </ol>
@@ -165,11 +165,11 @@ const InlineEditInstructions = ({ value, recipeId, isOwner, onUpdate }: InlineEd
       </div>
       <ol className="space-y-4">
         {value.map((instruction, index) => (
-          <li key={index} className="flex items-start space-x-4">
-            <div className="flex-shrink-0 w-8 h-8 bg-lavender text-primary rounded-full flex items-center justify-center font-bold text-sm">
+          <li key={index} className="flex items-center space-x-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-lavender text-primary rounded-full flex items-center justify-center font-extrabold text-lg">
               {index + 1}
             </div>
-            <p className="text-foreground pt-1">{instruction}</p>
+            <p className="text-foreground">{instruction}</p>
           </li>
         ))}
       </ol>
