@@ -40,27 +40,31 @@ export const useCookieConsent = () => {
 // Safe storage wrappers that respect consent
 export const cookieStorage = {
   setItem: (key: string, value: string, category: CookieCategory = 'functional') => {
+    // Always allow storing necessary items (e.g., auth tokens), even before explicit consent save
+    if (category === 'necessary') {
+      try { sessionStorage.setItem(key, value); } catch {}
+      try { localStorage.setItem(key, value); } catch {}
+      return;
+    }
+    // For non-necessary categories, respect stored consent
     const storedConsent = localStorage.getItem('cookie-consent');
     if (storedConsent) {
       const consent: CookieConsent = JSON.parse(storedConsent);
-      if (category === 'necessary' || consent[category]) {
-        if (category === 'necessary') {
-          // Use sessionStorage for necessary cookies to be less persistent
-          sessionStorage.setItem(key, value);
-        } else {
-          localStorage.setItem(key, value);
-        }
+      if (consent[category]) {
+        try { localStorage.setItem(key, value); } catch {}
       }
     }
   },
   getItem: (key: string, category: CookieCategory = 'functional'): string | null => {
+    // Always read necessary items (e.g., auth tokens), even if consent hasn't been saved yet
+    if (category === 'necessary') {
+      return sessionStorage.getItem(key) || localStorage.getItem(key);
+    }
     const storedConsent = localStorage.getItem('cookie-consent');
     if (storedConsent) {
       const consent: CookieConsent = JSON.parse(storedConsent);
-      if (category === 'necessary' || consent[category]) {
-        return category === 'necessary' 
-          ? sessionStorage.getItem(key) || localStorage.getItem(key)
-          : localStorage.getItem(key);
+      if (consent[category]) {
+        return localStorage.getItem(key);
       }
     }
     return null;
@@ -72,10 +76,15 @@ export const cookieStorage = {
 };
 
 export const setCookie = (name: string, value: string, category: CookieCategory = 'functional', maxAge: number = 86400) => {
+  // Allow necessary cookies regardless of saved consent entry
+  if (category === 'necessary') {
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    return;
+  }
   const storedConsent = localStorage.getItem('cookie-consent');
   if (storedConsent) {
     const consent: CookieConsent = JSON.parse(storedConsent);
-    if (category === 'necessary' || consent[category]) {
+    if (consent[category]) {
       document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
     }
   }
