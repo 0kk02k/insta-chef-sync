@@ -173,8 +173,23 @@ export const useShoppingLists = () => {
     portionMultiplier: number = 1
   ) => {
     try {
+      // Ensure user is authenticated
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Nicht angemeldet. Bitte einloggen.');
+
       console.log('Adding ingredients to list:', { shoppingListId, ingredients, recipeId, portionMultiplier });
-      
+
+      // Verify ownership of the shopping list (prevents silent RLS denials)
+      const { data: listData, error: listCheckError } = await supabase
+        .from('shopping_lists')
+        .select('id, user_id')
+        .eq('id', shoppingListId)
+        .maybeSingle();
+      if (listCheckError) throw listCheckError;
+      if (!listData || listData.user_id !== userData.user.id) {
+        throw new Error('Keine Berechtigung für diese Einkaufsliste.');
+      }
+
       // Fetch existing items
       const { data: existingItems, error: fetchError } = await supabase
         .from('shopping_list_items')

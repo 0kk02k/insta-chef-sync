@@ -47,6 +47,12 @@ const AddToShoppingListDialog = ({
     }
   }, [shoppingLists, isCreatingNewList, selectedListId]);
 
+  useEffect(() => {
+    if (isOpen && shoppingLists.length === 0) {
+      setIsCreatingNewList(true);
+    }
+  }, [isOpen, shoppingLists]);
+
   const handleSubmit = async () => {
     if (!selectedListId && !isCreatingNewList) {
       toast({ title: 'Liste wählen', description: 'Bitte eine Einkaufsliste auswählen oder neu erstellen.', variant: 'destructive' });
