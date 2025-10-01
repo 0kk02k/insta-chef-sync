@@ -186,8 +186,8 @@ All colors MUST be HSL.
   }
 
   /* Header styling */
-  .header {
-    background: #FFB991;
+.header {
+    background: hsl(var(--brand));
     color: hsl(var(--ink-900));
     border-bottom: 1px solid hsl(var(--border));
   }

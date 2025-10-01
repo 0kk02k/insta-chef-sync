@@ -11,7 +11,7 @@ const Impressum = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
       {/* Header with dark blue background */}
-      <div className="header" style={{ background: 'var(--gradient-header)' }}>
+      <div className="header" style={{ background: 'hsl(var(--brand))' }}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center">
             <Button 
