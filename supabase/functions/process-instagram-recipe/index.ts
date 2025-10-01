@@ -287,66 +287,14 @@ ${processContent}
 
     console.log('Successfully extracted recipe data:', recipeData);
 
-    // Generate AI image for the recipe using FLUX
-    let finalImageUrl: string | null = null;
-    console.log('Generating AI image with FLUX...');
-    try {
-        const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
-        if (togetherApiKey) {
-          const imagePrompt = `A high-quality, appetizing food photograph of ${recipeData.title}. Professional food photography, well-lit, attractive presentation, restaurant quality.`;
-          
-          const imageResponse = await fetch('https://api.together.xyz/v1/images/generations', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${togetherApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'black-forest-labs/FLUX.1-schnell',
-              prompt: imagePrompt,
-              width: 1024,
-              height: 1024,
-              steps: 4,
-              n: 1,
-              response_format: 'b64_json'
-            }),
-          });
-
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            const imageBase64 = imageData.data[0].b64_json;
-            
-            // Upload image to Supabase Storage
-            const imageBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
-            const fileName = `${Date.now()}-${recipeData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
-            
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('recipe-images')
-              .upload(fileName, imageBuffer, {
-                contentType: 'image/png'
-              });
-
-            if (!uploadError && uploadData) {
-              const { data: { publicUrl } } = supabase.storage
-                .from('recipe-images')
-                .getPublicUrl(fileName);
-              
-              finalImageUrl = publicUrl;
-              console.log('Generated and uploaded FLUX image:', finalImageUrl);
-            }
-          }
-        }
-    } catch (error) {
-      console.error('Error generating FLUX image:', error);
-      // Continue without image if generation fails
-    }
+    // Image generation removed - users can manually generate images after recipe creation
 
     return new Response(
       JSON.stringify({
         success: true,
         data: {
           ...recipeData,
-          image_url: finalImageUrl
+          image_url: null
         }
       }),
       {

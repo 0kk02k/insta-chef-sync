@@ -132,17 +132,8 @@ serve(async (req) => {
       if (validationResult.combinedRecipe) {
         console.log('✅ Multiple screenshots successfully combined into single recipe');
         
-        // Generate AI image for the combined recipe
-        let generatedImageUrl = null;
-        try {
-          generatedImageUrl = await generateRecipeImage(validationResult.combinedRecipe, xaiApiKey, supabase);
-        } catch (imageError) {
-          console.warn('⚠️ Image generation failed, continuing without image:', imageError);
-        }
-        
-        if (generatedImageUrl) {
-          validationResult.combinedRecipe.image_url = generatedImageUrl;
-        }
+        // Image generation removed - users can manually generate images after recipe creation
+        validationResult.combinedRecipe.image_url = null;
         
         return new Response(JSON.stringify({
           success: true,
@@ -159,13 +150,8 @@ serve(async (req) => {
         console.log('ℹ️ Validation returned no combinedRecipe, extracting from all images...');
         const extracted = await extractRecipeFromImages(normalizedImages, xaiApiKey, userPrefs);
 
-        let generatedImageUrl = null;
-        try {
-          generatedImageUrl = await generateRecipeImage(extracted, xaiApiKey, supabase);
-        } catch (imageError) {
-          console.warn('⚠️ Image generation failed, continuing without image:', imageError);
-        }
-        if (generatedImageUrl) extracted.image_url = generatedImageUrl;
+        // Image generation removed - users can manually generate images after recipe creation
+        extracted.image_url = null;
 
         return new Response(JSON.stringify({
           success: true,
@@ -416,17 +402,8 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
 
     console.log('✅ Recipe data extracted:', recipeData.title);
 
-    // Step 2: Generate an AI image based on the recipe
-    let generatedImageUrl = null;
-    try {
-      generatedImageUrl = await generateRecipeImage(recipeData, xaiApiKey, supabase);
-    } catch (imageError) {
-      console.warn('⚠️ Image generation failed, continuing without image:', imageError);
-    }
-
-    if (generatedImageUrl) {
-      recipeData.image_url = generatedImageUrl;
-    }
+    // Image generation removed - users can manually generate images after recipe creation
+    recipeData.image_url = null;
 
     console.log('✅ Screenshot processing completed successfully');
 
