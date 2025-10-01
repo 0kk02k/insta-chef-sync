@@ -69,7 +69,7 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
                   min={1}
                   max={Math.max(originalServings * 3, 12)}
                   step={1}
-                  className="flex-1 [&_[role=slider]]:border-[#ae83e6] [&_[role=slider]]:bg-white [&_[role=slider]]:ring-offset-transparent [&>span>span]:bg-[#ae83e6] [&>span]:bg-[hsl(21,100%,81%)]"
+                  className="flex-1 [&_[role=slider]]:border-[#ae83e6] [&_[role=slider]]:bg-white [&_[role=slider]]:ring-0 [&_[role=slider]]:focus-visible:ring-0 [&_[role=slider]]:focus-visible:ring-offset-0 [&_[role=slider]]:ring-offset-transparent [&>span>span]:bg-[#ae83e6] [&>span]:bg-[hsl(21,100%,81%)]"
                 />
                 <Input
                   id="portions"
