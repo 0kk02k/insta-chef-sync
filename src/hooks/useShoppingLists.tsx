@@ -415,6 +415,63 @@ export const useShoppingListItems = (shoppingListId: string) => {
     is_checked?: boolean;
   }) => {
     try {
+      const normalizedName = normalizeIngredientName(itemData.ingredient_name);
+      
+      // Check if a similar item already exists
+      const existingItem = items.find(item => 
+        normalizeIngredientName(item.ingredient_name) === normalizedName
+      );
+
+      if (existingItem) {
+        // Check if units are compatible
+        if (areUnitsCompatible(existingItem.unit, itemData.unit || null)) {
+          // Merge with existing item
+          const standardUnit = getStandardUnit(existingItem.unit, itemData.unit || null);
+          
+          let newAmount = existingItem.amount || 0;
+          
+          if (itemData.amount) {
+            if (existingItem.unit && itemData.unit && existingItem.unit !== itemData.unit) {
+              // Convert to standard unit
+              const convertedAmount = convertUnit(itemData.amount, itemData.unit, standardUnit || existingItem.unit);
+              if (convertedAmount !== null) {
+                newAmount = (existingItem.unit === standardUnit ? existingItem.amount || 0 : 
+                           convertUnit(existingItem.amount || 0, existingItem.unit, standardUnit || existingItem.unit) || 0) + convertedAmount;
+              } else {
+                newAmount = (existingItem.amount || 0) + itemData.amount;
+              }
+            } else {
+              newAmount = (existingItem.amount || 0) + itemData.amount;
+            }
+          }
+
+          // Update existing item
+          const { error } = await supabase
+            .from('shopping_list_items')
+            .update({ 
+              amount: newAmount,
+              unit: standardUnit
+            })
+            .eq('id', existingItem.id);
+
+          if (error) throw error;
+          
+          setItems(items.map(item => 
+            item.id === existingItem.id 
+              ? { ...item, amount: newAmount, unit: standardUnit }
+              : item
+          ));
+
+          toast({
+            title: 'Zutat zusammengeführt',
+            description: `${itemData.ingredient_name} wurde mit vorhandener Zutat zusammengeführt.`,
+          });
+          
+          return true;
+        }
+      }
+
+      // No existing item found or units incompatible - add new item
       const { data, error } = await supabase
         .from('shopping_list_items')
         .insert([{
