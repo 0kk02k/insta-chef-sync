@@ -5,7 +5,6 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import AddToShoppingListDialog from './AddToShoppingListDialog';
 
 interface StructuredIngredient {
@@ -22,7 +21,6 @@ interface PortionConverterProps {
 }
 
 const PortionConverter = ({ originalServings, structuredIngredients, onPortionChange, recipeId }: PortionConverterProps) => {
-  const { user } = useAuth();
   const [targetServings, setTargetServings] = useState(originalServings);
   const [showShoppingListDialog, setShowShoppingListDialog] = useState(false);
 
@@ -84,20 +82,6 @@ const PortionConverter = ({ originalServings, structuredIngredients, onPortionCh
                 />
               </div>
             </div>
-            
-            {user && (
-              <Button
-                onClick={() => setShowShoppingListDialog(true)}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                style={{
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))'
-                }}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Zur Einkaufsliste hinzufügen
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
