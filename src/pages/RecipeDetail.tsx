@@ -533,100 +533,187 @@ const RecipeDetail = () => {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!recipe) return;
 
     try {
       const doc = new jsPDF();
-      let yPosition = 20;
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
       const maxWidth = pageWidth - 2 * margin;
+      let yPosition = 20;
 
-      // Title
+      // Header with accent color (primary color from theme)
+      doc.setFillColor(47, 129, 126); // hsl(177, 46%, 35%)
+      doc.rect(0, 0, pageWidth, 45, 'F');
+
+      // Recipe Title (white text on colored background)
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
       const titleLines = doc.splitTextToSize(recipe.title, maxWidth);
+      yPosition = 25;
       doc.text(titleLines, margin, yPosition);
-      yPosition += titleLines.length * 10 + 5;
+      yPosition = 50;
+
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+
+      // Recipe Image (if available)
+      if (recipe.image_url) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise<void>((resolve) => {
+            img.onload = () => {
+              const imgWidth = maxWidth;
+              const imgHeight = (img.height * imgWidth) / img.width;
+              const maxImgHeight = 100;
+              const finalHeight = Math.min(imgHeight, maxImgHeight);
+              
+              doc.addImage(img, 'JPEG', margin, yPosition, imgWidth, finalHeight);
+              yPosition += finalHeight + 15;
+              resolve();
+            };
+            img.onerror = () => resolve(); // Continue without image on error
+            img.src = recipe.image_url;
+          });
+        } catch (error) {
+          console.error('Error loading image for PDF:', error);
+        }
+      }
+
+      // Metadata section with icons
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      
+      let metaText = '';
+      if (recipe.cooking_time) {
+        metaText += `⏱ ${recipe.cooking_time} Min`;
+      }
+      if (recipe.rating) {
+        metaText += metaText ? '  |  ' : '';
+        metaText += `⭐ ${recipe.rating}/5`;
+      }
+      metaText += metaText ? '  |  ' : '';
+      metaText += `🍽 ${currentPortions} Portionen`;
+      
+      doc.text(metaText, margin, yPosition);
+      yPosition += 10;
+
+      // Tags (if available)
+      if (recipe.tags && recipe.tags.length > 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(47, 129, 126);
+        doc.text(`🏷 ${recipe.tags.join(' • ')}`, margin, yPosition);
+        yPosition += 10;
+      }
+
+      doc.setTextColor(0, 0, 0);
 
       // Description
       if (recipe.description) {
+        yPosition += 5;
         doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica', 'italic');
         const descLines = doc.splitTextToSize(recipe.description, maxWidth);
         doc.text(descLines, margin, yPosition);
-        yPosition += descLines.length * 6 + 5;
+        yPosition += descLines.length * 6 + 10;
       }
 
-      // Tags
-      if (recipe.tags && recipe.tags.length > 0) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
-        doc.text(`Tags: ${recipe.tags.join(', ')}`, margin, yPosition);
-        yPosition += 8;
+      // Check page break
+      if (yPosition > pageHeight - 80) {
+        doc.addPage();
+        yPosition = 20;
       }
 
-      // Metadata (cooking time and portions)
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      const metadataItems = [];
-      if (recipe.cooking_time) {
-        metadataItems.push(`Kochzeit: ${recipe.cooking_time} Min.`);
-      }
-      metadataItems.push(`Portionen: ${currentPortions}`);
-      if (recipe.rating) {
-        metadataItems.push(`Bewertung: ${recipe.rating}/5 Sterne`);
-      }
-      doc.text(metadataItems.join(' | '), margin, yPosition);
-      yPosition += 10;
-
-      // Ingredients
+      // Ingredients Section
+      doc.setFillColor(47, 129, 126);
+      doc.setTextColor(255, 255, 255);
+      doc.roundedRect(margin - 5, yPosition - 5, maxWidth + 10, 12, 2, 2, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Zutaten:', margin, yPosition);
-      yPosition += 8;
+      doc.text('🥘 Zutaten', margin, yPosition + 3);
+      yPosition += 15;
 
+      doc.setTextColor(0, 0, 0);
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      displayedIngredients.forEach((ingredient) => {
-        if (yPosition > 270) {
+      
+      displayedIngredients.forEach((ingredient, index) => {
+        if (yPosition > pageHeight - 40) {
           doc.addPage();
           yPosition = 20;
         }
-        const ingredientLines = doc.splitTextToSize(`• ${ingredient}`, maxWidth - 5);
-        doc.text(ingredientLines, margin + 5, yPosition);
-        yPosition += ingredientLines.length * 6;
+        
+        // Alternating background for ingredients
+        if (index % 2 === 0) {
+          doc.setFillColor(245, 245, 245);
+          doc.rect(margin - 5, yPosition - 4, maxWidth + 10, 8, 'F');
+        }
+        
+        doc.text(`• ${ingredient}`, margin, yPosition);
+        yPosition += 8;
       });
 
-      yPosition += 5;
+      yPosition += 10;
 
-      // Instructions
-      if (recipe.instructions.length > 0) {
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
+      // Check page break
+      if (yPosition > pageHeight - 80) {
+        doc.addPage();
+        yPosition = 20;
+      }
 
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Zubereitung:', margin, yPosition);
-        yPosition += 8;
+      // Instructions Section
+      doc.setFillColor(47, 129, 126);
+      doc.setTextColor(255, 255, 255);
+      doc.roundedRect(margin - 5, yPosition - 5, maxWidth + 10, 12, 2, 2, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('👨‍🍳 Zubereitung', margin, yPosition + 3);
+      yPosition += 15;
 
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      
+      if (recipe.instructions && recipe.instructions.length > 0) {
         recipe.instructions.forEach((instruction, index) => {
-          if (yPosition > 270) {
+          if (yPosition > pageHeight - 40) {
             doc.addPage();
             yPosition = 20;
           }
-          const instructionLines = doc.splitTextToSize(`${index + 1}. ${instruction}`, maxWidth - 5);
-          doc.text(instructionLines, margin + 5, yPosition);
-          yPosition += instructionLines.length * 6 + 2;
+          
+          // Step number in circle
+          doc.setFillColor(47, 129, 126);
+          doc.circle(margin + 3, yPosition - 3, 4, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${index + 1}`, margin + 3, yPosition, { align: 'center', baseline: 'middle' });
+          
+          // Step text
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          const stepText = instruction.trim();
+          const stepLines = doc.splitTextToSize(stepText, maxWidth - 15);
+          doc.text(stepLines, margin + 12, yPosition);
+          yPosition += stepLines.length * 6 + 5;
         });
       }
 
       // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'italic');
+      const footerY = pageHeight - 15;
+      doc.text(`Erstellt mit Rezeptsammlung am ${new Date().toLocaleDateString('de-DE')}`, margin, footerY);
+
+      // Save
       const fileName = `${recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${currentPortions}_portionen.pdf`;
       doc.save(fileName);
 
