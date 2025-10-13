@@ -3,7 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, Users, ExternalLink, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy, Share2 } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ExternalLink, Trash2, Loader2, Hash, Sparkles, EyeOff, Copy, Share2, Link, FileDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { useAuth } from '@/hooks/useAuth';
@@ -517,8 +524,123 @@ const RecipeDetail = () => {
     const shareUrl = `${window.location.origin}/recipe/${recipe.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: 'Link kopiert!',
+        description: 'Der Rezept-Link wurde in die Zwischenablage kopiert.',
+      });
     } catch (error) {
       toast({ title: 'Rezept teilen', description: shareUrl });
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (!recipe) return;
+
+    try {
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxWidth = pageWidth - 2 * margin;
+
+      // Title
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      const titleLines = doc.splitTextToSize(recipe.title, maxWidth);
+      doc.text(titleLines, margin, yPosition);
+      yPosition += titleLines.length * 10 + 5;
+
+      // Description
+      if (recipe.description) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const descLines = doc.splitTextToSize(recipe.description, maxWidth);
+        doc.text(descLines, margin, yPosition);
+        yPosition += descLines.length * 6 + 5;
+      }
+
+      // Tags
+      if (recipe.tags && recipe.tags.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`Tags: ${recipe.tags.join(', ')}`, margin, yPosition);
+        yPosition += 8;
+      }
+
+      // Metadata (cooking time and portions)
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const metadataItems = [];
+      if (recipe.cooking_time) {
+        metadataItems.push(`Kochzeit: ${recipe.cooking_time} Min.`);
+      }
+      metadataItems.push(`Portionen: ${currentPortions}`);
+      if (recipe.rating) {
+        metadataItems.push(`Bewertung: ${recipe.rating}/5 Sterne`);
+      }
+      doc.text(metadataItems.join(' | '), margin, yPosition);
+      yPosition += 10;
+
+      // Ingredients
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Zutaten:', margin, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      displayedIngredients.forEach((ingredient) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        const ingredientLines = doc.splitTextToSize(`• ${ingredient}`, maxWidth - 5);
+        doc.text(ingredientLines, margin + 5, yPosition);
+        yPosition += ingredientLines.length * 6;
+      });
+
+      yPosition += 5;
+
+      // Instructions
+      if (recipe.instructions.length > 0) {
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Zubereitung:', margin, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        recipe.instructions.forEach((instruction, index) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          const instructionLines = doc.splitTextToSize(`${index + 1}. ${instruction}`, maxWidth - 5);
+          doc.text(instructionLines, margin + 5, yPosition);
+          yPosition += instructionLines.length * 6 + 2;
+        });
+      }
+
+      // Footer
+      const fileName = `${recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${currentPortions}_portionen.pdf`;
+      doc.save(fileName);
+
+      toast({
+        title: 'PDF exportiert!',
+        description: 'Das Rezept wurde als PDF heruntergeladen.',
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: 'Fehler',
+        description: 'PDF konnte nicht erstellt werden.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -552,20 +674,33 @@ const RecipeDetail = () => {
             
             {user && user.id === recipe.user_id ? (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      size="icon"
+                      variant="ghost" 
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                      style={{ 
+                        backgroundColor: 'hsl(var(--primary))', 
+                        color: 'hsl(var(--primary-foreground))',
+                        borderColor: 'hsl(var(--foreground))'
+                      }}
+                      title="Teilen & Exportieren"
+                    >
+                      <Share2 className="h-6 w-6" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-popover z-50">
+                    <DropdownMenuItem onClick={handleShareRecipe}>
+                      <Link className="h-4 w-4 mr-2" />
+                      Link kopieren
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportPDF}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      PDF exportieren
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -587,20 +722,33 @@ const RecipeDetail = () => {
               </div>
             ) : user && user.id !== recipe.user_id && (recipe.published || recipe.shareable) ? (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      size="icon"
+                      variant="ghost" 
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                      style={{ 
+                        backgroundColor: 'hsl(var(--primary))', 
+                        color: 'hsl(var(--primary-foreground))',
+                        borderColor: 'hsl(var(--foreground))'
+                      }}
+                      title="Teilen & Exportieren"
+                    >
+                      <Share2 className="h-6 w-6" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-popover z-50">
+                    <DropdownMenuItem onClick={handleShareRecipe}>
+                      <Link className="h-4 w-4 mr-2" />
+                      Link kopieren
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportPDF}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      PDF exportieren
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button 
                   size="icon"
                   variant="ghost" 
@@ -642,20 +790,33 @@ const RecipeDetail = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button 
-                  size="icon"
-                  variant="ghost" 
-                  onClick={handleShareRecipe}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                  title="Rezept teilen"
-                >
-                  <Share2 className="h-6 w-6" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      size="icon"
+                      variant="ghost" 
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 w-10"
+                      style={{ 
+                        backgroundColor: 'hsl(var(--primary))', 
+                        color: 'hsl(var(--primary-foreground))',
+                        borderColor: 'hsl(var(--foreground))'
+                      }}
+                      title="Teilen & Exportieren"
+                    >
+                      <Share2 className="h-6 w-6" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-popover z-50">
+                    <DropdownMenuItem onClick={handleShareRecipe}>
+                      <Link className="h-4 w-4 mr-2" />
+                      Link kopieren
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportPDF}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      PDF exportieren
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>
