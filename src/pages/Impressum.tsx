@@ -50,8 +50,7 @@ const Impressum = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Kontakt</h2>
                 <div className="text-muted-foreground">
-                  <p>E-Mail: [Deine E-Mail-Adresse]</p>
-                  <p>Telefon: [Deine Telefonnummer]</p>
+                  <p>E-Mail: okko.prothmann@gmail.com</p>
                 </div>
               </section>
 
