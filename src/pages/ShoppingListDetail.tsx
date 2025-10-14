@@ -210,29 +210,30 @@ const ShoppingListDetail = () => {
     const backgroundColor = getCategoryBackgroundColor(category);
 
     return (
-      <div key={category} className="space-y-1">
-        <div className={`flex items-center gap-2 px-3 py-2 -mx-6 ${backgroundColor} rounded-md`}>
-          <IconComponent className={`h-4 w-4 ${iconColor}`} />
-          <h4 className={`text-sm font-medium ${iconColor}`}>{category}</h4>
+      <div key={category} className="space-y-0.5">
+        <div className={`flex items-center gap-2 px-2 py-1.5 -mx-3 sm:-mx-6 ${backgroundColor} rounded-md`}>
+          <IconComponent className={`h-5 w-5 sm:h-4 sm:w-4 ${iconColor}`} />
+          <h4 className={`text-base sm:text-sm font-medium ${iconColor}`}>{category}</h4>
           <Badge variant="outline" className="text-xs">{categoryItems.length}</Badge>
         </div>
-        <div className="space-y-0.5">
+        <div className="space-y-0">
           {categoryItems.map((item) => (
-            <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
+            <div key={item.id} className={`flex items-center gap-2 sm:gap-3 py-2.5 sm:py-2 px-1 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
               <Checkbox
                 checked={item.is_checked}
                 onCheckedChange={(checked) => toggleItem(item.id, checked as boolean)}
+                className="h-5 w-5 sm:h-4 sm:w-4"
               />
-              <span className={`flex-1 text-sm ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
+              <span className={`flex-1 text-base sm:text-sm leading-tight ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
                 {formatItemDisplay(item)}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDeleteItem(item.id)}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-destructive flex-shrink-0"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           ))}
@@ -278,16 +279,16 @@ const ShoppingListDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-2 sm:p-4">
       <div className="container mx-auto max-w-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/shopping-lists')}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-5 w-5 sm:h-4 sm:w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">{currentList.name}</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold">{currentList.name}</h1>
+              <p className="text-base sm:text-sm text-muted-foreground">
                 {items.length} Artikel • {checkedItems.length} erledigt
               </p>
             </div>
@@ -333,13 +334,13 @@ const ShoppingListDetail = () => {
             {/* Unchecked Items by Category */}
             {uncheckedItems.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-xl sm:text-lg flex items-center gap-2">
                     Einzukaufen
                     <Badge variant="secondary">{uncheckedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3 sm:space-y-2 px-3 sm:px-6">
                   {Object.entries(groupItemsByCategory(uncheckedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, false)
                   )}
@@ -350,13 +351,13 @@ const ShoppingListDetail = () => {
             {/* Checked Items by Category */}
             {checkedItems.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-muted-foreground">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-xl sm:text-lg flex items-center gap-2 text-muted-foreground">
                     Erledigt
                     <Badge variant="outline">{checkedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3 sm:space-y-2 px-3 sm:px-6">
                   {Object.entries(groupItemsByCategory(checkedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, true)
                   )}
