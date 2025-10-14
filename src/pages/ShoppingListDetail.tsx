@@ -211,20 +211,20 @@ const ShoppingListDetail = () => {
 
     return (
       <div key={category} className="space-y-0.5">
-        <div className={`flex items-center gap-2 px-2 py-1.5 -mx-3 sm:-mx-6 ${backgroundColor} rounded-md`}>
+        <div className={`flex items-center gap-2 px-2 py-1 -mx-3 sm:-mx-6 ${backgroundColor} rounded-md`}>
           <IconComponent className={`h-5 w-5 sm:h-4 sm:w-4 ${iconColor}`} />
           <h4 className={`text-base sm:text-sm font-medium ${iconColor}`}>{category}</h4>
           <Badge variant="outline" className="text-xs">{categoryItems.length}</Badge>
         </div>
         <div className="space-y-0">
           {categoryItems.map((item) => (
-            <div key={item.id} className={`flex items-center gap-2 sm:gap-3 py-2.5 sm:py-2 px-1 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
+            <div key={item.id} className={`flex items-center gap-2 sm:gap-3 py-1.5 sm:py-2 px-1 rounded-lg hover:bg-muted/50 transition-colors ${isChecked ? 'opacity-60' : ''}`}>
               <Checkbox
                 checked={item.is_checked}
                 onCheckedChange={(checked) => toggleItem(item.id, checked as boolean)}
                 className="h-5 w-5 sm:h-4 sm:w-4"
               />
-              <span className={`flex-1 text-base sm:text-sm leading-tight ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
+              <span className={`flex-1 text-lg sm:text-sm leading-tight ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
                 {formatItemDisplay(item)}
               </span>
               <Button
@@ -279,9 +279,9 @@ const ShoppingListDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-1.5 sm:p-4">
       <div className="container mx-auto max-w-2xl">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/shopping-lists')}>
               <ArrowLeft className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -340,7 +340,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="secondary">{uncheckedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-2 px-3 sm:px-6">
+                <CardContent className="space-y-2 px-3 sm:px-6">
                   {Object.entries(groupItemsByCategory(uncheckedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, false)
                   )}
@@ -357,7 +357,7 @@ const ShoppingListDetail = () => {
                     <Badge variant="outline">{checkedItems.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-2 px-3 sm:px-6">
+                <CardContent className="space-y-2 px-3 sm:px-6">
                   {Object.entries(groupItemsByCategory(checkedItems)).map(([category, categoryItems]) =>
                     renderCategorySection(category, categoryItems, true)
                   )}

@@ -103,7 +103,7 @@ const ShoppingLists = () => {
         </div>
       </div>
       
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-3 sm:p-4">
         <div className="container mx-auto max-w-4xl">
 
         {shoppingLists.length === 0 ? (
@@ -127,7 +127,7 @@ const ShoppingLists = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <CardTitle 
-                      className="text-lg hover:text-primary transition-colors cursor-pointer"
+                      className="text-xl sm:text-lg hover:text-primary transition-colors cursor-pointer"
                       onClick={() => navigate(`/shopping-lists/${list.id}`)}
                     >
                       {list.name}
