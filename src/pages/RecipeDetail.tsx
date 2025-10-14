@@ -541,26 +541,38 @@ const RecipeDetail = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
-      const maxWidth = pageWidth - 2 * margin;
-      let yPosition = 20;
+      const contentWidth = pageWidth - 2 * margin;
+      let yPos = margin;
 
-      // Header with accent color (primary color from theme)
-      doc.setFillColor(47, 129, 126); // hsl(177, 46%, 35%)
-      doc.rect(0, 0, pageWidth, 45, 'F');
+      // Helper function for page breaks
+      const checkPageBreak = (requiredSpace: number) => {
+        if (yPos + requiredSpace > pageHeight - margin) {
+          doc.addPage();
+          yPos = margin;
+          return true;
+        }
+        return false;
+      };
 
-      // Recipe Title (white text on colored background)
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      const titleLines = doc.splitTextToSize(recipe.title, maxWidth);
-      yPosition = 25;
-      doc.text(titleLines, margin, yPosition);
-      yPosition = 50;
-
-      // Reset text color
+      // Title - Elegant serif style
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
       doc.setTextColor(0, 0, 0);
+      const titleLines = doc.splitTextToSize(recipe.title, contentWidth);
+      titleLines.forEach((line: string) => {
+        checkPageBreak(12);
+        doc.text(line, margin, yPos);
+        yPos += 12;
+      });
 
-      // Recipe Image (if available)
+      // Thin decorative line under title
+      yPos += 2;
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(100, 100, 100);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+
+      // Add image if available
       if (recipe.image_url) {
         try {
           const img = new Image();
@@ -568,13 +580,14 @@ const RecipeDetail = () => {
           
           await new Promise<void>((resolve) => {
             img.onload = () => {
-              const imgWidth = maxWidth;
+              checkPageBreak(80);
+              const imgWidth = contentWidth;
               const imgHeight = (img.height * imgWidth) / img.width;
-              const maxImgHeight = 100;
+              const maxImgHeight = 70;
               const finalHeight = Math.min(imgHeight, maxImgHeight);
               
-              doc.addImage(img, 'JPEG', margin, yPosition, imgWidth, finalHeight);
-              yPosition += finalHeight + 15;
+              doc.addImage(img, 'JPEG', margin, yPos, imgWidth, finalHeight);
+              yPos += finalHeight + 10;
               resolve();
             };
             img.onerror = () => resolve(); // Continue without image on error
@@ -585,133 +598,119 @@ const RecipeDetail = () => {
         }
       }
 
-      // Metadata section with icons
+      // Metadata section
+      checkPageBreak(20);
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(80, 80, 80);
       
-      let metaText = '';
-      if (recipe.cooking_time) {
-        metaText += `⏱ ${recipe.cooking_time} Min`;
-      }
-      if (recipe.rating) {
-        metaText += metaText ? '  |  ' : '';
-        metaText += `⭐ ${recipe.rating}/5`;
-      }
-      metaText += metaText ? '  |  ' : '';
-      metaText += `🍽 ${currentPortions} Portionen`;
+      const metaInfo = [];
+      if (recipe.cooking_time) metaInfo.push(`Zubereitungszeit: ${recipe.cooking_time} Min.`);
+      metaInfo.push(`Portionen: ${currentPortions}`);
+      if (recipe.rating) metaInfo.push(`Bewertung: ${'★'.repeat(recipe.rating)}${'☆'.repeat(5 - recipe.rating)}`);
       
-      doc.text(metaText, margin, yPosition);
-      yPosition += 10;
-
-      // Tags (if available)
-      if (recipe.tags && recipe.tags.length > 0) {
-        doc.setFontSize(9);
-        doc.setTextColor(47, 129, 126);
-        doc.text(`🏷 ${recipe.tags.join(' • ')}`, margin, yPosition);
-        yPosition += 10;
-      }
-
-      doc.setTextColor(0, 0, 0);
+      doc.text(metaInfo.join('  •  '), margin, yPos);
+      yPos += 12;
 
       // Description
       if (recipe.description) {
-        yPosition += 5;
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'italic');
-        const descLines = doc.splitTextToSize(recipe.description, maxWidth);
-        doc.text(descLines, margin, yPosition);
-        yPosition += descLines.length * 6 + 10;
+        checkPageBreak(15);
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        const descLines = doc.splitTextToSize(recipe.description, contentWidth);
+        descLines.forEach((line: string) => {
+          checkPageBreak(5);
+          doc.text(line, margin, yPos);
+          yPos += 5;
+        });
+        yPos += 8;
       }
 
-      // Check page break
-      if (yPosition > pageHeight - 80) {
-        doc.addPage();
-        yPosition = 20;
+      // Tags
+      if (recipe.tags && recipe.tags.length > 0) {
+        checkPageBreak(10);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text(recipe.tags.join(' • '), margin, yPos);
+        yPos += 12;
       }
+
+      // Section header helper
+      const addSectionHeader = (title: string) => {
+        checkPageBreak(15);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(title, margin, yPos);
+        yPos += 2;
+        doc.setLineWidth(0.3);
+        doc.setDrawColor(150, 150, 150);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 8;
+      };
 
       // Ingredients Section
-      doc.setFillColor(47, 129, 126);
-      doc.setTextColor(255, 255, 255);
-      doc.roundedRect(margin - 5, yPosition - 5, maxWidth + 10, 12, 2, 2, 'F');
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('🥘 Zutaten', margin, yPosition + 3);
-      yPosition += 15;
-
-      doc.setTextColor(0, 0, 0);
+      addSectionHeader('Zutaten');
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      
-      displayedIngredients.forEach((ingredient, index) => {
-        if (yPosition > pageHeight - 40) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        // Alternating background for ingredients
-        if (index % 2 === 0) {
-          doc.setFillColor(245, 245, 245);
-          doc.rect(margin - 5, yPosition - 4, maxWidth + 10, 8, 'F');
-        }
-        
-        doc.text(`• ${ingredient}`, margin, yPosition);
-        yPosition += 8;
+      doc.setTextColor(40, 40, 40);
+
+      displayedIngredients.forEach((ingredient) => {
+        checkPageBreak(7);
+        doc.text('• ' + ingredient, margin + 5, yPos);
+        yPos += 7;
       });
 
-      yPosition += 10;
-
-      // Check page break
-      if (yPosition > pageHeight - 80) {
-        doc.addPage();
-        yPosition = 20;
-      }
+      yPos += 5;
 
       // Instructions Section
-      doc.setFillColor(47, 129, 126);
-      doc.setTextColor(255, 255, 255);
-      doc.roundedRect(margin - 5, yPosition - 5, maxWidth + 10, 12, 2, 2, 'F');
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('👨‍🍳 Zubereitung', margin, yPosition + 3);
-      yPosition += 15;
-
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      
       if (recipe.instructions && recipe.instructions.length > 0) {
-        recipe.instructions.forEach((instruction, index) => {
-          if (yPosition > pageHeight - 40) {
-            doc.addPage();
-            yPosition = 20;
-          }
+        addSectionHeader('Zubereitung');
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(40, 40, 40);
+
+        recipe.instructions.forEach((step, index) => {
+          checkPageBreak(12);
           
-          // Step number in circle
-          doc.setFillColor(47, 129, 126);
-          doc.circle(margin + 3, yPosition - 3, 4, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.text(`${index + 1}`, margin + 3, yPosition, { align: 'center', baseline: 'middle' });
+          // Step number in a simple format
+          doc.setFont("helvetica", "bold");
+          doc.text(`${index + 1}.`, margin, yPos);
           
           // Step text
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'normal');
-          const stepText = instruction.trim();
-          const stepLines = doc.splitTextToSize(stepText, maxWidth - 15);
-          doc.text(stepLines, margin + 12, yPosition);
-          yPosition += stepLines.length * 6 + 5;
+          doc.setFont("helvetica", "normal");
+          const stepText = step.trim();
+          const stepLines = doc.splitTextToSize(stepText, contentWidth - 15);
+          stepLines.forEach((line: string, lineIndex: number) => {
+            if (lineIndex > 0) checkPageBreak(6);
+            doc.text(line, margin + 15, yPos);
+            if (lineIndex < stepLines.length - 1) yPos += 6;
+          });
+          
+          yPos += 10;
         });
       }
 
       // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.setFont('helvetica', 'italic');
-      const footerY = pageHeight - 15;
-      doc.text(`Erstellt mit Rezeptsammlung am ${new Date().toLocaleDateString('de-DE')}`, margin, footerY);
+      const totalPages = (doc as any).internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Erstellt am ${new Date().toLocaleDateString('de-DE')}`,
+          margin,
+          pageHeight - 10
+        );
+        doc.text(
+          `Seite ${i} von ${totalPages}`,
+          pageWidth - margin - 20,
+          pageHeight - 10
+        );
+      }
 
       // Save
       const fileName = `${recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${currentPortions}_portionen.pdf`;
