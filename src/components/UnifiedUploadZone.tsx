@@ -34,6 +34,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteTargetRef = useRef<HTMLTextAreaElement>(null);
+  const [showPasteHelper, setShowPasteHelper] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -200,6 +201,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           name: `Text (${text.substring(0, 30)}...)`,
         });
       }
+      setShowPasteHelper(false);
       return;
     }
 
@@ -211,6 +213,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         const file = imageItem.getAsFile();
         if (file) {
           handleFileSelection([file]);
+          setShowPasteHelper(false);
         }
     }
   }, [handleContent, handleFileSelection]);
@@ -220,65 +223,16 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   };
 
   const triggerPaste = useCallback(async () => {
-    // Focus the hidden paste target to enable paste events on mobile
-    if (pasteTargetRef.current) {
-      pasteTargetRef.current.focus();
-      pasteTargetRef.current.value = '';
-      
-      // Try to trigger paste programmatically
-      try {
-        const result = document.execCommand('paste');
-        if (!result) {
-          // If execCommand doesn't work, show a helpful message
-          toast({
-            title: "Einfügen",
-            description: "Bitte drücke jetzt Strg+V oder füge den Inhalt ein.",
-          });
-        }
-      } catch (error) {
-        toast({
-          title: "Einfügen",
-          description: "Bitte drücke jetzt Strg+V oder füge den Inhalt ein.",
-        });
+    // Öffne eine sichtbare Einfügehilfe für Mobile, damit das native "Einfügen"-Menü erscheint
+    setShowPasteHelper(true);
+    // Fokus nach Rendern setzen
+    setTimeout(() => {
+      pasteTargetRef.current?.focus();
+      if (pasteTargetRef.current) {
+        pasteTargetRef.current.value = '';
       }
-      return;
-    }
-
-    // Fallback to clipboard API for desktop
-    if (!navigator.clipboard) {
-      toast({
-        title: "Einfügen nicht unterstützt",
-        description: "Dein Browser unterstützt das automatische Einfügen nicht. Verwende Strg+V.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text.trim()) {
-        if (isValidUrl(text)) {
-          handleContent({
-            type: 'url',
-            content: text,
-            name: shortenUrl(text),
-          });
-        } else {
-          handleContent({
-            type: 'text',
-            content: text,
-            name: `Text (${text.substring(0, 30)}...)`,
-          });
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Einfügen fehlgeschlagen", 
-        description: "Verwende Strg+V oder Cmd+V zum Einfügen.",
-        variant: "destructive",
-      });
-    }
-  }, [handleContent, toast]);
+    }, 30);
+  }, [setShowPasteHelper]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -366,14 +320,36 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           disabled={disabled}
         />
         
-        {/* Hidden textarea for mobile paste support */}
-        <textarea
-          ref={pasteTargetRef}
-          className="absolute opacity-0 pointer-events-none -z-10"
-          style={{ width: '1px', height: '1px' }}
-          onPaste={handlePaste}
-          aria-hidden="true"
-        />
+        {/* Mobile Paste Support */}
+        {!showPasteHelper && (
+          <textarea
+            ref={pasteTargetRef}
+            className="absolute -z-10 opacity-0"
+            style={{ width: '1px', height: '1px' }}
+            onPaste={handlePaste}
+            aria-hidden="true"
+          />
+        )}
+        {showPasteHelper && (
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-20">
+            <div className="w-full max-w-sm border rounded-lg bg-background p-4 shadow">
+              <p className="text-sm text-muted-foreground mb-2">Zum Einfügen tippe in das Feld und wähle „Einfügen“.</p>
+              <textarea
+                ref={pasteTargetRef}
+                rows={3}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="Hier einfügen …"
+                onPaste={handlePaste}
+                autoFocus
+              />
+              <div className="mt-3 flex justify-end">
+                <Button type="button" variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setShowPasteHelper(false); }}>
+                  Schließen
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {uploadedContent.length > 0 ? (
           <div className="space-y-4">
