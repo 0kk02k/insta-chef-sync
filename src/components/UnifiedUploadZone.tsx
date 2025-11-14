@@ -33,6 +33,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   const [uploadedContent, setUploadedContent] = useState<UploadedContent[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pasteTargetRef = useRef<HTMLTextAreaElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -219,6 +220,31 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   };
 
   const triggerPaste = useCallback(async () => {
+    // Focus the hidden paste target to enable paste events on mobile
+    if (pasteTargetRef.current) {
+      pasteTargetRef.current.focus();
+      pasteTargetRef.current.value = '';
+      
+      // Try to trigger paste programmatically
+      try {
+        const result = document.execCommand('paste');
+        if (!result) {
+          // If execCommand doesn't work, show a helpful message
+          toast({
+            title: "Einfügen",
+            description: "Bitte drücke jetzt Strg+V oder füge den Inhalt ein.",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Einfügen",
+          description: "Bitte drücke jetzt Strg+V oder füge den Inhalt ein.",
+        });
+      }
+      return;
+    }
+
+    // Fallback to clipboard API for desktop
     if (!navigator.clipboard) {
       toast({
         title: "Einfügen nicht unterstützt",
@@ -338,6 +364,15 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           onChange={handleFileInput}
           className="hidden"
           disabled={disabled}
+        />
+        
+        {/* Hidden textarea for mobile paste support */}
+        <textarea
+          ref={pasteTargetRef}
+          className="absolute opacity-0 pointer-events-none -z-10"
+          style={{ width: '1px', height: '1px' }}
+          onPaste={handlePaste}
+          aria-hidden="true"
         />
 
         {uploadedContent.length > 0 ? (
