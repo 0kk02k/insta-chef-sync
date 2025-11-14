@@ -259,10 +259,7 @@ export type Database = {
         Args: { ingredient_name: string }
         Returns: string
       }
-      cleanup_orphaned_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_orphaned_data: { Args: never; Returns: undefined }
       get_public_profile: {
         Args: { profile_user_id: string }
         Returns: {

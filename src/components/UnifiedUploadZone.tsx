@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UploadedContent {
   type: 'text' | 'url' | 'pdf' | 'image' | 'screenshot';
@@ -32,11 +33,11 @@ interface UnifiedUploadZoneProps {
 const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgress }: UnifiedUploadZoneProps) => {
   const [uploadedContent, setUploadedContent] = useState<UploadedContent[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const pasteTargetRef = useRef<HTMLTextAreaElement>(null);
-  const [showPasteHelper, setShowPasteHelper] = useState(false);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
+const fileInputRef = useRef<HTMLInputElement>(null);
+const dropZoneRef = useRef<HTMLDivElement>(null);
+const isMobile = useIsMobile();
+const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+const { toast } = useToast();
   const { user } = useAuth();
 
   const detectContentType = (file: File): 'pdf' | 'image' | 'screenshot' => {
@@ -185,7 +186,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     e.preventDefault();
     
-    // Handle text/URL paste
+// Handle text/URL paste
     const text = e.clipboardData.getData('text');
     if (text.trim()) {
       if (isValidUrl(text)) {
@@ -201,7 +202,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           name: `Text (${text.substring(0, 30)}...)`,
         });
       }
-      setShowPasteHelper(false);
+      dropZoneRef.current?.blur();
       return;
     }
 
@@ -209,11 +210,11 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     const items = Array.from(e.clipboardData.items);
     const imageItem = items.find(item => item.type.startsWith('image/'));
     
-    if (imageItem) {
+if (imageItem) {
         const file = imageItem.getAsFile();
         if (file) {
           handleFileSelection([file]);
-          setShowPasteHelper(false);
+          dropZoneRef.current?.blur();
         }
     }
   }, [handleContent, handleFileSelection]);
@@ -222,17 +223,10 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     fileInputRef.current?.click();
   };
 
-  const triggerPaste = useCallback(async () => {
-    // Öffne eine sichtbare Einfügehilfe für Mobile, damit das native "Einfügen"-Menü erscheint
-    setShowPasteHelper(true);
-    // Fokus nach Rendern setzen
-    setTimeout(() => {
-      pasteTargetRef.current?.focus();
-      if (pasteTargetRef.current) {
-        pasteTargetRef.current.value = '';
-      }
-    }, 30);
-  }, [setShowPasteHelper]);
+const triggerPaste = useCallback(() => {
+  // Fokus auf die Dropzone setzen (contentEditable auf Mobile), damit das native "Einfügen"-Menü erscheint
+  dropZoneRef.current?.focus();
+}, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -275,15 +269,23 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
 
   return (
     <div className="space-y-4">      
-      <div
+<div
+        ref={dropZoneRef}
         className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background
+          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background outline-none
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${uploadedContent.length > 0 ? 'bg-muted/30' : ''}
         `}
         style={{ 
           borderColor: isDragOver ? undefined : 'hsl(290 18% 28% / 0.8)'
+        }}
+        contentEditable={isMobile ? true : undefined}
+        suppressContentEditableWarning
+        onInput={(e) => {
+          if (isMobile) {
+            (e.currentTarget as HTMLDivElement).textContent = '';
+          }
         }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -320,36 +322,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           disabled={disabled}
         />
         
-        {/* Mobile Paste Support */}
-        {!showPasteHelper && (
-          <textarea
-            ref={pasteTargetRef}
-            className="absolute -z-10 opacity-0"
-            style={{ width: '1px', height: '1px' }}
-            onPaste={handlePaste}
-            aria-hidden="true"
-          />
-        )}
-        {showPasteHelper && (
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-20">
-            <div className="w-full max-w-sm border rounded-lg bg-background p-4 shadow">
-              <p className="text-sm text-muted-foreground mb-2">Zum Einfügen tippe in das Feld und wähle „Einfügen“.</p>
-              <textarea
-                ref={pasteTargetRef}
-                rows={3}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                placeholder="Hier einfügen …"
-                onPaste={handlePaste}
-                autoFocus
-              />
-              <div className="mt-3 flex justify-end">
-                <Button type="button" variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setShowPasteHelper(false); }}>
-                  Schließen
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {uploadedContent.length > 0 ? (
           <div className="space-y-4">
@@ -446,7 +418,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
               </div>
             </div>
             <p className="text-xs text-muted-foreground/80 mt-2">
-              💡 Rechtsklick oder langes Drücken zum Einfügen aus der Zwischenablage
+              💡 Langes Drücken zum Einfügen aus der Zwischenablage (mobil)
             </p>
           </div>
         )}
