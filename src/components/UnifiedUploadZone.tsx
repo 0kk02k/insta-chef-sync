@@ -184,6 +184,40 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
   }, [handleFileSelection]);
 
+  const processContentEditableFallback = useCallback(async () => {
+    const el = dropZoneRef.current;
+    if (!el) return;
+
+    // 1) Bilder erkennen und in Files umwandeln
+    const imgs = Array.from(el.querySelectorAll('img'));
+    const files: File[] = [];
+    for (const img of imgs) {
+      try {
+        const res = await fetch((img as HTMLImageElement).src);
+        const blob = await res.blob();
+        const file = new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' });
+        files.push(file);
+      } catch {}
+    }
+    if (files.length) {
+      handleFileSelection(files);
+    }
+
+    // 2) Text/URL erkennen
+    const pastedText = el.innerText.trim();
+    if (pastedText) {
+      if (isValidUrl(pastedText)) {
+        handleContent({ type: 'url', content: pastedText, name: shortenUrl(pastedText) });
+      } else {
+        handleContent({ type: 'text', content: pastedText, name: `Text (${pastedText.substring(0, 30)}...)` });
+      }
+    }
+
+    // Cleanup
+    el.innerHTML = '';
+    el.blur();
+  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl]);
+
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     const cd = e.clipboardData;
     const items = cd ? Array.from(cd.items) : [];
@@ -197,17 +231,9 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
       // Handle text/URL paste
       if (text) {
         if (isValidUrl(text)) {
-          handleContent({
-            type: 'url',
-            content: text,
-            name: shortenUrl(text),
-          });
+          handleContent({ type: 'url', content: text, name: shortenUrl(text) });
         } else {
-          handleContent({
-            type: 'text',
-            content: text,
-            name: `Text (${text.substring(0, 30)}...)`,
-          });
+          handleContent({ type: 'text', content: text, name: `Text (${text.substring(0, 30)}...)` });
         }
         dropZoneRef.current?.blur();
         return;
@@ -224,41 +250,11 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
       }
     } else {
       // iOS-Fallback: Default-Einfügen erlauben, dann DOM prüfen
-      setTimeout(async () => {
-        const el = dropZoneRef.current;
-        if (!el) return;
-        
-        // 1) IMG-Knoten prüfen
-        const imgs = Array.from(el.querySelectorAll('img'));
-        if (imgs.length) {
-          const files: File[] = [];
-          for (const img of imgs) {
-            try {
-              const res = await fetch((img as HTMLImageElement).src);
-              const blob = await res.blob();
-              const file = new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' });
-              files.push(file);
-            } catch {}
-          }
-          if (files.length) handleFileSelection(files);
-        }
-        
-        // 2) Text prüfen
-        const pastedText = el.innerText.trim();
-        if (pastedText) {
-          if (isValidUrl(pastedText)) {
-            handleContent({ type: 'url', content: pastedText, name: shortenUrl(pastedText) });
-          } else {
-            handleContent({ type: 'text', content: pastedText, name: `Text (${pastedText.substring(0, 30)}...)` });
-          }
-        }
-        
-        // Cleanup
-        el.innerHTML = '';
-        el.blur();
+      setTimeout(() => {
+        processContentEditableFallback();
       }, 0);
     }
-  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl]);
+  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl, processContentEditableFallback]);
 
   const openFileDialog = () => {
     fileInputRef.current?.click();
@@ -344,6 +340,13 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         role="textbox"
         aria-label="Inhalte einfügen oder ablegen"
         aria-multiline="true"
+        onInput={(e) => {
+          if (isMobile) {
+            setTimeout(() => {
+              processContentEditableFallback();
+            }, 0);
+          }
+        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
