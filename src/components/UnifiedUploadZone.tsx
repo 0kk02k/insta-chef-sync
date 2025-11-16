@@ -33,11 +33,12 @@ interface UnifiedUploadZoneProps {
 const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgress }: UnifiedUploadZoneProps) => {
   const [uploadedContent, setUploadedContent] = useState<UploadedContent[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-const fileInputRef = useRef<HTMLInputElement>(null);
-const dropZoneRef = useRef<HTMLDivElement>(null);
-const isMobile = useIsMobile();
-const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressActivatedRef = useRef(false);
+  const { toast } = useToast();
   const { user } = useAuth();
 
   const detectContentType = (file: File): 'pdf' | 'image' | 'screenshot' => {
@@ -184,49 +185,100 @@ const { toast } = useToast();
   }, [handleFileSelection]);
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
-    e.preventDefault();
+    const cd = e.clipboardData;
+    const items = cd ? Array.from(cd.items) : [];
+    const text = cd?.getData('text')?.trim() ?? '';
+    const hasImage = items.some(i => i.type.startsWith('image/'));
+    const hasUsefulData = !!text || hasImage;
     
-// Handle text/URL paste
-    const text = e.clipboardData.getData('text');
-    if (text.trim()) {
-      if (isValidUrl(text)) {
-        handleContent({
-          type: 'url',
-          content: text,
-          name: shortenUrl(text),
-        });
-      } else {
-        handleContent({
-          type: 'text',
-          content: text,
-          name: `Text (${text.substring(0, 30)}...)`,
-        });
+    if (hasUsefulData) {
+      e.preventDefault();
+      
+      // Handle text/URL paste
+      if (text) {
+        if (isValidUrl(text)) {
+          handleContent({
+            type: 'url',
+            content: text,
+            name: shortenUrl(text),
+          });
+        } else {
+          handleContent({
+            type: 'text',
+            content: text,
+            name: `Text (${text.substring(0, 30)}...)`,
+          });
+        }
+        dropZoneRef.current?.blur();
+        return;
       }
-      dropZoneRef.current?.blur();
-      return;
-    }
 
-    // Handle image paste
-    const items = Array.from(e.clipboardData.items);
-    const imageItem = items.find(item => item.type.startsWith('image/'));
-    
-if (imageItem) {
+      // Handle image paste
+      const imageItem = items.find(item => item.type.startsWith('image/'));
+      if (imageItem) {
         const file = imageItem.getAsFile();
         if (file) {
           handleFileSelection([file]);
           dropZoneRef.current?.blur();
         }
+      }
+    } else {
+      // iOS-Fallback: Default-Einfügen erlauben, dann DOM prüfen
+      setTimeout(async () => {
+        const el = dropZoneRef.current;
+        if (!el) return;
+        
+        // 1) IMG-Knoten prüfen
+        const imgs = Array.from(el.querySelectorAll('img'));
+        if (imgs.length) {
+          const files: File[] = [];
+          for (const img of imgs) {
+            try {
+              const res = await fetch((img as HTMLImageElement).src);
+              const blob = await res.blob();
+              const file = new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' });
+              files.push(file);
+            } catch {}
+          }
+          if (files.length) handleFileSelection(files);
+        }
+        
+        // 2) Text prüfen
+        const pastedText = el.innerText.trim();
+        if (pastedText) {
+          if (isValidUrl(pastedText)) {
+            handleContent({ type: 'url', content: pastedText, name: shortenUrl(pastedText) });
+          } else {
+            handleContent({ type: 'text', content: pastedText, name: `Text (${pastedText.substring(0, 30)}...)` });
+          }
+        }
+        
+        // Cleanup
+        el.innerHTML = '';
+        el.blur();
+      }, 0);
     }
-  }, [handleContent, handleFileSelection]);
+  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl]);
 
   const openFileDialog = () => {
     fileInputRef.current?.click();
   };
 
-const triggerPaste = useCallback(() => {
-  // Fokus auf die Dropzone setzen (contentEditable auf Mobile), damit das native "Einfügen"-Menü erscheint
-  dropZoneRef.current?.focus();
-}, []);
+  const setCaretToEnd = (el: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
+
+  const triggerPaste = useCallback(() => {
+    const el = dropZoneRef.current;
+    if (!el) return;
+    el.focus();
+    setCaretToEnd(el);
+  }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -238,6 +290,7 @@ const triggerPaste = useCallback(() => {
   const handleTouchStart = useCallback(() => {
     if (!disabled && uploadedContent.length === 0) {
       longPressTimerRef.current = setTimeout(() => {
+        longPressActivatedRef.current = true;
         triggerPaste();
       }, 500); // 500ms long press
     }
@@ -248,6 +301,10 @@ const triggerPaste = useCallback(() => {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+    // Reset nach kurzer Zeit, damit Click nach Long-Press unterdrückt wird
+    setTimeout(() => {
+      longPressActivatedRef.current = false;
+    }, 400);
   }, []);
 
   const getContentIcon = (type: string) => {
@@ -269,12 +326,12 @@ const triggerPaste = useCallback(() => {
 
   return (
     <div className="space-y-4">      
-<div
+      <div
         ref={dropZoneRef}
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background outline-none
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : isMobile ? 'cursor-text' : 'cursor-pointer'}
           ${uploadedContent.length > 0 ? 'bg-muted/30' : ''}
         `}
         style={{ 
@@ -282,6 +339,9 @@ const triggerPaste = useCallback(() => {
         }}
         contentEditable={isMobile ? true : undefined}
         suppressContentEditableWarning
+        role="textbox"
+        aria-label="Inhalte einfügen oder ablegen"
+        aria-multiline="true"
         onInput={(e) => {
           if (isMobile) {
             (e.currentTarget as HTMLDivElement).textContent = '';
@@ -294,7 +354,11 @@ const triggerPaste = useCallback(() => {
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={!disabled ? openFileDialog : undefined}
+        onClick={(e) => {
+          if (disabled) return;
+          if (longPressActivatedRef.current) return;
+          openFileDialog();
+        }}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
