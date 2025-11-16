@@ -281,11 +281,13 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    // Auf Mobile das native Kontextmenü zulassen, damit "Einsetzen" erscheint
+    if (isMobile) return;
     e.preventDefault();
     if (!disabled && uploadedContent.length === 0) {
       triggerPaste();
     }
-  }, [disabled, uploadedContent.length, triggerPaste]);
+  }, [disabled, uploadedContent.length, triggerPaste, isMobile]);
 
   const handleTouchStart = useCallback(() => {
     if (!disabled && uploadedContent.length === 0) {
@@ -304,7 +306,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     // Reset nach kurzer Zeit, damit Click nach Long-Press unterdrückt wird
     setTimeout(() => {
       longPressActivatedRef.current = false;
-    }, 400);
+    }, 800);
   }, []);
 
   const getContentIcon = (type: string) => {
