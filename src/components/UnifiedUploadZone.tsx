@@ -342,11 +342,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         role="textbox"
         aria-label="Inhalte einfügen oder ablegen"
         aria-multiline="true"
-        onInput={(e) => {
-          if (isMobile) {
-            (e.currentTarget as HTMLDivElement).textContent = '';
-          }
-        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
