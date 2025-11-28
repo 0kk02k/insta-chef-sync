@@ -327,9 +327,26 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
 
 
   return (
-    <div className="space-y-4">      
+    <div className="space-y-4">
+      {/* Hidden contentEditable for mobile paste */}
+      {isMobile && (
+        <div
+          ref={dropZoneRef}
+          contentEditable
+          suppressContentEditableWarning
+          className="sr-only"
+          aria-hidden="true"
+          onInput={() => {
+            setTimeout(() => {
+              processContentEditableFallback();
+            }, 0);
+          }}
+          onPaste={handlePaste}
+        />
+      )}
+      
       <div
-        ref={dropZoneRef}
+        ref={!isMobile ? dropZoneRef : undefined}
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background outline-none
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
@@ -339,28 +356,24 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         style={{ 
           borderColor: isDragOver ? undefined : 'hsl(290 18% 28% / 0.8)'
         }}
-        contentEditable={isMobile ? true : undefined}
-        suppressContentEditableWarning
-        role="textbox"
+        role="button"
         aria-label="Inhalte einfügen oder ablegen"
-        aria-multiline="true"
-        onInput={(e) => {
-          if (isMobile) {
-            setTimeout(() => {
-              processContentEditableFallback();
-            }, 0);
-          }
-        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onPaste={handlePaste}
+        onPaste={!isMobile ? handlePaste : undefined}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={(e) => {
           if (disabled) return;
-          if (longPressActivatedRef.current) return;
+          if (longPressActivatedRef.current) {
+            // Focus the hidden contentEditable for paste
+            if (isMobile && dropZoneRef.current) {
+              dropZoneRef.current.focus();
+            }
+            return;
+          }
           openFileDialog();
         }}
         tabIndex={0}
