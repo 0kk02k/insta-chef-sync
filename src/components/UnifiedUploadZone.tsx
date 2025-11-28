@@ -213,9 +213,13 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
       }
     }
 
-    // Cleanup
-    el.innerHTML = '';
-    el.blur();
+    // Cleanup - Use requestAnimationFrame to avoid DOM conflicts with React
+    requestAnimationFrame(() => {
+      if (el && el.isConnected) {
+        el.innerHTML = '';
+        el.blur();
+      }
+    });
   }, [handleContent, handleFileSelection, isValidUrl, shortenUrl]);
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
