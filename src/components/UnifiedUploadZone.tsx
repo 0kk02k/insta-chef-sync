@@ -293,25 +293,21 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     if (!disabled && uploadedContent.length === 0) {
       longPressTimerRef.current = setTimeout(() => {
         longPressActivatedRef.current = true;
-        triggerPaste();
+        // Fokussiere das contentEditable Element direkt
+        if (dropZoneRef.current && isMobile) {
+          dropZoneRef.current.focus();
+          setCaretToEnd(dropZoneRef.current);
+        }
       }, 500); // 500ms long press
     }
-  }, [disabled, uploadedContent.length, triggerPaste]);
+  }, [disabled, uploadedContent.length, isMobile]);
 
   const handleTouchEnd = useCallback(() => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
-    // Reset nach kurzer Zeit, damit Click nach Long-Press unterdrückt wird
-    setTimeout(() => {
-      longPressActivatedRef.current = false;
-      // Re-blur the contentEditable if it exists
-      if (dropZoneRef.current && isMobile) {
-        dropZoneRef.current.blur();
-      }
-    }, 2000);
-  }, [isMobile]);
+  }, []);
 
   const getContentIcon = (type: string) => {
     switch (type) {
@@ -350,15 +346,15 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onPaste={!isMobile ? handlePaste : undefined}
         onClick={(e) => {
           if (disabled) return;
           if (longPressActivatedRef.current) {
-            if (isMobile && dropZoneRef.current) {
-              dropZoneRef.current.focus();
-            }
             return;
           }
-          openFileDialog();
+          if (!isMobile) {
+            openFileDialog();
+          }
         }}
         tabIndex={0}
         onKeyDown={(e) => {
@@ -368,21 +364,29 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           }
         }}
       >
-        {/* Transparent overlay for mobile paste */}
-        {isMobile && (
+        {/* Mobile paste area - must be visible for native paste menu */}
+        {isMobile && uploadedContent.length === 0 && (
           <div
             ref={dropZoneRef}
             contentEditable
             suppressContentEditableWarning
-            className="absolute inset-0 opacity-0 cursor-text"
-            style={{ pointerEvents: longPressActivatedRef.current ? 'auto' : 'none' }}
+            className="absolute inset-0 flex items-center justify-center text-muted-foreground/50 cursor-text outline-none"
+            style={{ 
+              WebkitUserSelect: 'text',
+              userSelect: 'text'
+            }}
             onInput={() => {
               setTimeout(() => {
                 processContentEditableFallback();
               }, 0);
             }}
             onPaste={handlePaste}
-          />
+            onFocus={(e) => {
+              e.currentTarget.style.caretColor = 'transparent';
+            }}
+          >
+            Tippen zum Einfügen
+          </div>
         )}
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
