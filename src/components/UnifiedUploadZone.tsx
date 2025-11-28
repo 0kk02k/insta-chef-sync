@@ -306,8 +306,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     // Reset nach kurzer Zeit, damit Click nach Long-Press unterdrückt wird
     setTimeout(() => {
       longPressActivatedRef.current = false;
-    }, 800);
-  }, []);
+      // Re-blur the contentEditable if it exists
+      if (dropZoneRef.current && isMobile) {
+        dropZoneRef.current.blur();
+      }
+    }, 2000);
+  }, [isMobile]);
 
   const getContentIcon = (type: string) => {
     switch (type) {
@@ -327,26 +331,8 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
 
 
   return (
-    <div className="space-y-4">
-      {/* Hidden contentEditable for mobile paste */}
-      {isMobile && (
-        <div
-          ref={dropZoneRef}
-          contentEditable
-          suppressContentEditableWarning
-          className="sr-only"
-          aria-hidden="true"
-          onInput={() => {
-            setTimeout(() => {
-              processContentEditableFallback();
-            }, 0);
-          }}
-          onPaste={handlePaste}
-        />
-      )}
-      
+    <div className="space-y-4">      
       <div
-        ref={!isMobile ? dropZoneRef : undefined}
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background outline-none
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
@@ -361,14 +347,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onPaste={!isMobile ? handlePaste : undefined}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={(e) => {
           if (disabled) return;
           if (longPressActivatedRef.current) {
-            // Focus the hidden contentEditable for paste
             if (isMobile && dropZoneRef.current) {
               dropZoneRef.current.focus();
             }
@@ -384,6 +368,22 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           }
         }}
       >
+        {/* Transparent overlay for mobile paste */}
+        {isMobile && (
+          <div
+            ref={dropZoneRef}
+            contentEditable
+            suppressContentEditableWarning
+            className="absolute inset-0 opacity-0 cursor-text"
+            style={{ pointerEvents: longPressActivatedRef.current ? 'auto' : 'none' }}
+            onInput={() => {
+              setTimeout(() => {
+                processContentEditableFallback();
+              }, 0);
+            }}
+            onPaste={handlePaste}
+          />
+        )}
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center space-y-2">
