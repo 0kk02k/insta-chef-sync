@@ -13,6 +13,10 @@ interface StructuredIngredient {
   ingredient: string;
 }
 
+// Input validation constants
+const MAX_INGREDIENTS = 100;
+const MAX_INGREDIENT_LENGTH = 500;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,8 +24,35 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authentication: Validate user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Use service role for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const xaiApiKey = Deno.env.get('XAI_API_KEY');
     if (!xaiApiKey) {
@@ -29,20 +60,62 @@ serve(async (req) => {
     }
 
     const { recipeId, ingredients } = await req.json();
-    if (!recipeId || !Array.isArray(ingredients) || ingredients.length === 0) {
+    
+    // Input validation
+    if (!recipeId || typeof recipeId !== 'string') {
       return new Response(
-        JSON.stringify({ success: false, error: 'recipeId und ingredients sind erforderlich' }),
+        JSON.stringify({ success: false, error: 'recipeId ist erforderlich' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'ingredients Array ist erforderlich' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (ingredients.length > MAX_INGREDIENTS) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Maximal ${MAX_INGREDIENTS} Zutaten erlaubt` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Validate each ingredient
+    for (const ingredient of ingredients) {
+      if (typeof ingredient !== 'string' || ingredient.length > MAX_INGREDIENT_LENGTH) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Ungültige Zutat' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
-    // Get user preferences via recipe -> user -> profile
+    // Verify recipe ownership
     const { data: recipe, error: recipeErr } = await supabase
       .from('recipes')
       .select('user_id, servings')
       .eq('id', recipeId)
       .maybeSingle();
+    
     if (recipeErr) throw recipeErr;
+    
+    if (!recipe) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rezept nicht gefunden' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Check ownership
+    if (recipe.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Keine Berechtigung für dieses Rezept' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     let language = 'de';
     let unitPref = 'metric';

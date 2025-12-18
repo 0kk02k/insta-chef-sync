@@ -49,6 +49,7 @@ serve(async (req) => {
   try {
     const xaiApiKey = Deno.env.get('XAI_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!xaiApiKey) {
@@ -56,11 +57,42 @@ serve(async (req) => {
       throw new Error('API-Schlüssel nicht konfiguriert');
     }
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error('❌ Supabase configuration not found');
       throw new Error('Supabase-Konfiguration nicht gefunden');
     }
 
+    // Authentication: Validate user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Nicht autorisiert'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ Auth error:', authError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Nicht autorisiert'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('✅ Authenticated user:', user.id);
+
+    // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Smoke test endpoint

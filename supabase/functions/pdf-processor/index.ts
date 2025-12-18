@@ -12,12 +12,6 @@ const corsHeaders = {
 const MAX_PDF_SIZE = 25 * 1024 * 1024; // 25MB max PDF size
 const MAX_PATH_LENGTH = 500;
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
-
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,7 +19,44 @@ serve(async (req) => {
   }
 
   try {
-    const { path, userId } = await req.json();
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Authentication: Validate user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Nicht autorisiert'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Nicht autorisiert'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Use service role for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { path } = await req.json();
     
     // Validate path input
     if (!path || typeof path !== 'string' || path.length > MAX_PATH_LENGTH) {
@@ -51,18 +82,16 @@ serve(async (req) => {
     
     console.log("Processing PDF:", path);
 
-    // Get user preferences for language and measurement units
+    // Get user preferences for language and measurement units (use authenticated user.id)
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('language, measurement_unit')
-        .eq('id', userId)
-        .single();
-      
-      if (profile) {
-        userPrefs = profile;
-      }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('language, measurement_unit')
+      .eq('id', user.id)
+      .single();
+    
+    if (profile) {
+      userPrefs = profile;
     }
 
     // 1) PDF aus Supabase Storage holen
