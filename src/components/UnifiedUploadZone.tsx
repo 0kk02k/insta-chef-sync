@@ -191,6 +191,7 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     const text = cd?.getData('text')?.trim() ?? '';
     const hasImage = items.some(i => i.type.startsWith('image/'));
     
+    // Only prevent default if we actually have content to process
     if (text || hasImage) {
       e.preventDefault();
       
@@ -211,7 +212,21 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         }
       }
     }
+    // Don't prevent default if no content - allows native behavior
   }, [handleContent, handleFileSelection]);
+
+  // Handle touch events for mobile - don't interfere with long-press
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Don't prevent default - allow native long-press context menu
+  }, []);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    // Allow context menu on mobile for copy/paste
+    if (isMobile) {
+      // Don't prevent default - allow native context menu
+      return;
+    }
+  }, [isMobile]);
 
   const openFileDialog = () => {
     fileInputRef.current?.click();
@@ -329,6 +344,8 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onPaste={handlePaste}
+        onContextMenu={handleContextMenu}
+        onTouchStart={handleTouchStart}
         onClick={() => {
           if (!disabled) openFileDialog();
         }}
