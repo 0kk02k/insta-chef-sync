@@ -21,6 +21,10 @@ interface NormalizedIngredient {
   original_items: string[];
 }
 
+// Input validation constants
+const MAX_EXISTING_ITEMS = 500;
+const MAX_NEW_INGREDIENTS = 100;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -28,8 +32,35 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authentication: Validate user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Use service role for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const xaiApiKey = Deno.env.get('XAI_API_KEY');
     if (!xaiApiKey) {
@@ -38,38 +69,74 @@ serve(async (req) => {
 
     const { existingItems, newIngredients, shoppingListId } = await req.json();
     
-    if (!shoppingListId || !Array.isArray(newIngredients)) {
+    // Input validation
+    if (!shoppingListId || typeof shoppingListId !== 'string') {
       return new Response(
-        JSON.stringify({ success: false, error: 'shoppingListId und newIngredients sind erforderlich' }),
+        JSON.stringify({ success: false, error: 'shoppingListId ist erforderlich' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!Array.isArray(newIngredients)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'newIngredients Array ist erforderlich' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (Array.isArray(existingItems) && existingItems.length > MAX_EXISTING_ITEMS) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Maximal ${MAX_EXISTING_ITEMS} existierende Items erlaubt` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (newIngredients.length > MAX_NEW_INGREDIENTS) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Maximal ${MAX_NEW_INGREDIENTS} neue Zutaten erlaubt` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get user preferences
-    const { data: listData } = await supabase
+    // Verify shopping list ownership
+    const { data: listData, error: listError } = await supabase
       .from('shopping_lists')
       .select('user_id')
       .eq('id', shoppingListId)
       .single();
+    
+    if (listError || !listData) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Einkaufsliste nicht gefunden' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Check ownership
+    if (listData.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Keine Berechtigung für diese Einkaufsliste' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     let language = 'de';
     let unitPref = 'metric';
 
-    if (listData?.user_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('language, measurement_unit')
-        .eq('id', listData.user_id)
-        .single();
-      if (profile) {
-        language = profile.language || language;
-        unitPref = profile.measurement_unit || unitPref;
-      }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('language, measurement_unit')
+      .eq('id', listData.user_id)
+      .single();
+    if (profile) {
+      language = profile.language || language;
+      unitPref = profile.measurement_unit || unitPref;
     }
 
     // Create a comprehensive list for AI analysis
+    const safeExistingItems = Array.isArray(existingItems) ? existingItems : [];
     const allItems = [
-      ...existingItems.map((item: ShoppingListItem) => ({
+      ...safeExistingItems.map((item: ShoppingListItem) => ({
         name: item.ingredient_name,
         amount: item.amount,
         unit: item.unit,
@@ -122,7 +189,7 @@ ANTWORT NUR als JSON Array:
   "action": "merge"|"keep"|"add"
 }]`;
 
-    console.log('Sending request to xAI Grok with prompt:', prompt);
+    console.log('Sending request to xAI Grok with prompt length:', prompt.length);
 
     const grokRes = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
@@ -151,7 +218,7 @@ ANTWORT NUR als JSON Array:
     let content = data.choices?.[0]?.message?.content || '';
     content = content.replace(/```json\n?|\n?```/g, '').trim();
 
-    console.log('xAI Grok response:', content);
+    console.log('xAI Grok response length:', content.length);
 
     let normalizedItems: NormalizedIngredient[];
     try {

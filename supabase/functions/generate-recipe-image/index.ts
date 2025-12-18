@@ -36,12 +36,65 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authentication: Validate user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Nicht autorisiert' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Use service role for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const { recipeId, title, description, ingredients } = await req.json();
     
     if (!recipeId) {
       return new Response(
         JSON.stringify({ error: 'Recipe ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify recipe ownership
+    const { data: recipe, error: recipeError } = await supabase
+      .from('recipes')
+      .select('user_id')
+      .eq('id', recipeId)
+      .single();
+    
+    if (recipeError || !recipe) {
+      return new Response(
+        JSON.stringify({ error: 'Rezept nicht gefunden' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Check ownership
+    if (recipe.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: 'Keine Berechtigung für dieses Rezept' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -163,11 +216,6 @@ Generate a detailed FLUX.schnell prompt that will create an appetizing, professi
 
     const imageData = await imageResponse.json();
     const base64Image = imageData.data[0].b64_json;
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Convert base64 to blob
     const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
