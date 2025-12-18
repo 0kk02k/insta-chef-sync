@@ -58,7 +58,7 @@ serve(async (req) => {
 
     // 2) Text extrahieren
     const parsed = await pdfParse(new Uint8Array(buffer));
-    const text = parsed.text.substring(0, 4000); // Text begrenzen
+    const text = parsed.text.substring(0, 8000); // Text begrenzen (erhöht für bessere Extraktion)
     console.log("Extracted text length:", text.length);
 
     // 3) xAI Grok Chat API anfragen für Rezept-Extraktion

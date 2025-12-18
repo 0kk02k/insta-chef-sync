@@ -108,13 +108,22 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
 
     files.forEach(file => {
-      if (file.size > 10 * 1024 * 1024) {
+      // Hard limit at 25MB
+      if (file.size > 25 * 1024 * 1024) {
         toast({
           title: `Datei zu groß: ${file.name}`,
-          description: "Maximale Dateigröße: 10MB",
+          description: "Maximale Dateigröße: 25MB",
           variant: "destructive",
         });
         return;
+      }
+      
+      // Warning for files > 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Große Datei",
+          description: "Die Verarbeitung kann etwas länger dauern.",
+        });
       }
 
       const contentType = detectContentType(file);
