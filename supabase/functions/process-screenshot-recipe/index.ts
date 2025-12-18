@@ -33,6 +33,11 @@ interface ValidationResult {
   combinedRecipe?: RecipeData;
 }
 
+// Input validation constants
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB per image
+const MAX_IMAGES = 10;
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 serve(async (req) => {
   console.log('🚀 process-screenshot-recipe function called');
 
@@ -47,13 +52,13 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!xaiApiKey) {
-      console.error('❌ xAI API key not found');
-      throw new Error('xAI API key not configured');
+      console.error('❌ API key not configured');
+      throw new Error('API-Schlüssel nicht konfiguriert');
     }
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Supabase configuration not found');
-      throw new Error('Supabase configuration not found');
+      throw new Error('Supabase-Konfiguration nicht gefunden');
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -101,7 +106,28 @@ serve(async (req) => {
     })();
     
     if (normalizedImages.length === 0 || !normalizedImages[0].base64) {
-      throw new Error('No image data provided');
+      throw new Error('Keine Bilddaten bereitgestellt');
+    }
+    
+    // Validate number of images
+    if (normalizedImages.length > MAX_IMAGES) {
+      throw new Error(`Maximal ${MAX_IMAGES} Bilder erlaubt`);
+    }
+    
+    // Validate each image
+    for (let i = 0; i < normalizedImages.length; i++) {
+      const img = normalizedImages[i];
+      
+      // Validate MIME type
+      if (!ALLOWED_MIME_TYPES.includes(img.mime)) {
+        throw new Error(`Ungültiges Bildformat: ${img.mime}. Erlaubt: JPEG, PNG, WebP, GIF`);
+      }
+      
+      // Validate base64 size (approximate file size)
+      const approxSize = (img.base64.length * 3) / 4;
+      if (approxSize > MAX_IMAGE_SIZE) {
+        throw new Error(`Bild ${i + 1} ist zu groß (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`);
+      }
     }
 
     // Get user preferences for language and measurement units BEFORE multi-image validation
