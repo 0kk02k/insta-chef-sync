@@ -1,10 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, ImageIcon, Globe, Copy, X, Loader2, Type, Link } from 'lucide-react';
+import { Upload, FileText, ImageIcon, Globe, Copy, X, Loader2, Link, Clipboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UploadedContent {
@@ -36,14 +34,12 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const longPressActivatedRef = useRef(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
   const detectContentType = (file: File): 'pdf' | 'image' | 'screenshot' => {
     if (file.type === 'application/pdf') return 'pdf';
-    if (file.type.startsWith('image/')) return 'screenshot'; // Assume screenshots for now
+    if (file.type.startsWith('image/')) return 'screenshot';
     return 'image';
   };
 
@@ -102,7 +98,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   }, [uploadedContent, onContentChange]);
 
   const handleFileSelection = useCallback((files: File[]) => {
-    // Validate total content limit
     if (uploadedContent.length + files.length > 10) {
       toast({
         title: "Zu viele Dateien",
@@ -113,7 +108,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
 
     files.forEach(file => {
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: `Datei zu groß: ${file.name}`,
@@ -132,7 +126,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           name: file.name,
         });
       } else if (contentType === 'screenshot' || contentType === 'image') {
-        // Create preview for images
         const reader = new FileReader();
         reader.onload = (e) => {
           handleContent({
@@ -156,7 +149,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
       handleFileSelection(files);
     }
 
-    // Handle URLs dropped from browser
     const urlData = e.dataTransfer.getData('text/uri-list');
     if (urlData && isValidUrl(urlData)) {
       handleContent({
@@ -184,130 +176,112 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
   }, [handleFileSelection]);
 
-  const processContentEditableFallback = useCallback(async () => {
-    const el = dropZoneRef.current;
-    if (!el) return;
-
-    // 1) Bilder erkennen und in Files umwandeln
-    const imgs = Array.from(el.querySelectorAll('img'));
-    const files: File[] = [];
-    for (const img of imgs) {
-      try {
-        const res = await fetch((img as HTMLImageElement).src);
-        const blob = await res.blob();
-        const file = new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' });
-        files.push(file);
-      } catch {}
-    }
-    if (files.length) {
-      handleFileSelection(files);
-    }
-
-    // 2) Text/URL erkennen
-    const pastedText = el.innerText.trim();
-    if (pastedText) {
-      if (isValidUrl(pastedText)) {
-        handleContent({ type: 'url', content: pastedText, name: shortenUrl(pastedText) });
-      } else {
-        handleContent({ type: 'text', content: pastedText, name: `Text (${pastedText.substring(0, 30)}...)` });
-      }
-    }
-
-    // Cleanup - Use requestAnimationFrame to avoid DOM conflicts with React
-    requestAnimationFrame(() => {
-      if (el && el.isConnected) {
-        el.innerHTML = '';
-        el.blur();
-      }
-    });
-  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl]);
-
-  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const cd = e.clipboardData;
     const items = cd ? Array.from(cd.items) : [];
     const text = cd?.getData('text')?.trim() ?? '';
     const hasImage = items.some(i => i.type.startsWith('image/'));
-    const hasUsefulData = !!text || hasImage;
     
-    if (hasUsefulData) {
+    if (text || hasImage) {
       e.preventDefault();
       
-      // Handle text/URL paste
       if (text) {
         if (isValidUrl(text)) {
           handleContent({ type: 'url', content: text, name: shortenUrl(text) });
         } else {
           handleContent({ type: 'text', content: text, name: `Text (${text.substring(0, 30)}...)` });
         }
-        dropZoneRef.current?.blur();
         return;
       }
 
-      // Handle image paste
       const imageItem = items.find(item => item.type.startsWith('image/'));
       if (imageItem) {
         const file = imageItem.getAsFile();
         if (file) {
           handleFileSelection([file]);
-          dropZoneRef.current?.blur();
         }
       }
-    } else {
-      // iOS-Fallback: Default-Einfügen erlauben, dann DOM prüfen
-      setTimeout(() => {
-        processContentEditableFallback();
-      }, 0);
     }
-  }, [handleContent, handleFileSelection, isValidUrl, shortenUrl, processContentEditableFallback]);
+  }, [handleContent, handleFileSelection]);
 
   const openFileDialog = () => {
     fileInputRef.current?.click();
   };
 
-  const setCaretToEnd = (el: HTMLElement) => {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel?.removeAllRanges();
-    sel?.addRange(range);
-  };
-
-  const triggerPaste = useCallback(() => {
-    const el = dropZoneRef.current;
-    if (!el) return;
-    el.focus();
-    setCaretToEnd(el);
-  }, []);
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    // Auf Mobile das native Kontextmenü zulassen, damit "Einsetzen" erscheint
-    if (isMobile) return;
-    e.preventDefault();
-    if (!disabled && uploadedContent.length === 0) {
-      triggerPaste();
-    }
-  }, [disabled, uploadedContent.length, triggerPaste, isMobile]);
-
-  const handleTouchStart = useCallback(() => {
-    if (!disabled && uploadedContent.length === 0) {
-      longPressTimerRef.current = setTimeout(() => {
-        longPressActivatedRef.current = true;
-        // Fokussiere das contentEditable Element direkt
-        if (dropZoneRef.current && isMobile) {
-          dropZoneRef.current.focus();
-          setCaretToEnd(dropZoneRef.current);
+  // Clipboard API for mobile - reads from clipboard directly
+  const handleClipboardRead = useCallback(async () => {
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const clipboardItems = await navigator.clipboard.read();
+        
+        for (const item of clipboardItems) {
+          // Check for images
+          const imageType = item.types.find(type => type.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const file = new File([blob], 'clipboard-image.png', { type: imageType });
+            handleFileSelection([file]);
+            return;
+          }
+          
+          // Check for text
+          if (item.types.includes('text/plain')) {
+            const blob = await item.getType('text/plain');
+            const text = await blob.text();
+            if (text.trim()) {
+              if (isValidUrl(text.trim())) {
+                handleContent({ type: 'url', content: text.trim(), name: shortenUrl(text.trim()) });
+              } else {
+                handleContent({ type: 'text', content: text.trim(), name: `Text (${text.trim().substring(0, 30)}...)` });
+              }
+              return;
+            }
+          }
         }
-      }, 500); // 500ms long press
+        
+        toast({
+          title: "Zwischenablage leer",
+          description: "Keine unterstützten Inhalte gefunden",
+        });
+      } else if (navigator.clipboard && navigator.clipboard.readText) {
+        // Fallback to text-only
+        const text = await navigator.clipboard.readText();
+        if (text.trim()) {
+          if (isValidUrl(text.trim())) {
+            handleContent({ type: 'url', content: text.trim(), name: shortenUrl(text.trim()) });
+          } else {
+            handleContent({ type: 'text', content: text.trim(), name: `Text (${text.trim().substring(0, 30)}...)` });
+          }
+        } else {
+          toast({
+            title: "Zwischenablage leer",
+            description: "Kein Text gefunden",
+          });
+        }
+      } else {
+        toast({
+          title: "Nicht unterstützt",
+          description: "Dein Browser unterstützt keinen Zugriff auf die Zwischenablage",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      if (error.name === 'NotAllowedError') {
+        toast({
+          title: "Zugriff verweigert",
+          description: "Bitte erlaube den Zugriff auf die Zwischenablage",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Konnte Zwischenablage nicht lesen",
+          variant: "destructive",
+        });
+      }
     }
-  }, [disabled, uploadedContent.length, isMobile]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
+  }, [handleContent, handleFileSelection, toast]);
 
   const getContentIcon = (type: string) => {
     switch (type) {
@@ -325,38 +299,30 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
   };
 
-
   return (
     <div className="space-y-4">      
       <div
+        ref={dropZoneRef}
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 bg-background outline-none
           ${isDragOver ? 'border-primary bg-primary/5' : ''}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : isMobile ? 'cursor-text' : 'cursor-pointer'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${uploadedContent.length > 0 ? 'bg-muted/30' : ''}
+          focus:ring-2 focus:ring-primary/50
         `}
         style={{ 
           borderColor: isDragOver ? undefined : 'hsl(290 18% 28% / 0.8)'
         }}
         role="button"
         aria-label="Inhalte einfügen oder ablegen"
+        tabIndex={0}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onContextMenu={handleContextMenu}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onPaste={!isMobile ? handlePaste : undefined}
-        onClick={(e) => {
-          if (disabled) return;
-          if (longPressActivatedRef.current) {
-            return;
-          }
-          if (!isMobile) {
-            openFileDialog();
-          }
+        onPaste={handlePaste}
+        onClick={() => {
+          if (!disabled) openFileDialog();
         }}
-        tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -364,30 +330,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           }
         }}
       >
-        {/* Mobile paste area - must be visible for native paste menu */}
-        {isMobile && uploadedContent.length === 0 && (
-          <div
-            ref={dropZoneRef}
-            contentEditable
-            suppressContentEditableWarning
-            className="absolute inset-0 flex items-center justify-center text-muted-foreground/50 cursor-text outline-none"
-            style={{ 
-              WebkitUserSelect: 'text',
-              userSelect: 'text'
-            }}
-            onInput={() => {
-              setTimeout(() => {
-                processContentEditableFallback();
-              }, 0);
-            }}
-            onPaste={handlePaste}
-            onFocus={(e) => {
-              e.currentTarget.style.caretColor = 'transparent';
-            }}
-          >
-            Tippen zum Einfügen
-          </div>
-        )}
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center space-y-2">
@@ -406,11 +348,9 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           className="hidden"
           disabled={disabled}
         />
-        
 
         {uploadedContent.length > 0 ? (
           <div className="space-y-4">
-            {/* Batch Progress */}
             {batchProgress && batchProgress.status === 'processing' && (
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -435,7 +375,6 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
               </div>
             )}
             
-            {/* File List */}
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {uploadedContent.map((item) => (
                 <div key={item.id} className="flex items-center space-x-3 bg-muted/30 rounded-lg p-3">
@@ -475,7 +414,10 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={clearContent}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearContent();
+                }}
                 disabled={disabled}
               >
                 Alle entfernen
@@ -483,7 +425,17 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
             </div>
           </div>
         ) : (
-          <div className="space-y-4">            
+          <div className="space-y-4">
+            <div className="flex flex-col items-center space-y-2">
+              <Upload className="w-12 h-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {isMobile ? 'Tippen zum Auswählen' : 'Klicken oder Drag & Drop'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isMobile ? 'oder Button unten für Zwischenablage' : 'Strg+V zum Einfügen'}
+              </p>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground max-w-md mx-auto">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4" />
@@ -498,16 +450,27 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
                 <p>URL</p>
               </div>
               <div className="flex items-center space-x-2">
-                <Type className="w-4 h-4" />
+                <Copy className="w-4 h-4" />
                 <p>Text</p>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground/80 mt-2">
-              💡 Langes Drücken zum Einfügen aus der Zwischenablage (mobil)
-            </p>
           </div>
         )}
       </div>
+
+      {/* Mobile clipboard button */}
+      {isMobile && uploadedContent.length === 0 && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleClipboardRead}
+          disabled={disabled}
+        >
+          <Clipboard className="w-4 h-4 mr-2" />
+          Aus Zwischenablage einfügen
+        </Button>
+      )}
     </div>
   );
 };
