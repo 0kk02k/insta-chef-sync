@@ -162,16 +162,14 @@ serve(async (req) => {
       }
     }
 
-    // Get user preferences for language and measurement units BEFORE multi-image validation
+    // Get user preferences for language and measurement units using authenticated user.id
     let userPrefs = { language: 'de', measurement_unit: 'metric' } as { language: string; measurement_unit: string };
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('language, measurement_unit')
-        .eq('id', userId)
-        .single();
-      if (profile) userPrefs = profile as any;
-    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('language, measurement_unit')
+      .eq('id', user.id)
+      .single();
+    if (profile) userPrefs = profile as any;
 
     // If multiple images, validate they belong to the same recipe
     if (normalizedImages.length > 1) {

@@ -99,20 +99,28 @@ serve(async (req) => {
       content = `PDF_FILE:${base64}`;
       
       console.log('Processing PDF file:', file.name, 'Size:', file.size);
+      
+      // Get user preferences for language and measurement units using authenticated user.id
+      const { data: profile } = await supabase.from('profiles')
+        .select('language, measurement_unit')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        userPrefs = profile;
+      }
     } else {
       // Handle JSON content (text or URL)
       const body = await req.json();
       
-      // Get user preferences for language and measurement units
-      if (body.userId) {
-        const { data: profile } = await supabase.from('profiles')
-          .select('language, measurement_unit')
-          .eq('id', body.userId)
-          .single();
-        
-        if (profile) {
-          userPrefs = profile;
-        }
+      // Get user preferences for language and measurement units using authenticated user.id
+      const { data: profile } = await supabase.from('profiles')
+        .select('language, measurement_unit')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        userPrefs = profile;
       }
       
       if (body.url) {
