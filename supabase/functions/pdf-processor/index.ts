@@ -8,6 +8,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation constants
+const MAX_PDF_SIZE = 25 * 1024 * 1024; // 25MB max PDF size
+const MAX_PATH_LENGTH = 500;
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -22,6 +26,29 @@ serve(async (req) => {
 
   try {
     const { path, userId } = await req.json();
+    
+    // Validate path input
+    if (!path || typeof path !== 'string' || path.length > MAX_PATH_LENGTH) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Ungültiger Dateipfad'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Sanitize path to prevent directory traversal
+    if (path.includes('..') || path.startsWith('/')) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Ungültiger Dateipfad'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
     console.log("Processing PDF:", path);
 
     // Get user preferences for language and measurement units
@@ -50,6 +77,17 @@ serve(async (req) => {
 
     const buffer = await data.arrayBuffer();
     console.log("PDF downloaded, size:", buffer.byteLength);
+    
+    // Validate PDF size
+    if (buffer.byteLength > MAX_PDF_SIZE) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: `PDF zu groß (max ${MAX_PDF_SIZE / 1024 / 1024}MB)`
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // 2) Text extrahieren mit unpdf (serverless-kompatibel)
     const pdf = await getDocumentProxy(new Uint8Array(buffer));

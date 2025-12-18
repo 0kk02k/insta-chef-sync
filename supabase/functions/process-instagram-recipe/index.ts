@@ -25,6 +25,11 @@ interface RecipeData {
   image_url?: string;
 }
 
+// Input validation constants
+const MAX_CONTENT_LENGTH = 100000; // 100KB max text content
+const MAX_URL_LENGTH = 2048;
+const ALLOWED_URL_PROTOCOLS = ['http:', 'https:'];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -84,20 +89,37 @@ serve(async (req) => {
       }
       
       if (body.url) {
-        // Handle URL scraping
+        // Handle URL scraping with validation
         const url = body.url;
+        
+        // Validate URL length
+        if (typeof url !== 'string' || url.length > MAX_URL_LENGTH) {
+          return new Response(
+            JSON.stringify({ error: 'URL zu lang oder ungültig' }), 
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
         console.log('Processing URL:', url);
         
         try {
-          // Validate URL
-          new URL(url);
+          // Validate URL format and protocol
+          const parsedUrl = new URL(url);
+          if (!ALLOWED_URL_PROTOCOLS.includes(parsedUrl.protocol)) {
+            throw new Error('Nur HTTP und HTTPS URLs sind erlaubt');
+          }
           
-          // Fetch content from URL
+          // Fetch content from URL with timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+          
           const response = await fetch(url, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
           
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -129,7 +151,19 @@ serve(async (req) => {
         }
         
       } else if (body.content) {
-        // Handle direct text content
+        // Handle direct text content with validation
+        if (typeof body.content !== 'string') {
+          return new Response(
+            JSON.stringify({ error: 'Inhalt muss ein Text sein' }), 
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (body.content.length > MAX_CONTENT_LENGTH) {
+          return new Response(
+            JSON.stringify({ error: `Inhalt zu groß (max ${MAX_CONTENT_LENGTH / 1000}KB)` }), 
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         content = body.content;
         console.log('Processing text content, length:', content.length);
       } else {
