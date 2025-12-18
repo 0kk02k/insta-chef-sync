@@ -1,12 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// Type declaration for pdf-parse
-declare const pdf: (buffer: Uint8Array) => Promise<{ text: string; numpages: number; info: any; metadata: any; version: string }>;
-
-// Import pdf-parse with explicit type annotation
-// @ts-ignore - npm imports in Deno don't have perfect type resolution
-const pdfParse = (await import("npm:pdf-parse")).default as typeof pdf;
+// @ts-ignore - unpdf is a serverless-compatible PDF library
+import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,9 +51,10 @@ serve(async (req) => {
     const buffer = await data.arrayBuffer();
     console.log("PDF downloaded, size:", buffer.byteLength);
 
-    // 2) Text extrahieren
-    const parsed = await pdfParse(new Uint8Array(buffer));
-    const text = parsed.text.substring(0, 8000); // Text begrenzen (erhöht für bessere Extraktion)
+    // 2) Text extrahieren mit unpdf (serverless-kompatibel)
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const { text: fullText } = await extractText(pdf, { mergePages: true });
+    const text = fullText.substring(0, 8000); // Text begrenzen (erhöht für bessere Extraktion)
     console.log("Extracted text length:", text.length);
 
     // 3) xAI Grok Chat API anfragen für Rezept-Extraktion
