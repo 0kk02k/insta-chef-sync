@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const ShoppingLists = () => {
   const { shoppingLists, createShoppingList, deleteShoppingList, isLoading } = useShoppingLists();
@@ -83,6 +84,12 @@ const ShoppingLists = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
+      <SEO 
+        title="Einkaufslisten"
+        description="Verwalte deine Einkaufslisten für Rezepte. Erstelle Listen und füge Zutaten hinzu."
+        url="/shopping-lists"
+        noIndex={true}
+      />
       <div style={{ background: 'hsl(var(--brand))' }} className="px-4 py-6">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center gap-3">

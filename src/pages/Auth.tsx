@@ -14,6 +14,7 @@ import Footer from '@/components/Footer';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import { validatePassword } from '@/utils/passwordValidation';
 import { authRateLimiter, passwordResetRateLimiter } from '@/utils/rateLimiter';
+import SEO from '@/components/SEO';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -210,6 +211,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 flex flex-col">
+      <SEO 
+        title="Anmelden"
+        description="Melde dich bei CookingCompiler an oder erstelle ein neues Konto, um deine Rezeptsammlung zu verwalten."
+        url="/auth"
+      />
       <div className="flex-1 flex items-center justify-center">
         <Card className="w-full max-w-md">
         <CardHeader className="text-center">
