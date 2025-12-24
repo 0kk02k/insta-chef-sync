@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
 import RecipeCard from '@/components/RecipeCard';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 interface Recipe {
   id: string;
@@ -303,8 +304,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO 
+        title="Startseite"
+        description="Entdecke und teile köstliche Rezepte. CookingCompiler ist deine digitale Rezeptsammlung zum Organisieren, Speichern und Teilen von Lieblingsrezepten."
+        url="/"
+      />
       {/* Hero Header */}
-      <div className="header">
+      <header className="header">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
@@ -358,7 +364,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6" ref={containerRef}>

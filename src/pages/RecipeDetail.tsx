@@ -26,6 +26,8 @@ import InlineEditImage from '@/components/InlineEditImage';
 import InlineEditTags from '@/components/InlineEditTags';
 import PublishButtons from '@/components/PublishButtons';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
+import RecipeSchema from '@/components/RecipeSchema';
 
 interface StructuredIngredient {
   amount: number | null;
@@ -742,10 +744,35 @@ const RecipeDetail = () => {
     return null;
   }
 
+  // Generate description for SEO
+  const seoDescription = recipe.description 
+    ? recipe.description.substring(0, 155) + (recipe.description.length > 155 ? '...' : '')
+    : `${recipe.title} - Ein köstliches Rezept mit ${recipe.ingredients?.length || 0} Zutaten. Jetzt auf CookingCompiler entdecken!`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
+      <SEO 
+        title={recipe.title}
+        description={seoDescription}
+        image={recipe.image_url || undefined}
+        url={`/recipe/${recipe.id}`}
+        type="article"
+      />
+      <RecipeSchema 
+        name={recipe.title}
+        description={recipe.description}
+        image={recipe.image_url}
+        totalTime={recipe.cooking_time}
+        servings={recipe.servings}
+        ingredients={displayedIngredients}
+        instructions={recipe.instructions || []}
+        rating={recipe.rating}
+        author={recipe.creator_name}
+        datePublished={recipe.created_at}
+        tags={recipe.tags}
+      />
       {/* Header with dark blue background */}
-      <div className="header" style={{ background: 'hsl(var(--brand))' }}>
+      <header className="header" style={{ background: 'hsl(var(--brand))' }}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -907,7 +934,7 @@ const RecipeDetail = () => {
             )}
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="container mx-auto px-4 py-6">
 

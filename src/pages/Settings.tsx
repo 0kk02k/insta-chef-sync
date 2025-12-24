@@ -15,6 +15,7 @@ import Footer from '@/components/Footer';
 import { CookieSettings } from '@/components/CookieSettings';
 import IgnoredRecipesList from '@/components/IgnoredRecipesList';
 import UserGuide from '@/components/UserGuide';
+import SEO from '@/components/SEO';
 
 interface Profile {
   display_name: string;
@@ -124,6 +125,12 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-warm/5 via-purple-soft/5 to-pink-vibrant/5 flex flex-col">
+      <SEO 
+        title="Einstellungen"
+        description="Verwalte dein CookingCompiler Profil, Cookie-Einstellungen und mehr."
+        url="/settings"
+        noIndex={true}
+      />
       {/* Header with dark blue background */}
       <div className="header" style={{ background: 'hsl(var(--brand))' }}>
         <div className="container mx-auto px-4 py-4">
