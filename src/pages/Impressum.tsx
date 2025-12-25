@@ -109,6 +109,30 @@ const Impressum = () => {
               </section>
 
               <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3">Nutzergenerierte Inhalte und Bildmaterial</h2>
+                <p className="text-muted-foreground">
+                  Diese Plattform ermöglicht Nutzern das Hochladen von Rezepten und Bildern. 
+                  Für die Rechtmäßigkeit der hochgeladenen Inhalte sind die jeweiligen Nutzer 
+                  selbst verantwortlich.
+                </p>
+                <p className="text-muted-foreground mt-2">
+                  Solltest du feststellen, dass auf dieser Seite Bildmaterial oder andere 
+                  Inhalte ohne die erforderlichen Rechte verwendet werden, bitten wir um 
+                  direkte Kontaktaufnahme unter: <a href="mailto:okko.prothmann@gmail.com" className="text-primary hover:underline">okko.prothmann@gmail.com</a>
+                </p>
+                <p className="text-muted-foreground mt-2">
+                  Bitte teile uns folgende Informationen mit:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground mt-1 ml-2">
+                  <li>Welches Material betroffen ist (URL oder Screenshot)</li>
+                  <li>Nachweis deiner Rechte am betreffenden Material</li>
+                </ul>
+                <p className="text-muted-foreground mt-2">
+                  Wir werden die beanstandeten Inhalte nach Prüfung unverzüglich entfernen.
+                </p>
+              </section>
+
+              <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Credits</h2>
                 <p className="text-muted-foreground">
                   Icons: <a href="https://lucide.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Lucide Icons</a> (ISC License)
