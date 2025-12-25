@@ -107,6 +107,13 @@ const Impressum = () => {
                   Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.
                 </p>
               </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3">Credits</h2>
+                <p className="text-muted-foreground">
+                  Icons: <a href="https://lucide.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Lucide Icons</a> (ISC License)
+                </p>
+              </section>
             </div>
           </CardContent>
         </Card>
