@@ -574,7 +574,43 @@ const RecipeDetail = () => {
       doc.line(margin, yPos, pageWidth - margin, yPos);
       yPos += 10;
 
-      // Add image if available
+      // Two-column layout: Ingredients (left) + Image (right)
+      const leftColWidth = contentWidth * 0.45;
+      const rightColWidth = contentWidth * 0.50;
+      const colGap = contentWidth * 0.05;
+      const leftColX = margin;
+      const rightColX = margin + leftColWidth + colGap;
+      const twoColumnStartY = yPos;
+
+      // Section header helper for columns
+      const addColumnSectionHeader = (title: string, x: number, colWidth: number, startY: number): number => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(title, x, startY);
+        const lineY = startY + 2;
+        doc.setLineWidth(0.3);
+        doc.setDrawColor(150, 150, 150);
+        doc.line(x, lineY, x + colWidth, lineY);
+        return startY + 10;
+      };
+
+      // Render ingredients in left column
+      let leftColY = addColumnSectionHeader('Zutaten', leftColX, leftColWidth, twoColumnStartY);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(40, 40, 40);
+
+      displayedIngredients.forEach((ingredient) => {
+        const ingredientLines = doc.splitTextToSize('• ' + ingredient, leftColWidth - 5);
+        ingredientLines.forEach((line: string) => {
+          doc.text(line, leftColX, leftColY);
+          leftColY += 5;
+        });
+      });
+
+      // Render image in right column (proportionally scaled)
+      let rightColEndY = twoColumnStartY;
       if (recipe.image_url) {
         try {
           const img = new Image();
@@ -582,23 +618,37 @@ const RecipeDetail = () => {
           
           await new Promise<void>((resolve) => {
             img.onload = () => {
-              checkPageBreak(80);
-              const imgWidth = contentWidth;
-              const imgHeight = (img.height * imgWidth) / img.width;
-              const maxImgHeight = 70;
-              const finalHeight = Math.min(imgHeight, maxImgHeight);
+              const imgMaxWidth = rightColWidth;
+              const imgMaxHeight = 90;
               
-              doc.addImage(img, 'JPEG', margin, yPos, imgWidth, finalHeight);
-              yPos += finalHeight + 10;
+              // Calculate proportional scaling (no distortion)
+              const aspectRatio = img.width / img.height;
+              let imgWidth = imgMaxWidth;
+              let imgHeight = imgWidth / aspectRatio;
+              
+              // Constrain to max height if needed
+              if (imgHeight > imgMaxHeight) {
+                imgHeight = imgMaxHeight;
+                imgWidth = imgHeight * aspectRatio;
+              }
+              
+              // Center image horizontally in column if smaller than column width
+              const imgX = rightColX + (rightColWidth - imgWidth) / 2;
+              
+              doc.addImage(img, 'JPEG', imgX, twoColumnStartY, imgWidth, imgHeight);
+              rightColEndY = twoColumnStartY + imgHeight;
               resolve();
             };
-            img.onerror = () => resolve(); // Continue without image on error
+            img.onerror = () => resolve();
             img.src = recipe.image_url;
           });
         } catch (error) {
           console.error('Error loading image for PDF:', error);
         }
       }
+
+      // Move yPos below both columns
+      yPos = Math.max(leftColY, rightColEndY) + 15;
 
       // Metadata section
       checkPageBreak(20);
@@ -639,7 +689,7 @@ const RecipeDetail = () => {
         yPos += 12;
       }
 
-      // Section header helper
+      // Section header helper for full width
       const addSectionHeader = (title: string) => {
         checkPageBreak(15);
         doc.setFont("helvetica", "bold");
@@ -652,20 +702,6 @@ const RecipeDetail = () => {
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 8;
       };
-
-      // Ingredients Section
-      addSectionHeader('Zutaten');
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      doc.setTextColor(40, 40, 40);
-
-      displayedIngredients.forEach((ingredient) => {
-        checkPageBreak(7);
-        doc.text('• ' + ingredient, margin + 5, yPos);
-        yPos += 7;
-      });
-
-      yPos += 5;
 
       // Instructions Section
       if (recipe.instructions && recipe.instructions.length > 0) {
