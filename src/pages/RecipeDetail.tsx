@@ -562,17 +562,41 @@ const RecipeDetail = () => {
       doc.setTextColor(0, 0, 0);
       const titleLines = doc.splitTextToSize(recipe.title, contentWidth);
       titleLines.forEach((line: string) => {
-        checkPageBreak(12);
+        checkPageBreak(10);
         doc.text(line, margin, yPos);
-        yPos += 12;
+        yPos += 10;
       });
 
-      // Thin decorative line under title
-      yPos += 2;
+      // Description as subtitle (directly under title)
+      if (recipe.description) {
+        yPos += 2;
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        const descLines = doc.splitTextToSize(recipe.description, contentWidth);
+        descLines.forEach((line: string) => {
+          doc.text(line, margin, yPos);
+          yPos += 4;
+        });
+      }
+
+      // Tags as subtitle (under description)
+      if (recipe.tags && recipe.tags.length > 0) {
+        yPos += 2;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        const tagsText = recipe.tags.map(t => `#${t}`).join('  ');
+        doc.text(tagsText, margin, yPos);
+        yPos += 5;
+      }
+
+      // Thin decorative line under title/description/tags
+      yPos += 3;
       doc.setLineWidth(0.5);
       doc.setDrawColor(100, 100, 100);
       doc.line(margin, yPos, pageWidth - margin, yPos);
-      yPos += 10;
+      yPos += 8;
 
       // Two-column layout: Ingredients (left) + Image (right)
       const leftColWidth = contentWidth * 0.45;
@@ -585,27 +609,27 @@ const RecipeDetail = () => {
       // Section header helper for columns
       const addColumnSectionHeader = (title: string, x: number, colWidth: number, startY: number): number => {
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
         doc.text(title, x, startY);
         const lineY = startY + 2;
         doc.setLineWidth(0.3);
         doc.setDrawColor(150, 150, 150);
         doc.line(x, lineY, x + colWidth, lineY);
-        return startY + 10;
+        return startY + 8;
       };
 
       // Render ingredients in left column
       let leftColY = addColumnSectionHeader('Zutaten', leftColX, leftColWidth, twoColumnStartY);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setTextColor(40, 40, 40);
 
       displayedIngredients.forEach((ingredient) => {
         const ingredientLines = doc.splitTextToSize('• ' + ingredient, leftColWidth - 5);
         ingredientLines.forEach((line: string) => {
           doc.text(line, leftColX, leftColY);
-          leftColY += 5;
+          leftColY += 4;
         });
       });
 
@@ -619,7 +643,7 @@ const RecipeDetail = () => {
           await new Promise<void>((resolve) => {
             img.onload = () => {
               const imgMaxWidth = rightColWidth;
-              const imgMaxHeight = 90;
+              const imgMaxHeight = 70;
               
               // Calculate proportional scaling (no distortion)
               const aspectRatio = img.width / img.height;
@@ -648,86 +672,60 @@ const RecipeDetail = () => {
       }
 
       // Move yPos below both columns
-      yPos = Math.max(leftColY, rightColEndY) + 15;
+      yPos = Math.max(leftColY, rightColEndY) + 8;
 
-      // Metadata section
-      checkPageBreak(20);
+      // Metadata section (compact)
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setTextColor(80, 80, 80);
       
       const metaInfo = [];
-      if (recipe.cooking_time) metaInfo.push(`Zubereitungszeit: ${recipe.cooking_time} Min.`);
-      metaInfo.push(`Portionen: ${currentPortions}`);
-      if (recipe.rating) metaInfo.push(`Bewertung: ${'★'.repeat(recipe.rating)}${'☆'.repeat(5 - recipe.rating)}`);
+      if (recipe.cooking_time) metaInfo.push(`${recipe.cooking_time} Min.`);
+      metaInfo.push(`${currentPortions} Portionen`);
+      if (recipe.rating) metaInfo.push(`${'★'.repeat(recipe.rating)}${'☆'.repeat(5 - recipe.rating)}`);
       
       doc.text(metaInfo.join('  •  '), margin, yPos);
-      yPos += 12;
-
-      // Description
-      if (recipe.description) {
-        checkPageBreak(15);
-        doc.setFont("helvetica", "italic");
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        const descLines = doc.splitTextToSize(recipe.description, contentWidth);
-        descLines.forEach((line: string) => {
-          checkPageBreak(5);
-          doc.text(line, margin, yPos);
-          yPos += 5;
-        });
-        yPos += 8;
-      }
-
-      // Tags
-      if (recipe.tags && recipe.tags.length > 0) {
-        checkPageBreak(10);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text(recipe.tags.join(' • '), margin, yPos);
-        yPos += 12;
-      }
+      yPos += 8;
 
       // Section header helper for full width
       const addSectionHeader = (title: string) => {
-        checkPageBreak(15);
+        checkPageBreak(12);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
         doc.text(title, margin, yPos);
         yPos += 2;
         doc.setLineWidth(0.3);
         doc.setDrawColor(150, 150, 150);
         doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 8;
+        yPos += 6;
       };
 
-      // Instructions Section
+      // Instructions Section (compact spacing)
       if (recipe.instructions && recipe.instructions.length > 0) {
         addSectionHeader('Zubereitung');
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
 
         recipe.instructions.forEach((step, index) => {
-          checkPageBreak(12);
+          checkPageBreak(8);
           
-          // Step number in a simple format
+          // Step number
           doc.setFont("helvetica", "bold");
           doc.text(`${index + 1}.`, margin, yPos);
           
           // Step text
           doc.setFont("helvetica", "normal");
           const stepText = step.trim();
-          const stepLines = doc.splitTextToSize(stepText, contentWidth - 15);
+          const stepLines = doc.splitTextToSize(stepText, contentWidth - 12);
           stepLines.forEach((line: string, lineIndex: number) => {
-            if (lineIndex > 0) checkPageBreak(6);
-            doc.text(line, margin + 15, yPos);
-            if (lineIndex < stepLines.length - 1) yPos += 6;
+            if (lineIndex > 0) checkPageBreak(4);
+            doc.text(line, margin + 12, yPos);
+            if (lineIndex < stepLines.length - 1) yPos += 4;
           });
           
-          yPos += 10;
+          yPos += 6;
         });
       }
 
