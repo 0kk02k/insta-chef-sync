@@ -397,11 +397,6 @@ const RecipeDetail = () => {
       }
 
       setRecipe({ ...recipe, rating: newRating });
-      
-      toast({
-        title: "Bewertung gespeichert!",
-        description: `${newRating} Sterne vergeben.`,
-      });
     } catch (error) {
       console.error('Error updating rating:', error);
       toast({
@@ -433,10 +428,6 @@ const RecipeDetail = () => {
         throw error;
       }
 
-      toast({
-        title: "Rezept ignoriert",
-        description: "Das Rezept wird nicht mehr in deiner Liste angezeigt.",
-      });
 
       navigate('/');
     } catch (error) {
@@ -531,7 +522,7 @@ const RecipeDetail = () => {
         description: 'Der Rezept-Link wurde in die Zwischenablage kopiert.',
       });
     } catch (error) {
-      toast({ title: 'Rezept teilen', description: shareUrl });
+      // Silent fallback - link sharing not critical
     }
   };
 
