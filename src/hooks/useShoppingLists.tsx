@@ -278,10 +278,6 @@ export const useShoppingLists = () => {
       }
 
       // Execute database operations
-      toast({
-        title: 'Übertragung',
-        description: `Vorbereitet: ${itemsToUpdate.length} Aktualisierung(en), ${itemsToInsert.length} Neueintrag/Einträge.`,
-      });
       if (itemsToUpdate.length > 0) {
         console.log('Updating items:', itemsToUpdate);
         for (const updateItem of itemsToUpdate) {
@@ -462,10 +458,6 @@ export const useShoppingListItems = (shoppingListId: string) => {
               : item
           ));
 
-          toast({
-            title: 'Zutat zusammengeführt',
-            description: `${itemData.ingredient_name} wurde mit vorhandener Zutat zusammengeführt.`,
-          });
           
           return true;
         }

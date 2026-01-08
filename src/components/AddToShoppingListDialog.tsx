@@ -67,7 +67,6 @@ const AddToShoppingListDialog = ({
       ingredientsCount: ingredients.length,
       recipeId,
     });
-    toast({ title: 'Wird hinzugefügt', description: 'Sende Zutaten an Einkaufsliste...' });
     try {
       let listId = selectedListId;
       if (isCreatingNewList && newListName.trim()) {
@@ -75,7 +74,6 @@ const AddToShoppingListDialog = ({
       }
       if (listId) {
         await addIngredientsToList(listId, ingredients, recipeId, portionMultiplier);
-        toast({ title: 'Anfrage gesendet', description: 'Zutaten wurden übertragen.' });
         onClose();
         setSelectedListId('');
         setNewListName('');

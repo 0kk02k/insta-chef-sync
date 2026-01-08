@@ -64,11 +64,6 @@ const ShoppingListDetail = () => {
       recipe_id: deletedItem.recipe_id,
       is_checked: deletedItem.is_checked
     });
-    
-    toast({
-      title: "Wiederhergestellt",
-      description: `${formatItemDisplay(deletedItem)} wurde wiederhergestellt.`,
-    });
   };
 
   const handleAddManualItem = async (item: {
