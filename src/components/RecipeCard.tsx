@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, ExternalLink, Star, ImageIcon } from 'lucide-react';
+import { Clock, Users, ExternalLink, Star, ImageIcon, Globe } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Recipe {
   id: string;
@@ -26,6 +27,8 @@ interface RecipeCardProps {
 }
 
 const RecipeCard = ({ recipe }: RecipeCardProps) => {
+  const { user } = useAuth();
+  const isOwnRecipe = user?.id === recipe.user_id;
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -48,6 +51,15 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         ) : (
           <div className="w-full h-full recipe-card__media recipe-card__media--empty flex items-center justify-center">
             <ImageIcon className="h-12 w-12 text-muted-foreground opacity-60" />
+          </div>
+        )}
+        
+        {/* Community Badge for external recipes */}
+        {user && !isOwnRecipe && (
+          <div className="absolute top-2 left-2 z-10">
+            <div className="bg-primary/90 backdrop-blur-sm text-primary-foreground p-1.5 rounded-full shadow-md" title="Community-Rezept">
+              <Globe className="h-4 w-4" />
+            </div>
           </div>
         )}
         
