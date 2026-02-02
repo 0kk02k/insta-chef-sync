@@ -17,6 +17,7 @@ import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import ShoppingLists from "./pages/ShoppingLists";
 import ShoppingListDetail from "./pages/ShoppingListDetail";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -40,6 +41,7 @@ const App = () => (
                   <Route path="/shopping-lists" element={<ShoppingLists />} />
                   <Route path="/shopping-lists/:id" element={<ShoppingListDetail />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/admin" element={<Admin />} />
                   <Route path="/impressum" element={<Impressum />} />
                   <Route path="/datenschutz" element={<Datenschutz />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
