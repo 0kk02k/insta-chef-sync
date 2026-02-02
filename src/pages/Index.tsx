@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { ChefHat, User, LogOut, Loader2, Plus, Search, Users, ShoppingCart } from 'lucide-react';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { ChefHat, User, LogOut, Loader2, Plus, Search, Users, ShoppingCart, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
 import AddRecipeDialog from '@/components/AddRecipeDialog';
@@ -33,6 +34,7 @@ interface Recipe {
 
 const Index = () => {
   const { user, signOut, loading } = useAuth();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -326,6 +328,17 @@ const Index = () => {
             <div className="flex items-center space-x-3 sm:space-x-4">
               {user ? (
                 <>
+                  {isAdmin && (
+                    <Button 
+                      onClick={() => navigate('/admin')}
+                      variant="outline"
+                      className="h-10 px-2 sm:px-4 flex items-center gap-2 border-border"
+                      title="Admin Dashboard"
+                    >
+                      <Settings className="h-5 w-5" />
+                      <span className="font-medium hidden sm:inline">Admin</span>
+                    </Button>
+                  )}
                   <Button 
                     onClick={() => navigate('/shopping-lists')}
                     variant="outline"

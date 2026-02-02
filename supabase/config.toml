@@ -71,3 +71,6 @@ verify_jwt = true
 
 [functions.restructure-ingredients]
 verify_jwt = true
+
+[functions.admin-get-users]
+verify_jwt = false
