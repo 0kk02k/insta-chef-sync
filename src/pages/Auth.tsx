@@ -24,6 +24,9 @@ const Auth = () => {
   const [language, setLanguage] = useState('de');
   const [measurementUnit, setMeasurementUnit] = useState('metric');
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [invitationCode, setInvitationCode] = useState('');
+  const [codeValidating, setCodeValidating] = useState(false);
+  const [codeError, setCodeError] = useState('');
   const { signUp, signIn, resetPassword, signInWithOAuth, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -36,10 +39,10 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !displayName) {
+    if (!email || !password || !displayName || !invitationCode) {
       toast({
         title: "Fehler",
-        description: "Bitte alle Felder ausfüllen.",
+        description: "Bitte alle Felder ausfüllen (inkl. Einladungscode).",
         variant: "destructive",
       });
       return;
@@ -69,6 +72,41 @@ const Auth = () => {
       return;
     }
 
+    // Validate invitation code
+    setCodeValidating(true);
+    setCodeError('');
+    try {
+      const response = await fetch(
+        'https://fozagrcmptfnbnpivdnz.supabase.co/functions/v1/validate-registration-code',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: invitationCode.trim().toUpperCase() }),
+        }
+      );
+      const result = await response.json();
+      
+      if (!result.valid) {
+        setCodeError('Ungültiger Einladungscode');
+        setCodeValidating(false);
+        toast({
+          title: "Ungültiger Code",
+          description: "Der eingegebene Einladungscode ist nicht gültig.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (error) {
+      setCodeValidating(false);
+      toast({
+        title: "Fehler",
+        description: "Code konnte nicht validiert werden.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCodeValidating(false);
+
     setIsLoading(true);
     const { error } = await signUp(email, password, {
       display_name: displayName,
@@ -91,6 +129,20 @@ const Auth = () => {
         });
       }
     } else {
+      // Mark invitation code as used (fire and forget)
+      fetch(
+        'https://fozagrcmptfnbnpivdnz.supabase.co/functions/v1/use-invitation-code',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            code: invitationCode.trim().toUpperCase(),
+            // We don't have the user ID yet, so we pass email for logging
+            userId: null
+          }),
+        }
+      ).catch(console.error);
+      
       // Reset rate limit on successful signup
       authRateLimiter.reset(rateLimitKey);
     }
@@ -338,6 +390,27 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="signup-code">Einladungscode *</Label>
+                  <Input
+                    id="signup-code"
+                    type="text"
+                    value={invitationCode}
+                    onChange={(e) => {
+                      setInvitationCode(e.target.value.toUpperCase());
+                      setCodeError('');
+                    }}
+                    placeholder="z.B. COOKINGCOMPILER2026"
+                    required
+                    className={`font-mono ${codeError ? 'border-destructive' : ''}`}
+                  />
+                  {codeError && (
+                    <p className="text-sm text-destructive">{codeError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Du benötigst einen Einladungscode um dich zu registrieren.
+                  </p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="signup-name">Name</Label>
                   <Input
                     id="signup-name"
@@ -397,9 +470,9 @@ const Auth = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Registrieren
+                <Button type="submit" className="w-full" disabled={isLoading || codeValidating}>
+                  {(isLoading || codeValidating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {codeValidating ? 'Code wird geprüft...' : 'Registrieren'}
                 </Button>
                 
                 <div className="relative">

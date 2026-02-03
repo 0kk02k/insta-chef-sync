@@ -12,7 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Save, Loader2, RefreshCw, Shield, ShieldCheck, Bot, Users } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, RefreshCw, Shield, ShieldCheck, Bot, Users, Key } from 'lucide-react';
+import InvitationCodesTab from '@/components/admin/InvitationCodesTab';
 import SEO from '@/components/SEO';
 
 interface AIPrompt {
@@ -367,7 +368,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="prompts" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="prompts" className="gap-2">
               <Bot className="h-4 w-4" />
               AI-Prompts
@@ -375,6 +376,10 @@ const Admin = () => {
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               Benutzer
+            </TabsTrigger>
+            <TabsTrigger value="codes" className="gap-2">
+              <Key className="h-4 w-4" />
+              Einladungscodes
             </TabsTrigger>
           </TabsList>
 
@@ -528,6 +533,11 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Invitation Codes Tab */}
+          <TabsContent value="codes">
+            <InvitationCodesTab />
           </TabsContent>
         </Tabs>
       </main>
