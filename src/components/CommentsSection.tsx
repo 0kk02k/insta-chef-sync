@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -195,13 +196,21 @@ const CommentsSection = ({ recipeId, isPublished }: CommentsSectionProps) => {
               <div key={comment.id} className="flex space-x-3 p-4 bg-muted/50 rounded-lg">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>
-                    {comment.creator_name?.charAt(0).toUpperCase() || 'U'}
+                    {user 
+                      ? (comment.creator_name?.charAt(0).toUpperCase() || 'U')
+                      : 'B'
+                    }
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{comment.creator_name}</p>
+                      <p className="text-sm font-medium">
+                        {user 
+                          ? comment.creator_name 
+                          : `Benutzer ${comments.findIndex(c => c.user_id === comment.user_id) + 1}`
+                        }
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(comment.created_at).toLocaleDateString('de-DE', {
                           year: 'numeric',
