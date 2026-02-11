@@ -320,9 +320,10 @@ const Index = () => {
                 <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: '#FF7A3D' }} />
               </div>
               <div>
-                <h1 className="brand text-3xl sm:text-5xl font-bold px-2 sm:px-4 py-2">
+                <h1 className="brand text-3xl sm:text-5xl font-bold px-2 sm:px-4 py-1">
                   CookingCompiler
                 </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground px-2 sm:px-4">KI-gestützte Rezepteverwaltung</p>
               </div>
             </div>
             <div className="flex items-center space-x-3 sm:space-x-4">
