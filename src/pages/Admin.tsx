@@ -157,6 +157,11 @@ const Admin = () => {
   const [promptsLoading, setPromptsLoading] = useState(true);
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
 
+  // Editable service config (host + apiKeyEnv per group)
+  const [serviceConfig, setServiceConfig] = useState<Record<string, { host: string; apiKeyEnv: string }>>({});
+  const [editedConfig, setEditedConfig] = useState<Record<string, { host?: string; apiKeyEnv?: string }>>({});
+  const [savingConfig, setSavingConfig] = useState<string | null>(null);
+
   const [users, setUsers] = useState<UserWithStats[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
@@ -173,19 +178,34 @@ const Admin = () => {
     }
   }, [isAdmin, adminLoading, navigate, toast]);
 
-  // Fetch AI prompts
+  // Fetch AI prompts + service config
   useEffect(() => {
-    const fetchPrompts = async () => {
+    const fetchPromptsAndConfig = async () => {
       if (!isAdmin) return;
       
       try {
-        const { data, error } = await supabase
-          .from('ai_prompts')
-          .select('*')
-          .order('function_name');
+        const [promptsRes, settingsRes] = await Promise.all([
+          supabase.from('ai_prompts').select('*').order('function_name'),
+          supabase.from('app_settings').select('*').in('key', 
+            AI_SERVICE_GROUPS.flatMap(g => [`ai_host_${g.name}`, `ai_apikey_${g.name}`])
+          )
+        ]);
 
-        if (error) throw error;
-        setPrompts(data || []);
+        if (promptsRes.error) throw promptsRes.error;
+        setPrompts(promptsRes.data || []);
+
+        // Build service config from saved settings
+        const settings = settingsRes.data || [];
+        const config: Record<string, { host: string; apiKeyEnv: string }> = {};
+        AI_SERVICE_GROUPS.forEach(g => {
+          const savedHost = settings.find(s => s.key === `ai_host_${g.name}`)?.value;
+          const savedKey = settings.find(s => s.key === `ai_apikey_${g.name}`)?.value;
+          config[g.name] = {
+            host: savedHost || g.host,
+            apiKeyEnv: savedKey || g.apiKeyEnv,
+          };
+        });
+        setServiceConfig(config);
       } catch (error) {
         console.error('Error fetching prompts:', error);
       } finally {
@@ -194,7 +214,7 @@ const Admin = () => {
     };
 
     if (isAdmin) {
-      fetchPrompts();
+      fetchPromptsAndConfig();
     }
   }, [isAdmin]);
 
@@ -228,6 +248,74 @@ const Admin = () => {
 
   const handlePromptChange = (functionName: string, value: string) => {
     setEditedPrompts(prev => ({ ...prev, [functionName]: value }));
+  };
+
+  const handleConfigChange = (groupName: string, field: 'host' | 'apiKeyEnv', value: string) => {
+    setEditedConfig(prev => ({
+      ...prev,
+      [groupName]: { ...prev[groupName], [field]: value }
+    }));
+  };
+
+  const getConfigValue = (groupName: string, field: 'host' | 'apiKeyEnv'): string => {
+    return editedConfig[groupName]?.[field] ?? serviceConfig[groupName]?.[field] ?? 
+      AI_SERVICE_GROUPS.find(g => g.name === groupName)?.[field] ?? '';
+  };
+
+  const hasConfigChanges = (groupName: string): boolean => {
+    const edited = editedConfig[groupName];
+    if (!edited) return false;
+    const current = serviceConfig[groupName] || AI_SERVICE_GROUPS.find(g => g.name === groupName)!;
+    return (edited.host !== undefined && edited.host !== current.host) || 
+           (edited.apiKeyEnv !== undefined && edited.apiKeyEnv !== current.apiKeyEnv);
+  };
+
+  const saveServiceConfig = async (groupName: string) => {
+    const edited = editedConfig[groupName];
+    if (!edited) return;
+
+    setSavingConfig(groupName);
+    try {
+      const current = serviceConfig[groupName] || AI_SERVICE_GROUPS.find(g => g.name === groupName)!;
+      const upserts: { key: string; value: string; updated_by: string | undefined }[] = [];
+
+      if (edited.host !== undefined && edited.host !== current.host) {
+        upserts.push({ key: `ai_host_${groupName}`, value: edited.host, updated_by: user?.id });
+      }
+      if (edited.apiKeyEnv !== undefined && edited.apiKeyEnv !== current.apiKeyEnv) {
+        upserts.push({ key: `ai_apikey_${groupName}`, value: edited.apiKeyEnv, updated_by: user?.id });
+      }
+
+      for (const item of upserts) {
+        const { data: existing } = await supabase.from('app_settings').select('id').eq('key', item.key).single();
+        if (existing) {
+          await supabase.from('app_settings').update({ value: item.value, updated_by: item.updated_by }).eq('id', existing.id);
+        } else {
+          await supabase.from('app_settings').insert(item);
+        }
+      }
+
+      // Update local state
+      setServiceConfig(prev => ({
+        ...prev,
+        [groupName]: {
+          host: edited.host ?? current.host,
+          apiKeyEnv: edited.apiKeyEnv ?? current.apiKeyEnv,
+        }
+      }));
+      setEditedConfig(prev => {
+        const next = { ...prev };
+        delete next[groupName];
+        return next;
+      });
+
+      toast({ title: "Gespeichert", description: `Konfiguration für ${groupName} aktualisiert.` });
+    } catch (error) {
+      console.error('Error saving config:', error);
+      toast({ title: "Fehler", description: "Konfiguration konnte nicht gespeichert werden.", variant: "destructive" });
+    } finally {
+      setSavingConfig(null);
+    }
   };
 
   const savePrompt = async (functionName: string) => {
@@ -430,15 +518,39 @@ const Admin = () => {
                       <Bot className="h-5 w-5 text-primary" />
                       {group.name}
                     </CardTitle>
-                    <div className="flex flex-wrap gap-4 mt-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="font-mono text-xs">Host</Badge>
-                        <span className="font-mono">{group.host}</span>
+                    <div className="flex flex-wrap gap-4 mt-2 items-end">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">Host</span>
+                        <Input
+                          value={getConfigValue(group.name, 'host')}
+                          onChange={(e) => handleConfigChange(group.name, 'host', e.target.value)}
+                          className="font-mono text-xs h-8 w-64"
+                          placeholder="api.example.com"
+                        />
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="font-mono text-xs">API Key</Badge>
-                        <span className="font-mono">{group.apiKeyEnv}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">API Key (Env-Variable)</span>
+                        <Input
+                          value={getConfigValue(group.name, 'apiKeyEnv')}
+                          onChange={(e) => handleConfigChange(group.name, 'apiKeyEnv', e.target.value)}
+                          className="font-mono text-xs h-8 w-52"
+                          placeholder="API_KEY_ENV"
+                        />
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => saveServiceConfig(group.name)}
+                        disabled={savingConfig === group.name || !hasConfigChanges(group.name)}
+                        className="gap-1 h-8"
+                      >
+                        {savingConfig === group.name ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Save className="h-3 w-3" />
+                        )}
+                        Speichern
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
