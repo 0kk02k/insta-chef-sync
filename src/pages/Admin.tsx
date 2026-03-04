@@ -518,15 +518,39 @@ const Admin = () => {
                       <Bot className="h-5 w-5 text-primary" />
                       {group.name}
                     </CardTitle>
-                    <div className="flex flex-wrap gap-4 mt-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="font-mono text-xs">Host</Badge>
-                        <span className="font-mono">{group.host}</span>
+                    <div className="flex flex-wrap gap-4 mt-2 items-end">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">Host</span>
+                        <Input
+                          value={getConfigValue(group.name, 'host')}
+                          onChange={(e) => handleConfigChange(group.name, 'host', e.target.value)}
+                          className="font-mono text-xs h-8 w-64"
+                          placeholder="api.example.com"
+                        />
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="font-mono text-xs">API Key</Badge>
-                        <span className="font-mono">{group.apiKeyEnv}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">API Key (Env-Variable)</span>
+                        <Input
+                          value={getConfigValue(group.name, 'apiKeyEnv')}
+                          onChange={(e) => handleConfigChange(group.name, 'apiKeyEnv', e.target.value)}
+                          className="font-mono text-xs h-8 w-52"
+                          placeholder="API_KEY_ENV"
+                        />
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => saveServiceConfig(group.name)}
+                        disabled={savingConfig === group.name || !hasConfigChanges(group.name)}
+                        className="gap-1 h-8"
+                      >
+                        {savingConfig === group.name ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Save className="h-3 w-3" />
+                        )}
+                        Speichern
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
