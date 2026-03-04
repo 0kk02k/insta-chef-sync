@@ -157,6 +157,11 @@ const Admin = () => {
   const [promptsLoading, setPromptsLoading] = useState(true);
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
 
+  // Editable service config (host + apiKeyEnv per group)
+  const [serviceConfig, setServiceConfig] = useState<Record<string, { host: string; apiKeyEnv: string }>>({});
+  const [editedConfig, setEditedConfig] = useState<Record<string, { host?: string; apiKeyEnv?: string }>>({});
+  const [savingConfig, setSavingConfig] = useState<string | null>(null);
+
   const [users, setUsers] = useState<UserWithStats[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
