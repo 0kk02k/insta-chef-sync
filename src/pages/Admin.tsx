@@ -417,58 +417,69 @@ const Admin = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* AI Prompts Tab */}
-          <TabsContent value="prompts" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI-Prompt Verwaltung</CardTitle>
-                <CardDescription>
-                  Bearbeite die System-Prompts für alle Edge Functions. Änderungen werden sofort wirksam.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {promptsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : (
-                  Object.entries(DEFAULT_PROMPTS).map(([functionName, { description }]) => (
-                    <div key={functionName} className="space-y-2 p-4 border rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-sm">{functionName}</h3>
-                          <p className="text-xs text-muted-foreground">{description}</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => savePrompt(functionName)}
-                          disabled={savingPrompt === functionName || editedPrompts[functionName] === undefined}
-                          className="gap-1"
-                        >
-                          {savingPrompt === functionName ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Save className="h-3 w-3" />
-                          )}
-                          Speichern
-                        </Button>
+          <TabsContent value="prompts" className="space-y-6">
+            {promptsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              AI_SERVICE_GROUPS.map((group) => (
+                <Card key={group.name}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bot className="h-5 w-5 text-primary" />
+                      {group.name}
+                    </CardTitle>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="font-mono text-xs">Host</Badge>
+                        <span className="font-mono">{group.host}</span>
                       </div>
-                      <Textarea
-                        value={getPromptValue(functionName)}
-                        onChange={(e) => handlePromptChange(functionName, e.target.value)}
-                        className="font-mono text-xs min-h-[150px]"
-                        placeholder="Prompt Template..."
-                      />
-                      {prompts.find(p => p.function_name === functionName) && (
-                        <p className="text-xs text-muted-foreground">
-                          Zuletzt aktualisiert: {formatDate(prompts.find(p => p.function_name === functionName)?.updated_at || null)}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="font-mono text-xs">API Key</Badge>
+                        <span className="font-mono">{group.apiKeyEnv}</span>
+                      </div>
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Object.entries(group.functions).map(([functionName, { description }]) => (
+                      <div key={functionName} className="space-y-2 p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-sm">{functionName}</h3>
+                            <p className="text-xs text-muted-foreground">{description}</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => savePrompt(functionName)}
+                            disabled={savingPrompt === functionName || editedPrompts[functionName] === undefined}
+                            className="gap-1"
+                          >
+                            {savingPrompt === functionName ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Save className="h-3 w-3" />
+                            )}
+                            Speichern
+                          </Button>
+                        </div>
+                        <Textarea
+                          value={getPromptValue(functionName)}
+                          onChange={(e) => handlePromptChange(functionName, e.target.value)}
+                          className="font-mono text-xs min-h-[150px]"
+                          placeholder="Prompt Template..."
+                        />
+                        {prompts.find(p => p.function_name === functionName) && (
+                          <p className="text-xs text-muted-foreground">
+                            Zuletzt aktualisiert: {formatDate(prompts.find(p => p.function_name === functionName)?.updated_at || null)}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           {/* Users Tab */}
