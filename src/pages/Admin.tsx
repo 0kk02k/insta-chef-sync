@@ -35,9 +35,21 @@ interface UserWithStats {
   role: 'admin' | 'user';
 }
 
-const DEFAULT_PROMPTS: Record<string, { template: string; description: string }> = {
-  'process-instagram-recipe': {
-    template: `Du bist ein Experte für Rezept-Extraktion. Analysiere den folgenden Text/URL und extrahiere ein strukturiertes Rezept.
+interface AIServiceGroup {
+  name: string;
+  host: string;
+  apiKeyEnv: string;
+  functions: Record<string, { template: string; description: string }>;
+}
+
+const AI_SERVICE_GROUPS: AIServiceGroup[] = [
+  {
+    name: 'xAI Grok',
+    host: 'api.x.ai',
+    apiKeyEnv: 'XAI_API_KEY',
+    functions: {
+      'process-instagram-recipe': {
+        template: `Du bist ein Experte für Rezept-Extraktion. Analysiere den folgenden Text/URL und extrahiere ein strukturiertes Rezept.
 
 Antworte NUR mit gültigem JSON im folgenden Format:
 {
@@ -49,10 +61,10 @@ Antworte NUR mit gültigem JSON im folgenden Format:
   "servings": 4,
   "tags": ["Tag1", "Tag2"]
 }`,
-    description: 'Extrahiert Rezepte aus Instagram-Posts oder URLs'
-  },
-  'process-screenshot-recipe': {
-    template: `Analysiere dieses Bild eines Rezepts und extrahiere alle Informationen.
+        description: 'Extrahiert Rezepte aus Instagram-Posts oder URLs'
+      },
+      'process-screenshot-recipe': {
+        template: `Analysiere dieses Bild eines Rezepts und extrahiere alle Informationen.
 
 Antworte NUR mit gültigem JSON im folgenden Format:
 {
@@ -64,10 +76,10 @@ Antworte NUR mit gültigem JSON im folgenden Format:
   "servings": 4,
   "tags": ["Tag1", "Tag2"]
 }`,
-    description: 'Extrahiert Rezepte aus Screenshots'
-  },
-  'pdf-processor': {
-    template: `Analysiere den folgenden PDF-Text und extrahiere das Rezept.
+        description: 'Extrahiert Rezepte aus Screenshots'
+      },
+      'pdf-processor': {
+        template: `Analysiere den folgenden PDF-Text und extrahiere das Rezept.
 
 Antworte NUR mit gültigem JSON im folgenden Format:
 {
@@ -79,38 +91,60 @@ Antworte NUR mit gültigem JSON im folgenden Format:
   "servings": 4,
   "tags": ["Tag1", "Tag2"]
 }`,
-    description: 'Extrahiert Rezepte aus PDF-Dokumenten'
-  },
-  'generate-recipe-image': {
-    template: `Create a professional food photography image for the recipe: {title}
-
-Style: Appetizing, well-lit, professional food photography
-Setting: Clean, modern kitchen or dining setting
-Focus: The prepared dish should be the main subject`,
-    description: 'Generiert Rezeptbilder mit FLUX.schnell'
-  },
-  'generate-recipe-image-kie': {
-    template: `Create a beautiful food photograph of: {title}
-
-High-quality food photography, appetizing presentation, professional lighting`,
-    description: 'Generiert Rezeptbilder mit KiE.ai SeaDream'
-  },
-  'restructure-ingredients': {
-    template: `Analysiere die folgende Zutatenliste und strukturiere sie.
+        description: 'Extrahiert Rezepte aus PDF-Dokumenten'
+      },
+      'restructure-ingredients': {
+        template: `Analysiere die folgende Zutatenliste und strukturiere sie.
 
 Jedes Element: {"amount": number|null, "unit": string|null, "ingredient": string}
 
 Beispiele: "200g Mehl" → {"amount":200,"unit":"g","ingredient":"Mehl"}`,
-    description: 'Strukturiert Zutatenlisten in Menge/Einheit/Zutat'
-  },
-  'normalize-ingredients': {
-    template: `Analysiere diese Zutatenliste und führe ähnliche Zutaten zusammen.
+        description: 'Strukturiert Zutatenlisten in Menge/Einheit/Zutat'
+      },
+      'normalize-ingredients': {
+        template: `Analysiere diese Zutatenliste und führe ähnliche Zutaten zusammen.
 
 Erkenne Zutaten, die dasselbe Lebensmittel bezeichnen (z.B. "Tomate", "Tomaten", "tomate").
 Konvertiere Einheiten und addiere Mengen.`,
-    description: 'Normalisiert und fasst Zutaten zusammen'
+        description: 'Normalisiert und fasst Zutaten zusammen'
+      }
+    }
+  },
+  {
+    name: 'Together AI (FLUX.schnell)',
+    host: 'api.together.xyz',
+    apiKeyEnv: 'TOGETHER_API_KEY',
+    functions: {
+      'generate-recipe-image': {
+        template: `Create a professional food photography image for the recipe: {title}
+
+Style: Appetizing, well-lit, professional food photography
+Setting: Clean, modern kitchen or dining setting
+Focus: The prepared dish should be the main subject`,
+        description: 'Generiert Rezeptbilder mit FLUX.schnell'
+      }
+    }
+  },
+  {
+    name: 'KiE.ai (SeaDream)',
+    host: 'api.kie.ai',
+    apiKeyEnv: 'KIE_AI_API_KEY',
+    functions: {
+      'generate-recipe-image-kie': {
+        template: `Create a beautiful food photograph of: {title}
+
+High-quality food photography, appetizing presentation, professional lighting`,
+        description: 'Generiert Rezeptbilder mit KiE.ai SeaDream'
+      }
+    }
   }
-};
+];
+
+// Flatten for backward compat
+const DEFAULT_PROMPTS: Record<string, { template: string; description: string }> = {};
+AI_SERVICE_GROUPS.forEach(g => {
+  Object.entries(g.functions).forEach(([k, v]) => { DEFAULT_PROMPTS[k] = v; });
+});
 
 const Admin = () => {
   const { user } = useAuth();
