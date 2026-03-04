@@ -178,19 +178,34 @@ const Admin = () => {
     }
   }, [isAdmin, adminLoading, navigate, toast]);
 
-  // Fetch AI prompts
+  // Fetch AI prompts + service config
   useEffect(() => {
-    const fetchPrompts = async () => {
+    const fetchPromptsAndConfig = async () => {
       if (!isAdmin) return;
       
       try {
-        const { data, error } = await supabase
-          .from('ai_prompts')
-          .select('*')
-          .order('function_name');
+        const [promptsRes, settingsRes] = await Promise.all([
+          supabase.from('ai_prompts').select('*').order('function_name'),
+          supabase.from('app_settings').select('*').in('key', 
+            AI_SERVICE_GROUPS.flatMap(g => [`ai_host_${g.name}`, `ai_apikey_${g.name}`])
+          )
+        ]);
 
-        if (error) throw error;
-        setPrompts(data || []);
+        if (promptsRes.error) throw promptsRes.error;
+        setPrompts(promptsRes.data || []);
+
+        // Build service config from saved settings
+        const settings = settingsRes.data || [];
+        const config: Record<string, { host: string; apiKeyEnv: string }> = {};
+        AI_SERVICE_GROUPS.forEach(g => {
+          const savedHost = settings.find(s => s.key === `ai_host_${g.name}`)?.value;
+          const savedKey = settings.find(s => s.key === `ai_apikey_${g.name}`)?.value;
+          config[g.name] = {
+            host: savedHost || g.host,
+            apiKeyEnv: savedKey || g.apiKeyEnv,
+          };
+        });
+        setServiceConfig(config);
       } catch (error) {
         console.error('Error fetching prompts:', error);
       } finally {
@@ -199,7 +214,7 @@ const Admin = () => {
     };
 
     if (isAdmin) {
-      fetchPrompts();
+      fetchPromptsAndConfig();
     }
   }, [isAdmin]);
 
@@ -233,6 +248,74 @@ const Admin = () => {
 
   const handlePromptChange = (functionName: string, value: string) => {
     setEditedPrompts(prev => ({ ...prev, [functionName]: value }));
+  };
+
+  const handleConfigChange = (groupName: string, field: 'host' | 'apiKeyEnv', value: string) => {
+    setEditedConfig(prev => ({
+      ...prev,
+      [groupName]: { ...prev[groupName], [field]: value }
+    }));
+  };
+
+  const getConfigValue = (groupName: string, field: 'host' | 'apiKeyEnv'): string => {
+    return editedConfig[groupName]?.[field] ?? serviceConfig[groupName]?.[field] ?? 
+      AI_SERVICE_GROUPS.find(g => g.name === groupName)?.[field] ?? '';
+  };
+
+  const hasConfigChanges = (groupName: string): boolean => {
+    const edited = editedConfig[groupName];
+    if (!edited) return false;
+    const current = serviceConfig[groupName] || AI_SERVICE_GROUPS.find(g => g.name === groupName)!;
+    return (edited.host !== undefined && edited.host !== current.host) || 
+           (edited.apiKeyEnv !== undefined && edited.apiKeyEnv !== current.apiKeyEnv);
+  };
+
+  const saveServiceConfig = async (groupName: string) => {
+    const edited = editedConfig[groupName];
+    if (!edited) return;
+
+    setSavingConfig(groupName);
+    try {
+      const current = serviceConfig[groupName] || AI_SERVICE_GROUPS.find(g => g.name === groupName)!;
+      const upserts: { key: string; value: string; updated_by: string | undefined }[] = [];
+
+      if (edited.host !== undefined && edited.host !== current.host) {
+        upserts.push({ key: `ai_host_${groupName}`, value: edited.host, updated_by: user?.id });
+      }
+      if (edited.apiKeyEnv !== undefined && edited.apiKeyEnv !== current.apiKeyEnv) {
+        upserts.push({ key: `ai_apikey_${groupName}`, value: edited.apiKeyEnv, updated_by: user?.id });
+      }
+
+      for (const item of upserts) {
+        const { data: existing } = await supabase.from('app_settings').select('id').eq('key', item.key).single();
+        if (existing) {
+          await supabase.from('app_settings').update({ value: item.value, updated_by: item.updated_by }).eq('id', existing.id);
+        } else {
+          await supabase.from('app_settings').insert(item);
+        }
+      }
+
+      // Update local state
+      setServiceConfig(prev => ({
+        ...prev,
+        [groupName]: {
+          host: edited.host ?? current.host,
+          apiKeyEnv: edited.apiKeyEnv ?? current.apiKeyEnv,
+        }
+      }));
+      setEditedConfig(prev => {
+        const next = { ...prev };
+        delete next[groupName];
+        return next;
+      });
+
+      toast({ title: "Gespeichert", description: `Konfiguration für ${groupName} aktualisiert.` });
+    } catch (error) {
+      console.error('Error saving config:', error);
+      toast({ title: "Fehler", description: "Konfiguration konnte nicht gespeichert werden.", variant: "destructive" });
+    } finally {
+      setSavingConfig(null);
+    }
   };
 
   const savePrompt = async (functionName: string) => {
