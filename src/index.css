@@ -199,6 +199,15 @@ All colors MUST be HSL.
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
   }
 
+  /* Header Wrapper - maintains height during transition */
+  .header-wrapper {
+    position: relative;
+    min-height: 50vh;
+  }
+  .header-wrapper.compact {
+    min-height: auto;
+  }
+
   /* Compact Header - Sticky Mode */
   .compact-header {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
