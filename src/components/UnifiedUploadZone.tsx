@@ -52,6 +52,15 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
     }
   };
 
+  const isInstagramUrl = (string: string): boolean => {
+    try {
+      const url = new URL(string);
+      return url.hostname.includes('instagram.com') || url.hostname.includes('instagr.am');
+    } catch {
+      return false;
+    }
+  };
+
   const shortenUrl = (url: string, maxLength: number = 50): string => {
     if (url.length <= maxLength) return url;
     
@@ -76,12 +85,22 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
   };
 
   const handleContent = useCallback((content: UploadedContent) => {
+    // Warn about Instagram URLs
+    if (content.type === 'url' && content.content && isInstagramUrl(content.content)) {
+      toast({
+        title: "Instagram URLs werden nicht unterstützt",
+        description: "Bitte kopiere den Rezepttext manuell und füge ihn als Text ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadedContent((prev) => {
       const newContent = [...prev, { ...content, id: Date.now().toString() }];
       onContentChange(newContent);
       return newContent;
     });
-  }, [onContentChange]);
+  }, [onContentChange, toast]);
 
   const clearContent = useCallback(() => {
     setUploadedContent([]);
@@ -412,6 +431,11 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
                       {item.type === 'url' && item.content && (
                         <span className="ml-1 text-xs text-muted-foreground/60">
                           • {new URL(item.content).hostname.replace('www.', '')}
+                        </span>
+                      )}
+                      {item.type === 'url' && item.content && isInstagramUrl(item.content) && (
+                        <span className="ml-2 text-xs text-destructive font-medium">
+                          ⚠️ Nicht unterstützt
                         </span>
                       )}
                     </p>

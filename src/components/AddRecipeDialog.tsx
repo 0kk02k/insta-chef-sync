@@ -86,9 +86,26 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
   const processContent = async (uploadedContent: UploadedContent) => {
     setProcessing(true);
-    
+
     try {
       let response;
+
+      // Check for Instagram URLs
+      if (uploadedContent.type === 'url' && uploadedContent.content) {
+        try {
+          const url = new URL(uploadedContent.content);
+          if (url.hostname.includes('instagram.com') || url.hostname.includes('instagr.am')) {
+            toast({
+              title: "Instagram URLs werden nicht unterstützt",
+              description: "Bitte kopiere den Rezepttext manuell und füge ihn als Text ein.",
+              variant: "destructive",
+            });
+            return;
+          }
+        } catch {
+          // Invalid URL, continue processing
+        }
+      }
 
       if (uploadedContent.type === 'screenshot' && uploadedContent.file) {
         // Convert to base64 for processing

@@ -197,15 +197,15 @@ serve(async (req) => {
       if (body.url) {
         // Handle URL scraping with validation
         const url = body.url;
-        
+
         // Validate URL length
         if (typeof url !== 'string' || url.length > MAX_URL_LENGTH) {
           return new Response(
-            JSON.stringify({ error: 'URL zu lang oder ungültig' }), 
+            JSON.stringify({ error: 'URL zu lang oder ungültig' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        
+
         try {
           // Validate URL format and protocol
           const parsedUrl = new URL(url);
@@ -214,6 +214,16 @@ serve(async (req) => {
           }
           if (parsedUrl.username || parsedUrl.password || isBlockedHostname(parsedUrl.hostname)) {
             throw new Error('URL-Host ist nicht erlaubt');
+          }
+
+          // Block Instagram URLs - they don't work with simple scraping
+          if (parsedUrl.hostname.includes('instagram.com') || parsedUrl.hostname.includes('instagr.am')) {
+            return new Response(
+              JSON.stringify({
+                error: 'Instagram URLs werden nicht unterstützt. Bitte kopiere den Rezepttext manuell und füge ihn als Text ein.'
+              }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
 
           console.log('Processing URL host:', parsedUrl.hostname);
