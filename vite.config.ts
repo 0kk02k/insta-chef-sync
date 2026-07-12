@@ -49,4 +49,15 @@ export default defineConfig(({ mode }) => ({
     // Increase chunk size warning limit to 1000KB
     chunkSizeWarningLimit: 1000,
   },
+  // ponytail: SPA fallback for react-router - serve index.html for all routes
+  // @ts-ignore - Vite types incomplete
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      // For HTML requests, serve index.html (SPA fallback)
+      if (req.headers.accept?.includes('text/html') && !req.url?.includes('.')) {
+        req.url = '/index.html';
+      }
+      next();
+    });
+  },
 }));
