@@ -196,13 +196,19 @@ All colors MUST be HSL.
   .hero-header {
     min-height: 50vh;
     background: hsl(var(--brand));
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
   }
 
   /* Compact Header - Sticky Mode */
   .compact-header {
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
+  }
+
+  /* Smooth fade for header content */
+  .hero-header > .container,
+  .compact-header > .container {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   }
 
   .header .brand {

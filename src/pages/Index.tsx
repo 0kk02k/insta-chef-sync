@@ -12,6 +12,7 @@ import AddRecipeDialog from '@/components/AddRecipeDialog';
 import RecipeCard from '@/components/RecipeCard';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
+import { SteamEffect } from '@/components/SteamEffect';
 
 interface Recipe {
   id: string;
@@ -316,8 +317,9 @@ const Index = () => {
       {/* Hero Header with Scroll-Shrink */}
       {atTop ? (
         // HERO MODE - Full screen landing style
-        <header className="header hero-header">
-          <div className="container mx-auto px-4 py-12 sm:py-16">
+        <header className="header hero-header relative">
+          <SteamEffect />
+          <div className="container mx-auto px-4 py-12 sm:py-16 relative z-10">
             <div className="flex flex-col items-center text-center space-y-6">
               <div className="p-4 sm:p-6 bg-white rounded-2xl shadow-xl border border-black/5 mb-4">
                 <ChefHat className="h-16 w-16 sm:h-24 sm:w-24" style={{ color: '#FF7A3D' }} />
@@ -439,18 +441,18 @@ const Index = () => {
           <div className={atTop ? "mb-8" : "mb-6"}>
             <div className={`flex flex-col ${atTop ? 'sm:flex-row' : 'sm:flex-row'} gap-${atTop ? '6' : '4'} ${atTop ? 'max-w-3xl mx-auto' : 'max-w-2xl mx-auto'}`}>
               <div className="relative flex-1">
-                <Search className={`absolute left-${atTop ? '4' : '3'} top-1/2 transform -translate-y-1/2 ${atTop ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                 <Input
                   type="text"
                   placeholder="Rezepte durchsuchen (Titel, Beschreibung, Zutaten, Tags)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-${atTop ? '12' : '10'} ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
+                  className={`pl-10 ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
                 />
               </div>
               <div className={`${atTop ? 'sm:w-64' : 'sm:w-48'} relative`} ref={userDropdownRef}>
                 <div className="relative">
-                  <Users className={`absolute left-${atTop ? '4' : '3'} top-1/2 transform -translate-y-1/2 ${atTop ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Nach Benutzer suchen..."
@@ -463,7 +465,7 @@ const Index = () => {
                       }
                     }}
                     onFocus={() => setShowUserDropdown(true)}
-                    className={`pl-${atTop ? '12' : '10'} ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
+                    className={`pl-10 ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
                   />
                   {userSearchTerm && (
                     <button
