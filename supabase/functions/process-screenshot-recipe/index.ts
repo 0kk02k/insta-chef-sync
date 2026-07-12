@@ -223,7 +223,7 @@ serve(async (req) => {
        userPrefs.language === 'it' ? 'Traduci tutto il testo in italiano.' :
        'Keep text in original language.';
 
-    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
+    const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Keep small spoon measurements (tsp/TL, tbsp/EL) as they are - only cups need conversion. tsp = TL (Teelöffel) are equivalent, tbsp = EL (Esslöffel) are equivalent.' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
     console.log('📸 Processing screenshot with xAI Grok-4-Fast Vision API (Chat Completions)');
     // Use xAI Grok-4-Fast for vision processing
@@ -256,8 +256,9 @@ WICHTIGE UMRECHNUNGSREGELN für "cups":
 - 1 cup Reis (ungekocht) = 185g
 
 WICHTIGE UMRECHNUNGSREGELN für Löffel:
-- tsb/tbsp = EL (Esslöffel)
-- tsp = TL (Teelöffel)
+- tsp (Teaspoon) und TL (Teelöffel) sind äquivalent - keine Umrechnung nötig
+- tbsp (Tablespoon) und EL (Esslöffel) sind äquivalent - keine Umrechnung nötig
+- Behalte diese Einheiten beißen, nur cups müssen umgerechnet werden
 
 Schreibe niemals "Tasse" sondern immer die korrekte metrische Angabe.
 
