@@ -123,11 +123,11 @@ const InvitationCodesTab = () => {
         title: "Code erstellt",
         description: `Neuer Code: ${newCode}`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating code:', error);
       toast({
         title: "Fehler",
-        description: error.message || "Code konnte nicht erstellt werden.",
+        description: error instanceof Error ? error.message : "Code konnte nicht erstellt werden.",
         variant: "destructive",
       });
     } finally {

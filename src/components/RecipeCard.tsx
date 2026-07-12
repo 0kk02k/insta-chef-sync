@@ -12,7 +12,7 @@ interface Recipe {
   instagram_url: string | null;
   image_url: string | null;
   ingredients: string[];
-  structured_ingredients?: any[] | null;
+  structured_ingredients?: Array<{ amount: string; unit: string; ingredient: string }> | null;
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;

@@ -140,7 +140,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let content: string = '';
-    let contentType = req.headers.get('content-type') || '';
+    const contentType = req.headers.get('content-type') || '';
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
     
     // Handle both JSON and FormData (for PDF files)

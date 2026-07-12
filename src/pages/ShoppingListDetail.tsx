@@ -55,7 +55,7 @@ const ShoppingListDetail = () => {
     }
   };
 
-  const handleUndoDelete = async (deletedItem: any) => {
+  const handleUndoDelete = async (deletedItem: { ingredient_name: string; amount: number | null; unit: string | null; portion_multiplier: number; recipe_id: string | null; is_checked: boolean }) => {
     await addItem({
       ingredient_name: deletedItem.ingredient_name,
       amount: deletedItem.amount,
@@ -85,7 +85,7 @@ const ShoppingListDetail = () => {
     setShowClearDialog(false);
   };
 
-  const formatItemDisplay = (item: any): string => {
+  const formatItemDisplay = (item: { amount?: number; unit?: string; ingredient_name: string }): string => {
     if (item.amount && item.unit) {
       return `${item.amount} ${item.unit} ${item.ingredient_name}`;
     } else if (item.amount) {
@@ -158,7 +158,7 @@ const ShoppingListDetail = () => {
     }
   };
 
-  const groupItemsByCategory = (items: any[]) => {
+  const groupItemsByCategory = (items: Array<{ category?: string } & Record<string, unknown>>) => {
     const grouped = items.reduce((acc, item) => {
       const category = item.category || 'Sonstiges';
       if (!acc[category]) {
@@ -166,7 +166,7 @@ const ShoppingListDetail = () => {
       }
       acc[category].push(item);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, Array<{ category?: string } & Record<string, unknown>>>);
 
     // Sort categories by predefined order
     const categoryOrder = [
@@ -180,7 +180,7 @@ const ShoppingListDetail = () => {
       'Sonstiges'
     ];
 
-    const sortedCategories: Record<string, any[]> = {};
+    const sortedCategories: Record<string, Array<{ category?: string } & Record<string, unknown>>> = {};
     categoryOrder.forEach(category => {
       if (grouped[category] && grouped[category].length > 0) {
         sortedCategories[category] = grouped[category];
@@ -197,7 +197,7 @@ const ShoppingListDetail = () => {
     return sortedCategories;
   };
 
-  const renderCategorySection = (category: string, categoryItems: any[], isChecked: boolean) => {
+  const renderCategorySection = (category: string, categoryItems: Array<{ category?: string } & Record<string, unknown>>, isChecked: boolean) => {
     if (categoryItems.length === 0) return null;
 
     const IconComponent = getCategoryIcon(category);

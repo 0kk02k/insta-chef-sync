@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
                     user.user_metadata?.full_name || 
                     user.email.split('@')[0]
 
-    let html: string
     let subject: string
     let emailComponent: React.ReactElement
 
@@ -137,7 +136,7 @@ Deno.serve(async (req) => {
     }
 
     // Render the email template
-    html = await renderAsync(emailComponent)
+    const html = await renderAsync(emailComponent)
 
     // Send email via Resend
     const { error } = await resend.emails.send({
@@ -166,13 +165,13 @@ Deno.serve(async (req) => {
       },
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in send-auth-emails function:', error)
-    
+
     return new Response(
       JSON.stringify({
         error: {
-          message: error.message,
+          message: error instanceof Error ? error.message : 'Unbekannter Fehler',
           code: error.code || 'UNKNOWN_ERROR',
         },
       }),

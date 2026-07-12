@@ -141,7 +141,7 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('admin-get-users error:', error);
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler' }),

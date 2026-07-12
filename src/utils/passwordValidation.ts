@@ -37,7 +37,7 @@ export const validatePassword = (password: string): PasswordStrength => {
   }
 
   // Check for special characters
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (!/[!@#$%^&*()_+\-[\]{};':"\\|,.<>/?]/.test(password)) {
     feedback.push('Passwort sollte mindestens ein Sonderzeichen enthalten');
   } else {
     score += 1;

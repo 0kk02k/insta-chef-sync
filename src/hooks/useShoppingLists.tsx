@@ -35,7 +35,7 @@ const normalizeIngredientName = (name: string): string => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, ' ')
-    .replace(/[,\.!?]/g, '');
+    .replace(/[,.!?]/g, '');
 };
 
 // Helper function to convert units
@@ -208,8 +208,8 @@ export const useShoppingLists = () => {
 
       console.log('Scaled ingredients:', scaledIngredients);
 
-      const itemsToInsert: any[] = [];
-      const itemsToUpdate: any[] = [];
+      const itemsToInsert: Array<{ shopping_list_id: string; ingredient_id: string; amount: string; unit: string; ingredient_name: string; checked: boolean }> = [];
+      const itemsToUpdate: Array<{ id: string; amount: string; unit: string }> = [];
 
       // Process each new ingredient
       for (const newIngredient of scaledIngredients) {

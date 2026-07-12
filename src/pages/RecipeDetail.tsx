@@ -329,15 +329,15 @@ const RecipeDetail = () => {
         });
         if (error) throw error;
         if (data?.success && data.structured_ingredients) {
-          setRecipe(prev => prev ? { ...prev, structured_ingredients: data.structured_ingredients } as any : prev);
+          setRecipe(prev => prev ? { ...prev, structured_ingredients: data.structured_ingredients as Array<{ amount: string; unit: string; ingredient: string }> } : prev);
           // Falls Portionen bereits geändert wurden, neu skalieren
           if (recipe?.servings) {
             const factor = currentPortions / recipe.servings;
-            const scaled = data.structured_ingredients.map((ing: any) => ({
+            const scaled = data.structured_ingredients.map((ing: { amount: string; unit: string; ingredient: string }) => ({
               ...ing,
               amount: ing.amount ? Math.round(ing.amount * factor * 100) / 100 : null
             }));
-            const scaledText = scaled.map((ingredient: any) => {
+            const scaledText = scaled.map((ingredient: { amount: number | null; unit: string; ingredient: string }) => {
               if (ingredient.amount && ingredient.unit) return `${ingredient.amount} ${ingredient.unit} ${ingredient.ingredient}`;
               if (ingredient.amount) return `${ingredient.amount} ${ingredient.ingredient}`;
               return ingredient.ingredient;
@@ -458,7 +458,7 @@ const RecipeDetail = () => {
           title: recipe.title,
           description: recipe.description,
           ingredients: recipe.ingredients,
-          structured_ingredients: recipe.structured_ingredients as any,
+          structured_ingredients: recipe.structured_ingredients,
           instructions: recipe.instructions,
           cooking_time: recipe.cooking_time,
           servings: recipe.servings,
@@ -721,7 +721,7 @@ const RecipeDetail = () => {
       }
 
       // Footer
-      const totalPages = (doc as any).internal.pages.length - 1;
+      const totalPages = (doc as { internal: { pages: unknown[] } }).internal.pages.length - 1;
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
         doc.setFont("helvetica", "italic");

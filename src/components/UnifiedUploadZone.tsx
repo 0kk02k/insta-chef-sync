@@ -290,8 +290,8 @@ const UnifiedUploadZone = ({ onContentChange, disabled, isProcessing, batchProgr
           variant: "destructive",
         });
       }
-    } catch (error: any) {
-      if (error.name === 'NotAllowedError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'NotAllowedError') {
         toast({
           title: "Zugriff verweigert",
           description: "Bitte erlaube den Zugriff auf die Zwischenablage",

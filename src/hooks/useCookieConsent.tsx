@@ -42,8 +42,16 @@ export const cookieStorage = {
   setItem: (key: string, value: string, category: CookieCategory = 'functional') => {
     // Always allow storing necessary items (e.g., auth tokens), even before explicit consent save
     if (category === 'necessary') {
-      try { sessionStorage.setItem(key, value); } catch {}
-      try { localStorage.setItem(key, value); } catch {}
+      try {
+        sessionStorage.setItem(key, value);
+      } catch {
+        // Ignore storage errors (e.g., Safari private mode)
+      }
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        // Ignore storage errors (e.g., Safari private mode)
+      }
       return;
     }
     // For non-necessary categories, respect stored consent
@@ -51,7 +59,11 @@ export const cookieStorage = {
     if (storedConsent) {
       const consent: CookieConsent = JSON.parse(storedConsent);
       if (consent[category]) {
-        try { localStorage.setItem(key, value); } catch {}
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // Ignore storage errors (e.g., Safari private mode)
+        }
       }
     }
   },

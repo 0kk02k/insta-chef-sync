@@ -108,7 +108,7 @@ serve(async (req) => {
     // Normalize images input to array of { base64, mime }
     const normalizedImages: Array<{ base64: string; mime: string }> = (() => {
       if (Array.isArray(images)) {
-        return images.map((img: any) =>
+        return images.map((img: string | { base64: string; mime?: string }) =>
           typeof img === 'string'
             ? { base64: img, mime: 'image/jpeg' }
             : { base64: img.base64, mime: img.mime || 'image/jpeg' }
@@ -152,7 +152,7 @@ serve(async (req) => {
       .select('language, measurement_unit')
       .eq('id', user.id)
       .single();
-    if (profile) userPrefs = profile as any;
+    if (profile) userPrefs = profile as { language: string; measurement_unit: string };
 
     // If multiple images, validate they belong to the same recipe
     if (normalizedImages.length > 1) {
@@ -316,7 +316,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     
     const rawResponse = await visionResponse.text();
     
-    let visionData: any = null;
+    let visionData: { choices?: Array<{ message?: { content?: string }; delta?: { content?: string } }>; usage?: unknown } | null = null;
     try {
       visionData = JSON.parse(rawResponse);
     } catch (parseError) {
@@ -335,7 +335,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     console.log('  - usage:', JSON.stringify(visionData?.usage || 'none'));
 
     // Extract text from Chat Completions API
-    function extractChatContent(res: any): string | null {
+    function extractChatContent(res: { choices?: Array<{ message?: { content?: string }; delta?: { content?: string } }> }): string | null {
       const t = res?.choices?.[0]?.message?.content ??
                 res?.choices?.[0]?.delta?.content ??
                 null;
@@ -369,12 +369,16 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       } catch {
         const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
         if (m) {
-          try { return JSON.parse(m[1]); } catch {}
+          try { return JSON.parse(m[1]); } catch {
+            // Ignore JSON parse errors, will try fallback extraction
+          }
         }
         const start = s.indexOf('{');
         const end = s.lastIndexOf('}');
         if (start >= 0 && end > start) {
-          try { return JSON.parse(s.slice(start, end + 1)); } catch {}
+          try { return JSON.parse(s.slice(start, end + 1)); } catch {
+            // Ignore JSON parse errors, return null
+          }
         }
         return null;
       }
@@ -555,12 +559,16 @@ Erstelle strukturierte Zutaten und mindestens 3-5 Tags (z.B. "hauptgericht", "it
     } catch {
       const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
       if (m) {
-        try { return JSON.parse(m[1]); } catch {}
+        try { return JSON.parse(m[1]); } catch {
+          // Ignore JSON parse errors in code block extraction
+        }
       }
       const start = s.indexOf('{');
       const end = s.lastIndexOf('}');
       if (start >= 0 && end > start) {
-        try { return JSON.parse(s.slice(start, end + 1)); } catch {}
+        try { return JSON.parse(s.slice(start, end + 1)); } catch {
+          // Ignore JSON parse errors in fallback extraction
+        }
       }
       return null;
     }
@@ -675,20 +683,29 @@ Erstelle mindestens 3-5 passende Tags für das Rezept.`
     throw new Error(`Extract API error: ${response.status}`);
   }
   const raw = await response.text();
-  let data: any;
+  let data: { choices?: Array<{ message?: { content?: string } }> } | undefined;
   try { data = JSON.parse(raw); } catch { throw new Error('Extract API JSON parse failed'); }
   const content = data?.choices?.[0]?.message?.content as string | undefined;
 
   function safeParseJson(s: string | undefined) {
-    if (!s) return null; 
+    if (!s) return null;
     try { return JSON.parse(s); } catch {
-      const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-      if (m) { try { return JSON.parse(m[1]); } catch {} }
-      const start = s.indexOf('{');
-      const end = s.lastIndexOf('}');
-      if (start >= 0 && end > start) { try { return JSON.parse(s.slice(start, end + 1)); } catch {} }
-      return null;
+      // Initial parse failed, try extraction methods
     }
+    const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (m) {
+      try { return JSON.parse(m[1]); } catch {
+        // Code block extraction failed
+      }
+    }
+    const start = s.indexOf('{');
+    const end = s.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      try { return JSON.parse(s.slice(start, end + 1)); } catch {
+        // Fallback extraction failed
+      }
+    }
+    return null;
   }
 
   const recipe = safeParseJson(content);
@@ -704,7 +721,7 @@ Erstelle mindestens 3-5 passende Tags für das Rezept.`
 async function generateRecipeImage(
   recipeData: RecipeData, 
   xaiApiKey: string, 
-  supabase: any
+  supabase: { storage: { from: (bucket: string) => { upload: (path: string, file: File) => Promise<{ data: { path: string }; error: unknown }> } } }
 ): Promise<string | null> {
   console.log('🎨 Generating AI image for recipe with FLUX');
   

@@ -212,10 +212,10 @@ ZUTATEN:\n${ingredients.map((i: string) => `- ${i}`).join('\n')}`;
       JSON.stringify({ success: true, structured_ingredients: structured }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('restructure-ingredients error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message || 'Unbekannter Fehler' }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unbekannter Fehler' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

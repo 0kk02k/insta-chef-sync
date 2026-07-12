@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 // Fallback prompt generation function
-function generateFallbackPrompt(title: string, description: string, ingredients: any[]): string {
+function generateFallbackPrompt(title: string, description: string, ingredients: string[]): string {
   const ingredientsList = Array.isArray(ingredients) ? ingredients.slice(0, 6).join(', ') : '';
   
   // Detect dish category for better styling
