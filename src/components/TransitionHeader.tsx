@@ -20,10 +20,10 @@ export const TransitionHeader: React.FC<TransitionHeaderProps> = ({
 }) => {
   return (
     <div className="header-wrapper relative">
-      {/* HERO HEADER */}
+      {/* HERO HEADER - Absolute, nur wenn atTop */}
       <header
         className={`header hero-header absolute inset-0 transition-opacity duration-500 ${
-          atTop ? 'opacity-100 z-10' : 'opacity-0 z-0'
+          atTop ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
         }`}
       >
         <SteamEffect />
@@ -37,7 +37,7 @@ export const TransitionHeader: React.FC<TransitionHeaderProps> = ({
                   onClick={() => onNavigate('/admin')}
                   variant="outline"
                   size="sm"
-                  className="h-9 px-3 bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm"
+                  className="h-9 px-3 bg-white/10 hover:bg:white/20 text-white border-white/20 backdrop-blur-sm"
                   title="Admin"
                 >
                   <Settings className="h-4 w-4" />
@@ -87,9 +87,9 @@ export const TransitionHeader: React.FC<TransitionHeaderProps> = ({
         </div>
       </header>
 
-      {/* COMPACT HEADER */}
+      {/* COMPACT HEADER - Sticky mit höherem z-index */}
       <header
-        className={`header compact-header sticky top-0 z-40 shadow-md transition-opacity duration-500 ${
+        className={`header compact-header sticky top-0 z-50 shadow-md transition-opacity duration-500 ${
           !atTop ? 'opacity-100' : 'opacity-0'
         }`}
       >
