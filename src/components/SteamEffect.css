@@ -11,7 +11,7 @@
 
 .steam-particle {
   position: absolute;
-  bottom: 30%;
+  top: 38%;
   width: 100px;
   height: 100px;
   background: radial-gradient(
@@ -22,8 +22,77 @@
   );
   border-radius: 50%;
   filter: blur(10px);
-  animation: steam-rise 6s ease-out infinite;
   opacity: 0;
+}
+
+/* Up animation - Standard */
+.steam-up {
+  animation: steam-rise-up 6s ease-out infinite;
+}
+
+/* Down animation */
+.steam-down {
+  animation: steam-fall-down 6s ease-out infinite;
+}
+
+/* Drift variants for up particles */
+.steam-up:nth-child(3n) {
+  animation: steam-rise-drift-left 6s ease-out infinite;
+}
+
+.steam-up:nth-child(3n+1) {
+  animation: steam-rise-drift-right 6s ease-out infinite;
+}
+
+/* Drift variants for down particles */
+.steam-down:nth-child(3n) {
+  animation: steam-fall-drift-left 6s ease-out infinite;
+}
+
+.steam-down:nth-child(3n+1) {
+  animation: steam-fall-drift-right 6s ease-out infinite;
+}
+
+@keyframes steam-rise-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 0.8;
+  }
+
+  40% {
+    transform: translateY(-100px) scale(2);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(-250px) scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes steam-fall-down {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 0.8;
+  }
+
+  40% {
+    transform: translateY(100px) scale(2);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(250px) scale(2.5);
+    opacity: 0;
+  }
 }
 
 @keyframes steam-rise {
@@ -49,51 +118,106 @@
 
 /* Add subtle drift effect */
 .steam-particle:nth-child(3n) {
-  animation: steam-rise-drift-left 5s ease-out infinite;
+  animation: steam-rise-drift-left 6s ease-out infinite;
 }
 
 .steam-particle:nth-child(3n+1) {
-  animation: steam-rise-drift-right 5s ease-out infinite;
+  animation: steam-rise-drift-right 6s ease-out infinite;
 }
 
 @keyframes steam-rise-drift-left {
   0% {
-    transform: translateY(0) translateX(0) scale(0.8);
+    transform: translateY(0) translateX(0) scale(1);
     opacity: 0;
   }
 
-  10% {
-    opacity: 0.7;
+  5% {
+    opacity: 0.8;
   }
 
-  50% {
-    transform: translateY(-120px) translateX(-30px) scale(1.8);
-    opacity: 0.4;
+  40% {
+    transform: translateY(-100px) translateX(-40px) scale(2);
+    opacity: 0.5;
   }
 
   100% {
-    transform: translateY(-250px) translateX(-60px) scale(2.5);
+    transform: translateY(-250px) translateX(-80px) scale(2.5);
     opacity: 0;
   }
 }
 
 @keyframes steam-rise-drift-right {
   0% {
-    transform: translateY(0) translateX(0) scale(0.8);
+    transform: translateY(0) translateX(0) scale(1);
     opacity: 0;
   }
 
-  10% {
-    opacity: 0.7;
+  5% {
+    opacity: 0.8;
   }
 
-  50% {
-    transform: translateY(-120px) translateX(30px) scale(1.8);
-    opacity: 0.4;
+  40% {
+    transform: translateY(-100px) translateX(40px) scale(2);
+    opacity: 0.5;
   }
 
   100% {
-    transform: translateY(-250px) translateX(60px) scale(2.5);
+    transform: translateY(-250px) translateX(80px) scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Einige Partikel nach unten - 4. Gruppe */
+.steam-particle:nth-child(4n) {
+  animation: steam-fall-down 6s ease-out infinite;
+}
+
+.steam-particle:nth-child(4n+1) {
+  animation: steam-fall-drift-left 6s ease-out infinite;
+}
+
+.steam-particle:nth-child(4n+2) {
+  animation: steam-fall-drift-right 6s ease-out infinite;
+}
+
+@keyframes steam-fall-drift-left {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 0.8;
+  }
+
+  40% {
+    transform: translateY(100px) translateX(-40px) scale(2);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(250px) translateX(-80px) scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes steam-fall-drift-right {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 0.8;
+  }
+
+  40% {
+    transform: translateY(100px) translateX(40px) scale(2);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(250px) translateX(80px) scale(2.5);
     opacity: 0;
   }
 }
