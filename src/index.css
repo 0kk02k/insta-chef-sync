@@ -191,24 +191,38 @@ All colors MUST be HSL.
     color: hsl(var(--ink-900));
     border-bottom: 1px solid hsl(var(--border));
   }
-  .header .brand { 
+
+  /* Hero Header - Landing Page Mode */
+  .hero-header {
+    min-height: 50vh;
+    background: hsl(var(--brand));
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Compact Header - Sticky Mode */
+  .compact-header {
+    transition: all 0.3s ease;
+    will-change: transform;
+  }
+
+  .header .brand {
     color: #FFFFFF;
-    font-weight: 800; 
+    font-weight: 800;
     text-shadow: 0 1px 2px rgba(0,0,0,0.18);
     letter-spacing: -0.3px;
   }
-  .header .greeting { 
-    opacity: 0.8; 
+  .header .greeting {
+    opacity: 0.8;
   }
-  .header .cta, 
+  .header .cta,
   .fab--add {
     background: hsl(var(--brand));
     color: white;
     border-radius: 10px;
   }
-  .header .cta:hover, 
-  .fab--add:hover { 
-    background: hsl(var(--brand-600)); 
+  .header .cta:hover,
+  .fab--add:hover {
+    background: hsl(var(--brand-600));
   }
 
   /* Page title styling */

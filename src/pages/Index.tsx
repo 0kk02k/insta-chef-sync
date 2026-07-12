@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 import { ChefHat, User, LogOut, Loader2, Plus, Search, Users, ShoppingCart, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
@@ -35,6 +36,7 @@ interface Recipe {
 const Index = () => {
   const { user, signOut, loading } = useAuth();
   const { isAdmin } = useAdminRole();
+  const atTop = useScrollPosition();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -311,94 +313,144 @@ const Index = () => {
         description="Entdecke und teile köstliche Rezepte. CookingCompiler ist deine digitale Rezeptsammlung zum Organisieren, Speichern und Teilen von Lieblingsrezepten."
         url="/"
       />
-      {/* Hero Header */}
-      <header className="header">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className="p-2 sm:p-3 bg-white rounded-xl shadow-lg border border-black/5" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
-                <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: '#FF7A3D' }} />
+      {/* Hero Header with Scroll-Shrink */}
+      {atTop ? (
+        // HERO MODE - Full screen landing style
+        <header className="header hero-header">
+          <div className="container mx-auto px-4 py-12 sm:py-16">
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="p-4 sm:p-6 bg-white rounded-2xl shadow-xl border border-black/5 mb-4">
+                <ChefHat className="h-16 w-16 sm:h-24 sm:w-24" style={{ color: '#FF7A3D' }} />
               </div>
-              <div>
-                <h1 className="brand text-3xl sm:text-5xl font-bold px-2 sm:px-4 py-1">
+              <div className="space-y-2">
+                <h1 className="brand text-5xl sm:text-7xl font-bold tracking-tight">
                   CookingCompiler
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground px-2 sm:px-4">KI-gestützte Rezepteverwaltung</p>
+                <p className="text-base sm:text-lg text-white/90">KI-gestützte Rezepteverwaltung</p>
+              </div>
+              {/* Auth buttons */}
+              <div className="flex items-center space-x-3 sm:space-x-4 mt-4">
+                {user ? (
+                  <>
+                    {isAdmin && (
+                      <Button
+                        onClick={() => navigate('/admin')}
+                        variant="outline"
+                        className="h-12 px-4 flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm"
+                        title="Admin Dashboard"
+                      >
+                        <Settings className="h-5 w-5" />
+                        <span className="font-medium">Admin</span>
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => navigate('/shopping-lists')}
+                      variant="outline"
+                      className="h-12 px-4 flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm"
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      <span className="font-medium">Listen</span>
+                    </Button>
+                    <Button
+                      onClick={handleSignOut}
+                      className="h-12 px-6 flex items-center gap-2 bg-white text-brand hover:bg-white/90"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span className="font-medium">Logout</span>
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => navigate('/auth')}
+                    className="h-12 px-6 flex items-center gap-2 bg-white text-brand hover:bg-white/90"
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="font-medium">Login</span>
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              {user ? (
-                <>
-                  {isAdmin && (
-                    <Button 
-                      onClick={() => navigate('/admin')}
+          </div>
+        </header>
+      ) : (
+        // COMPACT MODE - Sticky header
+        <header className="header compact-header sticky top-0 z-40 shadow-md">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="p-1.5 bg-white rounded-lg shadow-sm">
+                  <ChefHat className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#FF7A3D' }} />
+                </div>
+                <div className="leading-tight">
+                  <h1 className="brand text-xl sm:text-2xl font-bold leading-none">
+                    CookingCompiler
+                  </h1>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {user ? (
+                  <>
+                    {isAdmin && (
+                      <Button
+                        onClick={() => navigate('/admin')}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
+                        title="Admin"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => navigate('/shopping-lists')}
                       variant="outline"
-                      className="h-10 px-2 sm:px-4 flex items-center gap-2 border-border"
-                      title="Admin Dashboard"
+                      size="sm"
+                      className="h-8 px-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
                     >
-                      <Settings className="h-5 w-5" />
-                      <span className="font-medium hidden sm:inline">Admin</span>
+                      <ShoppingCart className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Button 
-                    onClick={() => navigate('/shopping-lists')}
-                    variant="outline"
-                    className="h-10 px-2 sm:px-4 flex items-center gap-2 border-border"
+                    <Button
+                      onClick={handleSignOut}
+                      size="sm"
+                      className="h-8 px-3 bg-white text-brand hover:bg-white/90"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => navigate('/auth')}
+                    size="sm"
+                    className="h-8 px-3 bg-white text-brand hover:bg-white/90"
                   >
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="font-medium hidden sm:inline">Listen</span>
+                    <User className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    onClick={handleSignOut}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
-                    style={{ 
-                      backgroundColor: 'hsl(var(--primary))', 
-                      color: 'hsl(var(--primary-foreground))',
-                      borderColor: 'hsl(var(--foreground))'
-                    }}
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-medium hidden sm:inline">Logout</span>
-                  </Button>
-                </>
-              ) : (
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 border border-foreground h-10 px-2 sm:px-4 flex items-center gap-2"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--primary))', 
-                    color: 'hsl(var(--primary-foreground))',
-                    borderColor: 'hsl(var(--foreground))'
-                  }}
-                >
-                  <User className="h-5 w-5" />
-                  <span className="font-medium hidden sm:inline">Login</span>
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6" ref={containerRef}>
         {/* Search Bar and User Filter */}
         {recipes.length > 0 && (
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+          <div className={atTop ? "mb-8" : "mb-6"}>
+            <div className={`flex flex-col ${atTop ? 'sm:flex-row' : 'sm:flex-row'} gap-${atTop ? '6' : '4'} ${atTop ? 'max-w-3xl mx-auto' : 'max-w-2xl mx-auto'}`}>
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className={`absolute left-${atTop ? '4' : '3'} top-1/2 transform -translate-y-1/2 ${atTop ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
                 <Input
                   type="text"
                   placeholder="Rezepte durchsuchen (Titel, Beschreibung, Zutaten, Tags)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-surface border-border/50 focus:border-primary"
+                  className={`pl-${atTop ? '12' : '10'} ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
                 />
               </div>
-              <div className="sm:w-48 relative" ref={userDropdownRef}>
+              <div className={`${atTop ? 'sm:w-64' : 'sm:w-48'} relative`} ref={userDropdownRef}>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Users className={`absolute left-${atTop ? '4' : '3'} top-1/2 transform -translate-y-1/2 ${atTop ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
                   <Input
                     type="text"
                     placeholder="Nach Benutzer suchen..."
@@ -411,7 +463,7 @@ const Index = () => {
                       }
                     }}
                     onFocus={() => setShowUserDropdown(true)}
-                    className="pl-10 bg-surface border-border/50 focus:border-primary"
+                    className={`pl-${atTop ? '12' : '10'} ${atTop ? 'h-12 text-lg bg-white/95' : 'bg-surface'} border-border/50 focus:border-primary`}
                   />
                   {userSearchTerm && (
                     <button
