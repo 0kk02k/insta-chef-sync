@@ -18,6 +18,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Methode nicht erlaubt'
+    }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Allow": "POST, OPTIONS" },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -69,8 +79,13 @@ serve(async (req) => {
       });
     }
     
-    // Sanitize path to prevent directory traversal
-    if (path.includes('..') || path.startsWith('/')) {
+    // Path must stay inside the authenticated user's storage folder.
+    if (
+      path.includes('..') ||
+      path.startsWith('/') ||
+      !path.startsWith(`${user.id}/`) ||
+      !path.toLowerCase().endsWith('.pdf')
+    ) {
       return new Response(JSON.stringify({ 
         success: false,
         error: 'Ungültiger Dateipfad'
@@ -80,7 +95,7 @@ serve(async (req) => {
       });
     }
     
-    console.log("Processing PDF:", path);
+    console.log("Processing PDF for user:", user.id);
 
     // Get user preferences for language and measurement units (use authenticated user.id)
     let userPrefs = { language: 'de', measurement_unit: 'metric' };
@@ -190,14 +205,11 @@ ${text}`
     });
 
     const result = await completion.json();
-    console.log("xAI Grok response:", result);
-
     if (!result.choices?.[0]?.message?.content) {
       throw new Error("Keine gültige Antwort von xAI Grok");
     }
 
     const answer = result.choices[0].message.content.trim();
-    console.log("xAI Grok answer raw:", answer);
     
     // JSON parsen und validieren
     let recipeData;
@@ -207,7 +219,6 @@ ${text}`
       recipeData = JSON.parse(cleanAnswer);
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
-      console.error("Raw answer was:", answer);
       
       // Fallback: Erstelle ein einfaches Rezept aus dem Text
       recipeData = {
@@ -232,7 +243,7 @@ ${text}`
     console.error("PDF processor error:", err);
     return new Response(JSON.stringify({ 
       success: false,
-      error: err instanceof Error ? err.message : String(err)
+      error: "PDF konnte nicht verarbeitet werden"
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

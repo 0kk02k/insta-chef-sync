@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Edit, Check, X, Upload, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/cookieAwareClient';
+import { useAuth } from '@/hooks/useAuth';
 
 interface InlineEditImageProps {
   value: string | null;
@@ -30,6 +31,7 @@ const InlineEditImage = ({
   const [uploading, setUploading] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSave = async (imageUrl?: string) => {
     setSaving(true);
@@ -97,9 +99,11 @@ const InlineEditImage = ({
     setUploading(true);
 
     try {
+      if (!user) throw new Error('Nicht angemeldet');
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${recipeId}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('recipe-images')

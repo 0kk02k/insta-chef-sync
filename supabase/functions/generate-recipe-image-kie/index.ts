@@ -35,6 +35,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Methode nicht erlaubt' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -280,7 +287,7 @@ Generate a detailed SeaDream prompt that will create an appetizing, professional
     const imageBufferUint8 = new Uint8Array(imageBuffer);
     
     // Upload to Supabase Storage
-    const fileName = `kie-ai-${recipeId}-${Date.now()}.png`;
+    const fileName = `${user.id}/kie-ai-${recipeId}-${Date.now()}.png`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('recipe-images')
       .upload(fileName, imageBufferUint8, {

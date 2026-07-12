@@ -108,7 +108,7 @@ const Auth = () => {
     setCodeValidating(false);
 
     setIsLoading(true);
-    const { error } = await signUp(email, password, {
+    const { error, user: signedUpUser } = await signUp(email, password, {
       display_name: displayName,
       language,
       measurement_unit: measurementUnit
@@ -129,19 +129,19 @@ const Auth = () => {
         });
       }
     } else {
-      // Mark invitation code as used (fire and forget)
-      fetch(
-        'https://fozagrcmptfnbnpivdnz.supabase.co/functions/v1/use-invitation-code',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            code: invitationCode.trim().toUpperCase(),
-            // We don't have the user ID yet, so we pass email for logging
-            userId: null
-          }),
-        }
-      ).catch(console.error);
+      if (signedUpUser?.id) {
+        fetch(
+          'https://fozagrcmptfnbnpivdnz.supabase.co/functions/v1/use-invitation-code',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code: invitationCode.trim().toUpperCase(),
+              userId: signedUpUser.id
+            }),
+          }
+        ).catch(console.error);
+      }
       
       // Reset rate limit on successful signup
       authRateLimiter.reset(rateLimitKey);

@@ -12,6 +12,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ valid: false, error: 'Methode nicht erlaubt' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
+  }
+
   try {
     const { code } = await req.json();
 
@@ -22,10 +29,12 @@ serve(async (req) => {
       );
     }
 
+    const normalizedCode = code.trim().toUpperCase();
+
     // Validate code length
-    if (code.length > 50) {
+    if (normalizedCode.length < 4 || normalizedCode.length > 50 || !/^[A-Z0-9_-]+$/.test(normalizedCode)) {
       return new Response(
-        JSON.stringify({ valid: false, error: 'Code zu lang' }),
+        JSON.stringify({ valid: false, error: 'Code ungültig' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -37,7 +46,7 @@ serve(async (req) => {
 
     // Use the database function to validate
     const { data, error } = await supabase.rpc('validate_registration_code', {
-      input_code: code.trim().toUpperCase()
+      input_code: normalizedCode
     });
 
     if (error) {

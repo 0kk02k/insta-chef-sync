@@ -22,21 +22,36 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
+  }
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
-    let user = null;
-    
-    if (authHeader) {
-      const { data: { user: authUser } } = await supabaseClient.auth.getUser(
-        authHeader.replace('Bearer ', '')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-      user = authUser;
+    }
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { action, resource_type, resource_id, details } = await req.json();
@@ -50,7 +65,7 @@ serve(async (req) => {
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
     const auditEntry: AuditLogEntry = {
-      user_id: user?.id,
+      user_id: user.id,
       action,
       resource_type,
       resource_id,
@@ -60,7 +75,10 @@ serve(async (req) => {
     };
 
     // Log to console for immediate visibility
-    console.log('Audit Log:', JSON.stringify(auditEntry, null, 2));
+    console.log('Audit Log:', JSON.stringify({
+      ...auditEntry,
+      details: details ? '[redacted]' : undefined
+    }));
 
     // Here you could also store to a dedicated audit log table
     // For now, we'll just log to the edge function logs
@@ -78,7 +96,7 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : String(error),
+        error: 'Audit logging failed',
         timestamp: new Date().toISOString()
       }),
       {

@@ -17,7 +17,7 @@ interface Recipe {
   instagram_url: string | null;
   image_url: string | null;
   ingredients: string[];
-  structured_ingredients?: any[] | null;
+  structured_ingredients?: Array<{ amount: string; unit: string; ingredient: string }> | null;
   instructions: string[];
   cooking_time: number | null;
   servings: number | null;
@@ -89,7 +89,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
     });
   }, [formData.instructions]);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean | string[] | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -120,11 +120,14 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
   };
 
   const uploadImage = async (file: File): Promise<string> => {
+    if (!user) throw new Error('Nicht angemeldet');
+
     const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    const filePath = `${user.id}/${fileName}`;
     
     const { data, error } = await supabase.storage
       .from('recipe-images')
-      .upload(fileName, file);
+      .upload(filePath, file);
 
     if (error) {
       throw new Error('Fehler beim Hochladen des Bildes: ' + error.message);
@@ -132,7 +135,7 @@ const EditRecipeDialog = ({ recipe, onRecipeUpdated }: EditRecipeDialogProps) =>
 
     const { data: { publicUrl } } = supabase.storage
       .from('recipe-images')
-      .getPublicUrl(fileName);
+      .getPublicUrl(filePath);
 
     return publicUrl;
   };

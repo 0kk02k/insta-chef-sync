@@ -39,11 +39,19 @@ const MAX_IMAGES = 10;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 serve(async (req) => {
-  console.log('🚀 process-screenshot-recipe function called');
-
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Methode nicht erlaubt'
+    }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' }
+    });
   }
 
   try {
@@ -95,32 +103,7 @@ serve(async (req) => {
     // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Smoke test endpoint
-    const url = new URL(req.url);
-    if (url.searchParams.get('selftest') === '1') {
-      console.log('🧪 Running smoke test');
-      const payload = {
-        model: 'gpt-5-nano-2025-08-07',
-        max_output_tokens: 50,
-        input: [{ role: 'user', content: [{ type: 'input_text', text: 'Sage nur: {"ok":true}' }] }],
-      };
-      const resp = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${xaiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'grok-4-fast',
-          messages: [{ role: 'user', content: 'Sage nur: {"ok":true}' }],
-          max_tokens: 50
-        }),
-      });
-      const raw = await resp.text();
-      return new Response(raw, { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } });
-    }
-
-    const { imageBase64, imageMime, images, fileName, userId } = await req.json();
+    const { imageBase64, imageMime, images } = await req.json();
 
     // Normalize images input to array of { base64, mime }
     const normalizedImages: Array<{ base64: string; mime: string }> = (() => {
@@ -228,11 +211,8 @@ serve(async (req) => {
     const dataUrl = `data:${imageInfo.mime};base64,${imageInfo.base64}`;
     const mimeType = imageInfo.mime;
     const base64Data = imageInfo.base64;
-    const dataUrlHeader = dataUrl.substring(0, 80);
-    
-    console.log('🔍 Data-URL Header (first 80 chars):', dataUrlHeader);
     console.log('📋 MIME Type detected:', mimeType);
-    console.log('📏 Base64 Data Length:', base64Data.length, 'characters');
+    console.log('📏 Image payload length:', base64Data.length, 'characters');
 
     // userPrefs bereits oben geladen
 
@@ -246,8 +226,6 @@ serve(async (req) => {
     const unitPrompt = userPrefs.measurement_unit === 'metric' ? 'Convert measurements to metric (grams, kg, ml, liters, Celsius). IMPORTANT: Convert "cups" to actual volume/weight - e.g. "1 cup flour" = "125g Mehl", "1 cup milk" = "240ml Milch", not just "1 Tasse". Convert "tsb/tbsp" to "EL" (Esslöffel) and "tsp" to "TL" (Teelöffel).' : 'Convert measurements to imperial (oz, lbs, cups, Fahrenheit).';
 
     console.log('📸 Processing screenshot with xAI Grok-4-Fast Vision API (Chat Completions)');
-    console.log('🎯 API Endpoint: /v1/chat/completions');
-
     // Use xAI Grok-4-Fast for vision processing
     const payload = {
       model: 'grok-4-fast', // xAI Grok-4-Fast with vision capabilities
@@ -318,15 +296,8 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       ]
     };
 
-    // Log complete payload without API key for debugging
-    const payloadForLogging = { ...payload };
-    console.log('📋 Complete Payload (without API key):');
-    console.log(JSON.stringify(payloadForLogging, null, 2));
-
     console.log('📤 Sending payload to xAI Chat Completions API (Grok-4-Fast)');
     console.log('🔧 Payload model:', payload.model);
-    console.log('🔧 Max tokens:', payload.max_tokens);
-    console.log('🔧 Stream disabled:', payload.stream === false);
 
     const visionResponse = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
@@ -338,15 +309,12 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     });
 
     if (!visionResponse.ok) {
-      const errorText = await visionResponse.text();
-      console.error('❌ xAI Vision API error:', errorText);
       throw new Error(`xAI Vision API error: ${visionResponse.status}`);
     }
 
     console.log('✅ xAI Grok-4-Fast Vision response received');
     
     const rawResponse = await visionResponse.text();
-    console.log('🔍 COMPLETE xAI Response (raw text):', rawResponse);
     
     let visionData: any = null;
     try {
@@ -355,9 +323,7 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
       console.error('❌ JSON parse of response failed:', parseError);
       return new Response(
         JSON.stringify({ 
-          error: 'xAI response parsing failed', 
-          details: parseError instanceof Error ? parseError.message : String(parseError),
-          rawResponse 
+          error: 'xAI response parsing failed'
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -367,8 +333,6 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     console.log('📊 Response metadata:');
     console.log('  - finish_reason:', visionData?.finish_reason);
     console.log('  - usage:', JSON.stringify(visionData?.usage || 'none'));
-    console.log('  - warnings:', JSON.stringify(visionData?.warnings || 'none'));
-    console.log('  - moderation:', JSON.stringify(visionData?.moderation || 'none'));
 
     // Extract text from Chat Completions API
     function extractChatContent(res: any): string | null {
@@ -379,28 +343,20 @@ Wenn unlesbar: {"status":"unreadable","reason": "..."}`
     }
 
     let content = extractChatContent(visionData);
-    console.log('📝 extracted content from Chat Completions:', content);
 
     // Fallback: Try Responses API fields if Chat Completions fails
     if (!content) {
       content = typeof visionData?.output_text === 'string' && visionData.output_text.trim()
         ? visionData.output_text
         : visionData?.output?.[0]?.content?.[0]?.text ?? null;
-      console.log('🧪 fallback extracted text from Responses fields:', content);
     }
 
     if (!content || !content.trim()) {
-      console.log('❌ Empty content - exploring response structure:');
-      console.log('  - response keys:', Object.keys(visionData || {}));
-      console.log('  - output structure:', JSON.stringify(visionData?.output || 'none'));
-      console.log('  - full response structure:', JSON.stringify(visionData, null, 2));
-      
       return new Response(
         JSON.stringify({ 
           error: 'xAI returned empty content', 
           details: 'Chat Completions API returned empty content',
-          responseKeys: Object.keys(visionData || {}),
-          rawResponse 
+          responseKeys: Object.keys(visionData || {})
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

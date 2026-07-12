@@ -30,9 +30,80 @@ const MAX_CONTENT_LENGTH = 100000; // 100KB max text content
 const MAX_URL_LENGTH = 2048;
 const ALLOWED_URL_PROTOCOLS = ['http:', 'https:'];
 
+function isBlockedHostname(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) {
+    return true;
+  }
+
+  if (host === '::1' || host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')) {
+    return true;
+  }
+
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!ipv4) return false;
+
+  const octets = ipv4.slice(1).map(Number);
+  if (octets.some((part) => part < 0 || part > 255)) return true;
+
+  const [a, b] = octets;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168)
+  );
+}
+
+async function readLimitedText(response: Response, maxBytes: number): Promise<string> {
+  const contentLength = response.headers.get('content-length');
+  if (contentLength && Number(contentLength) > maxBytes) {
+    throw new Error('Antwort zu groß');
+  }
+
+  if (!response.body) {
+    return response.text();
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+
+    received += value.byteLength;
+    if (received > maxBytes) {
+      await reader.cancel();
+      throw new Error('Antwort zu groß');
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return new TextDecoder().decode(bytes);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Methode nicht erlaubt' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
   }
 
   try {
@@ -135,23 +206,27 @@ serve(async (req) => {
           );
         }
         
-        console.log('Processing URL:', url);
-        
         try {
           // Validate URL format and protocol
           const parsedUrl = new URL(url);
           if (!ALLOWED_URL_PROTOCOLS.includes(parsedUrl.protocol)) {
             throw new Error('Nur HTTP und HTTPS URLs sind erlaubt');
           }
+          if (parsedUrl.username || parsedUrl.password || isBlockedHostname(parsedUrl.hostname)) {
+            throw new Error('URL-Host ist nicht erlaubt');
+          }
+
+          console.log('Processing URL host:', parsedUrl.hostname);
           
           // Fetch content from URL with timeout
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
           
-          const response = await fetch(url, {
+          const response = await fetch(parsedUrl.href, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             },
+            redirect: 'follow',
             signal: controller.signal
           });
           clearTimeout(timeoutId);
@@ -160,7 +235,12 @@ serve(async (req) => {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
-          const html = await response.text();
+          const responseContentType = response.headers.get('content-type') || '';
+          if (responseContentType && !responseContentType.includes('text/html') && !responseContentType.includes('text/plain')) {
+            throw new Error('URL liefert keinen Textinhalt');
+          }
+
+          const html = await readLimitedText(response, MAX_CONTENT_LENGTH);
           
           // Extract text content from HTML (simple approach)
           // Remove script and style tags
@@ -335,8 +415,6 @@ ${processContent}
       throw new Error('Keine Antwort von xAI Grok API');
     }
 
-    console.log('Raw xAI Grok response:', extractedText);
-
     // Parse JSON response
     let recipeData: RecipeData;
     try {
@@ -345,7 +423,6 @@ ${processContent}
       recipeData = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error('JSON Parse Error:', parseError);
-      console.error('Raw response:', extractedText);
       throw new Error('Fehler beim Parsen der Rezeptdaten');
     }
 
@@ -354,7 +431,7 @@ ${processContent}
       throw new Error('Unvollständige Rezeptdaten extrahiert');
     }
 
-    console.log('Successfully extracted recipe data:', recipeData);
+    console.log('Successfully extracted recipe data:', recipeData.title);
 
     // Image generation removed - users can manually generate images after recipe creation
 
@@ -373,16 +450,10 @@ ${processContent}
 
   } catch (error) {
     console.error('Error in process-instagram-recipe function:', error);
-    console.error('Error details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    });
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error instanceof Error ? error.message : 'Unbekannter Fehler beim Verarbeiten des Rezepts',
-        details: error instanceof Error ? error.name : 'Unknown error type'
+        error: error instanceof Error ? error.message : 'Unbekannter Fehler beim Verarbeiten des Rezepts'
       }),
       {
         status: 500,

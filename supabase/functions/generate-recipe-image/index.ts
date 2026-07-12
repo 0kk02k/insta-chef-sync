@@ -35,6 +35,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Methode nicht erlaubt' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -221,7 +228,7 @@ Generate a detailed FLUX.schnell prompt that will create an appetizing, professi
     const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
     
     // Upload to Supabase Storage
-    const fileName = `ai-generated-${recipeId}-${Date.now()}.png`;
+    const fileName = `${user.id}/ai-generated-${recipeId}-${Date.now()}.png`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('recipe-images')
       .upload(fileName, imageBuffer, {

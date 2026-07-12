@@ -5,11 +5,11 @@ import { supabase } from '@/integrations/supabase/cookieAwareClient';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string, metadata?: { display_name: string; language: string; measurement_unit: string }) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  signInWithOAuth: (provider: 'google') => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: { display_name: string; language: string; measurement_unit: string }) => Promise<{ error: { message?: string } | null; user: User | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: { message?: string } | null }>;
+  resetPassword: (email: string) => Promise<{ error: { message?: string } | null }>;
+  signInWithOAuth: (provider: 'google') => Promise<{ error: { message?: string } | null }>;
+  signOut: () => Promise<{ error: { message?: string } | null }>;
   loading: boolean;
 }
 
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, metadata?: { display_name: string; language: string; measurement_unit: string }) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: metadata
       }
     });
-    return { error };
+    return { error, user: data.user };
   };
 
   const signIn = async (email: string, password: string) => {

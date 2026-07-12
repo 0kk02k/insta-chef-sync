@@ -11,6 +11,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Methode nicht erlaubt' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST, OPTIONS' } }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -41,7 +48,7 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub as string;
-    console.log('Authenticated user:', userId);
+    console.log('Authenticated admin request:', userId);
 
     // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -137,7 +144,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('admin-get-users error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unbekannter Fehler' }),
+      JSON.stringify({ error: 'Interner Serverfehler' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

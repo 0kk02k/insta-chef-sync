@@ -66,17 +66,20 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
+    if (!user) throw new Error('Nicht angemeldet');
+
     const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    const filePath = `${user.id}/${fileName}`;
     
     const { data, error } = await supabase.storage
       .from('recipe-images')
-      .upload(fileName, file);
+      .upload(filePath, file);
 
     if (error) throw error;
 
     const { data: { publicUrl } } = supabase.storage
       .from('recipe-images')
-      .getPublicUrl(fileName);
+      .getPublicUrl(filePath);
 
     return publicUrl;
   };
@@ -95,12 +98,15 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
           body: { imageBase64: base64Data, imageMime: uploadedContent.file.type, userId: user?.id }
         });
       } else if (uploadedContent.type === 'pdf' && uploadedContent.file) {
+        if (!user) throw new Error('Nicht angemeldet');
+
         // Upload PDF to storage first
         const fileName = `${Date.now()}-${uploadedContent.file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const filePath = `${user.id}/${fileName}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-uploads')
-          .upload(fileName, uploadedContent.file);
+          .upload(filePath, uploadedContent.file);
 
         if (uploadError) {
           throw uploadError;
@@ -108,17 +114,17 @@ const AddRecipeDialog = ({ onRecipeAdded }: AddRecipeDialogProps) => {
 
         // Process PDF with the pdf-processor function
         response = await supabase.functions.invoke('pdf-processor', {
-          body: { path: fileName, userId: user?.id }
+          body: { path: filePath }
         });
       } else if (uploadedContent.type === 'text' && uploadedContent.content) {
         // Send text content to the function
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { content: uploadedContent.content, userId: user?.id }
+          body: { content: uploadedContent.content }
         });
       } else if (uploadedContent.type === 'url' && uploadedContent.content) {
         // Send URL to the function for scraping
         response = await supabase.functions.invoke('process-instagram-recipe', {
-          body: { url: uploadedContent.content, userId: user?.id }
+          body: { url: uploadedContent.content }
         });
       } else {
         throw new Error('Unbekannter Content-Typ oder fehlende Daten');
