@@ -19,4 +19,34 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core libraries
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Supabase client
+          'supabase': ['@supabase/supabase-js'],
+          // UI library components
+          'ui-library': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-label',
+            '@radix-ui/react-slot',
+          ],
+          // PDF processing
+          'pdf-processing': ['html2canvas'],
+          // Utility libraries
+          'utils': ['clsx', 'tailwind-merge', 'class-variance-authority'],
+          // Icons
+          'icons': ['lucide-react'],
+        }
+      }
+    },
+    // Increase chunk size warning limit to 1000KB
+    chunkSizeWarningLimit: 1000,
+  },
 }));
